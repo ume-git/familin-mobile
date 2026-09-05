@@ -1,0 +1,1599 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Familin — 家族のお守り</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#2d6a74">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Familin">
+<style>
+  :root{
+    --bg:#f4f6f7; --surface:#ffffff; --ink:#1c2024; --soft:#5c6570; --line:#e2e6e8;
+    --accent:#2d6a74; --accent-soft:#e2eef0;
+    --bad:#b13a3a; --bad-soft:#fbe9e9;
+    --warn:#a8721f; --warn-soft:#faf1e0;
+    --good:#2f7d4f; --good-soft:#e6f3ea;
+    --line-green:#06c755;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]):not([data-theme="calm"]):not([data-theme="darkcalm"]){
+      --bg:#12171b; --surface:#1a2126; --ink:#e7edef; --soft:#9aa7ad; --line:#2c3438;
+      --accent:#6cbac4; --accent-soft:#1c3236;
+      --bad:#e0827c; --bad-soft:#3a2020;
+      --warn:#e3b65a; --warn-soft:#3a2f14;
+      --good:#6fc492; --good-soft:#173226;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#12171b; --surface:#1a2126; --ink:#e7edef; --soft:#9aa7ad; --line:#2c3438;
+    --accent:#6cbac4; --accent-soft:#1c3236;
+    --bad:#e0827c; --bad-soft:#3a2020;
+    --warn:#e3b65a; --warn-soft:#3a2f14;
+    --good:#6fc492; --good-soft:#173226;
+  }
+  /* 「穏やか」— 刺激の少ない、あたたかみのある配色 */
+  :root[data-theme="calm"]{
+    --bg:#f5efe4; --surface:#fffdf7; --ink:#3f362c; --soft:#8c8172; --line:#e6dcc8;
+    --accent:#6b8f7d; --accent-soft:#e3ece6;
+    --bad:#b6604f; --bad-soft:#f5e4de;
+    --warn:#b08a3e; --warn-soft:#f3ead4;
+    --good:#5f8f5a; --good-soft:#e6efe2;
+  }
+  /* 「穏やかダーク」— 暗いけれど黒すぎず・青すぎない、あたたかく落ち着いた配色 */
+  :root[data-theme="darkcalm"]{
+    --bg:#211c17; --surface:#2b241d; --ink:#ede5d8; --soft:#a89a86; --line:#3d342a;
+    --accent:#8fae9c; --accent-soft:#33413a;
+    --bad:#d98a72; --bad-soft:#43291f;
+    --warn:#d9b671; --warn-soft:#40341b;
+    --good:#8fc496; --good-soft:#253527;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Yu Gothic UI","Hiragino Sans","Meiryo",sans-serif;line-height:1.85;font-size:18px}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 100px}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .logo{font-size:26px}
+  .brand h1{font-size:21px;margin:0}
+  select#theme-select{width:auto;padding:8px 10px;font-size:14px;border-radius:8px}
+
+  .privacy-note{background:var(--accent-soft);color:var(--accent);border-radius:12px;
+    padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:700;text-align:center}
+
+  .voice-picker-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;margin-bottom:16px;font-size:14.5px}
+  .voice-picker-row label{color:var(--soft)}
+  .voice-picker-row select{width:auto;flex:1;min-width:140px;font-size:14px;padding:8px 10px}
+  .voice-picker-row button{font-size:13.5px;padding:8px 12px}
+
+  .people-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .person-pill{flex:none;background:var(--surface);border:1.5px solid var(--line);color:var(--ink);
+    border-radius:999px;padding:9px 16px;font-size:14.5px;font-weight:700}
+  .person-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .person-pill.add{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent)}
+  .people-actions{display:flex;gap:8px;margin-bottom:16px}
+  .people-actions button{font-size:13.5px;padding:8px 14px}
+
+  .banner{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap}
+  .banner .num{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+  .banner .cell span{display:block;color:var(--soft);font-size:13.5px;margin-top:2px}
+  .cell.bad .num{color:var(--bad)}
+  .cell.warn .num{color:var(--warn)}
+  .cell.bad.alert{position:relative;background:var(--bad-soft);border:1.5px solid var(--bad);
+    border-radius:12px;padding:10px 16px 10px 34px}
+  .cell.bad.alert .num{font-size:34px}
+  .cell.bad.alert span{color:var(--bad);font-weight:700}
+  .cell-flag{position:absolute;left:10px;top:12px;font-size:15px}
+
+  .section-title{font-size:17px;margin:0;color:var(--soft);font-weight:700}
+  .list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    flex-wrap:wrap;margin-bottom:10px}
+  .list-head select{width:auto;font-size:14px;padding:8px 10px}
+  .group-header{font-size:15px;font-weight:700;color:var(--accent);margin:18px 0 8px;
+    padding-bottom:6px;border-bottom:2px solid var(--accent-soft)}
+  .list > .group-header:first-child{margin-top:0}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    padding:20px 20px;margin-bottom:16px}
+  .panel h2{font-size:18px;margin:0 0 14px}
+  .weekday-hint{font-size:14px;color:var(--soft);margin-top:5px;min-height:1.2em}
+  .date-select-row{display:flex;align-items:center;gap:6px}
+  .date-select-row select{flex:1 1 0;min-width:0;padding:12px 6px;font-size:16px}
+
+  .calendar-widget{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px;margin-top:10px}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .cal-head button{padding:7px 14px;font-size:15px}
+  .cal-title{font-weight:700;font-size:16px;color:var(--ink)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
+  .cal-dow{font-size:12.5px;color:var(--soft);padding:4px 0;font-weight:700}
+  .cal-day{padding:10px 0;border-radius:8px;font-size:15px;cursor:pointer;background:var(--bg);
+    border:1.5px solid transparent;color:var(--ink);font-family:inherit;
+    font-variant-numeric:tabular-nums}
+  .cal-day.today{border-color:var(--accent)}
+  .cal-day.selected{background:var(--accent);color:#fff;font-weight:700}
+  .cal-day.empty{visibility:hidden;cursor:default}
+
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;
+    align-items:center;justify-content:center;z-index:80;padding:20px}
+  .modal-back.show{display:flex}
+  .modal-box{background:var(--surface);border-radius:16px;padding:24px 22px;max-width:360px;width:100%}
+  .modal-box p{font-size:16px;margin:0 0 18px;color:var(--ink);line-height:1.7}
+  .guide-box{max-width:480px;max-height:80vh;display:flex;flex-direction:column;padding:0}
+  .guide-head{display:flex;justify-content:space-between;align-items:center;
+    padding:20px 22px 14px;border-bottom:1px solid var(--line)}
+  .guide-head h3{margin:0;font-size:19px}
+  .guide-head button{font-size:14px;padding:8px 14px}
+  .guide-body{padding:18px 20px 24px;overflow-y:auto}
+
+  .guide-cover{background:var(--accent);color:#fff;border-radius:16px;padding:26px 22px;
+    margin-bottom:18px;text-align:center}
+  .guide-cover .logo{font-size:36px;margin-bottom:6px}
+  .guide-cover h4{font-size:20px;margin:0 0 6px;color:#fff}
+  .guide-cover p{font-size:14px;margin:0;opacity:.95;color:#fff}
+
+  .guide-step{background:var(--bg);border:1px solid var(--line);border-radius:14px;
+    padding:16px 16px;margin-bottom:12px}
+  .guide-step-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .guide-step-num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--accent);
+    color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .guide-step h5{font-size:15.5px;margin:0}
+  .guide-step p{font-size:14.5px;margin:0;color:var(--ink);line-height:1.7}
+  .guide-callout{border-radius:10px;padding:11px 14px;margin-top:10px;font-size:13.5px;line-height:1.7}
+  .guide-callout b{display:block;font-size:14px;margin-bottom:3px}
+  .guide-callout.warn{background:var(--warn-soft);color:var(--warn)}
+  .guide-callout.bad{background:var(--bad-soft);color:var(--bad)}
+  .guide-callout.good{background:var(--good-soft);color:var(--good)}
+
+  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+  .icon-choice{font-size:23px;padding:8px 0;border-radius:10px;border:2px solid var(--line);
+    background:var(--bg);cursor:pointer;text-align:center;line-height:1}
+  .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .row label{display:block;font-size:14px;color:var(--soft);margin-bottom:5px}
+  .row .field{flex:1;min-width:140px}
+  input,select,textarea{
+    width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:9px;
+    font-size:18px;font-family:inherit;background:var(--surface);color:var(--ink)}
+  textarea{resize:vertical;min-height:70px}
+  .checkline{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:16px}
+  .checkline input{width:auto}
+
+  button{cursor:pointer;border:none;border-radius:9px;padding:13px 18px;
+    font-size:16.5px;font-weight:700;font-family:inherit}
+  .primary{background:var(--accent);color:#fff;width:100%}
+  .ghost{background:var(--accent-soft);color:var(--accent)}
+  .danger{background:var(--bad-soft);color:var(--bad)}
+  .btnrow{display:flex;gap:10px;margin-top:6px}
+  .btnrow button{flex:1}
+
+  .list{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .item .name{font-weight:700;font-size:19px}
+  .item .cat{color:var(--soft);font-size:14.5px;margin-top:3px}
+  .chip{display:inline-block;font-weight:700;font-size:14px;padding:5px 12px;border-radius:999px;white-space:nowrap}
+  .chip.bad{background:var(--bad-soft);color:var(--bad)}
+  .chip.warn{background:var(--warn-soft);color:var(--warn)}
+  .chip.good{background:var(--good-soft);color:var(--good)}
+  .action{margin-top:12px;font-size:16px;background:var(--bg);border-radius:10px;padding:12px 14px}
+  .meta{margin-top:8px;color:var(--soft);font-size:14.5px}
+  .row-btns{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .row-btns button{font-size:14px;padding:9px 14px}
+  .empty{color:var(--soft);text-align:center;padding:30px 10px;font-size:16px}
+
+  .feedback-panel{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:14px;
+    padding:22px 20px;margin-top:22px}
+  .feedback-panel h2{font-size:19px;margin:0 0 6px;color:var(--ink)}
+  .feedback-panel .lead{color:var(--soft);font-size:15px;margin:0 0 16px}
+  .line-btn{background:var(--line-green);color:#fff;width:100%;font-size:17px;
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .copy-fallback{margin-top:10px;font-size:13.5px;color:var(--soft);text-align:center}
+  .copy-fallback button{background:none;border:none;color:var(--accent);font-weight:700;
+    text-decoration:underline;font-size:13.5px;padding:4px;cursor:pointer}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:10px;
+    font-size:14.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;z-index:50;
+    max-width:90%;text-align:center}
+
+  #btn-stop-speech{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--bad);color:#fff;border:none;border-radius:999px;padding:15px 26px;
+    font-size:15px;font-weight:700;z-index:60;box-shadow:0 6px 18px rgba(0,0,0,.35);
+    cursor:pointer;font-family:inherit}
+
+  .alert-overlay{position:fixed;inset:0;background:#a52f2f;color:#fff;z-index:100;
+    display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:26px 16px}
+  .alert-overlay.show{display:flex}
+  .alert-box{max-width:520px;width:100%;background:rgba(0,0,0,.18);border-radius:18px;padding:24px 20px;margin-top:10px}
+  .alert-head{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+  .alert-sub{font-size:15px;text-align:center;opacity:.9;margin-bottom:18px}
+  .alert-item{background:rgba(255,255,255,.16);border-radius:12px;padding:15px 16px;margin-bottom:12px}
+  .alert-item .name{font-size:18px;font-weight:700}
+  .alert-item .cat{font-size:13.5px;opacity:.85;margin-top:2px}
+  .alert-item .act{font-size:15.5px;margin-top:8px;line-height:1.7}
+  .alert-btns{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+  .alert-btns button{flex:1;min-width:150px;font-size:16px;padding:14px;border-radius:9px;
+    border:none;cursor:pointer;font-weight:700;font-family:inherit}
+  .alert-btns .primary{background:#fff;color:#a52f2f;width:auto}
+  .alert-btns .ghost{background:rgba(255,255,255,.22);color:#fff}
+
+  footer{color:var(--soft);font-size:13px;text-align:center;margin-top:20px}
+
+  .step{display:none}
+  .step.show{display:block}
+  .auth-wrap{min-height:min(70vh,560px);display:flex;align-items:center;justify-content:center;padding:20px 0}
+  .auth-box{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:30px 26px;max-width:440px;width:100%}
+  .auth-box .lock-emoji{font-size:38px;text-align:center;margin-bottom:6px}
+  .auth-box h2{font-size:21px;margin:0 0 10px;text-align:center}
+  .auth-box p.lead{color:var(--soft);font-size:15px;margin:0 0 18px;text-align:left}
+  .auth-box input{width:100%;padding:14px;border:1.5px solid var(--line);border-radius:9px;
+    font-size:21px;letter-spacing:.12em;font-family:inherit;background:var(--bg);
+    color:var(--ink);margin-bottom:14px;text-align:center}
+  .auth-box input.wide{font-size:15.5px;letter-spacing:.04em;font-family:"Consolas","Courier New",monospace}
+  .auth-box label.field-label{display:block;font-size:14px;color:var(--soft);margin-bottom:6px;text-align:left}
+  .auth-box button.wide-btn{width:100%;margin-bottom:10px}
+  .auth-box .link-btn{background:none;color:var(--accent);font-weight:400;border:none;
+    font-size:14.5px;text-decoration:underline;padding:6px;cursor:pointer;display:block;margin:0 auto}
+  .auth-box .error{background:var(--bad-soft);color:var(--bad);border-radius:9px;
+    padding:11px 13px;margin-bottom:14px;font-size:14.5px;display:none;text-align:left}
+  .auth-box .ok{background:var(--good-soft);color:var(--good);border-radius:9px;
+    padding:11px 13px;margin-bottom:14px;font-size:14.5px;display:none;text-align:left}
+  .auth-recovery-key{font-family:"Consolas","Courier New",monospace;font-size:19px;
+    letter-spacing:.05em;text-align:center;background:var(--bg);
+    border:2px dashed var(--accent);border-radius:12px;padding:18px 10px;
+    margin-bottom:16px;word-break:break-all;color:var(--ink)}
+  .auth-warn{background:var(--warn-soft);color:var(--warn);border-radius:9px;
+    padding:12px 14px;margin-bottom:16px;font-size:14px;font-weight:700}
+  .auth-check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px;font-size:14.5px}
+  .auth-check-row input{width:auto;margin:2px 0 0 0}
+  .reset-link{text-align:center;margin-top:14px;font-size:12.5px;color:var(--soft)}
+  .reset-link button{background:none;border:none;color:var(--soft);text-decoration:underline;
+    font-size:12.5px;font-weight:400;padding:2px;cursor:pointer}
+  .security-note{background:var(--warn-soft);color:var(--warn);border-radius:9px;
+    padding:10px 12px;margin-bottom:16px;font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="step show" id="screen-setup">
+    <div class="auth-wrap"><div class="auth-box">
+      <div class="lock-emoji">🔑</div>
+      <h2>暗証番号を決めてください</h2>
+      <p class="lead">最初に1回だけ、4〜6桁の好きな数字を決めます。次にFamilinを開くときから、この番号が必要になります。</p>
+      <div class="security-note">🔒 登録した内容は、この端末の中で暗号化されたうえで保存されます。この端末の外には一切送信されません。</div>
+      <div class="error" id="error-setup"></div>
+      <label class="field-label">暗証番号（4〜6桁の数字）</label>
+      <input type="password" id="setup-pin1" inputmode="numeric" maxlength="6">
+      <label class="field-label">もう一度、同じ番号を入力してください</label>
+      <input type="password" id="setup-pin2" inputmode="numeric" maxlength="6">
+      <button class="primary wide-btn" id="btn-setup">この番号で決定する</button>
+    </div></div>
+  </div>
+
+  <div class="step" id="screen-recovery-display">
+    <div class="auth-wrap"><div class="auth-box">
+      <div class="lock-emoji">🗝️</div>
+      <h2>回復キーを保管してください</h2>
+      <p class="lead">暗証番号を忘れてしまったときに、データを取り戻すための合言葉です。これを失くすと、データを取り戻す方法はありません（開発者にも復元できません）。</p>
+      <div class="auth-recovery-key" id="recovery-key-display">----</div>
+      <div class="auth-warn">紙に書き写すか、スクリーンショットを撮って、この端末とは別の安全な場所に控えておいてください。</div>
+      <label class="auth-check-row">
+        <input type="checkbox" id="chk-saved">
+        <span>控えました（このキーはもう表示されません）</span>
+      </label>
+      <button class="primary wide-btn" id="btn-continue" disabled>Familinを開く</button>
+    </div></div>
+  </div>
+
+  <div class="step" id="screen-lock">
+    <div class="auth-wrap"><div class="auth-box">
+      <div class="lock-emoji">🔒</div>
+      <h2>Familin はロックされています</h2>
+      <div class="error" id="error-lock"></div>
+      <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" placeholder="暗証番号">
+      <button class="primary wide-btn" id="btn-unlock">開く</button>
+      <button class="link-btn" id="btn-goto-recovery">暗証番号を忘れた場合はこちら</button>
+      <div class="reset-link"><button id="btn-reset-all">登録内容をすべて消して、初めからやり直す</button></div>
+    </div></div>
+  </div>
+
+  <div class="step" id="screen-recovery-entry">
+    <div class="auth-wrap"><div class="auth-box">
+      <div class="lock-emoji">🗝️</div>
+      <h2>回復キーで開く</h2>
+      <p class="lead">最初に控えた回復キーを入力してください。</p>
+      <div class="error" id="error-recovery"></div>
+      <input type="text" id="recovery-input" class="wide" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocapitalize="characters">
+      <button class="primary wide-btn" id="btn-recover">回復キーで開く</button>
+      <button class="link-btn" id="btn-back-to-lock">暗証番号の入力に戻る</button>
+    </div></div>
+  </div>
+
+  <div class="step" id="screen-newpin">
+    <div class="auth-wrap"><div class="auth-box">
+      <div class="lock-emoji">🔑</div>
+      <h2>新しい暗証番号を決めてください</h2>
+      <div class="ok" id="ok-newpin">回復キーが確認できました。次からのために、新しい暗証番号を決めます。</div>
+      <div class="error" id="error-newpin"></div>
+      <input type="password" id="newpin1" inputmode="numeric" maxlength="6" placeholder="新しい暗証番号（4〜6桁）">
+      <input type="password" id="newpin2" inputmode="numeric" maxlength="6" placeholder="もう一度入力してください">
+      <button class="primary wide-btn" id="btn-set-newpin">この番号に変更する</button>
+    </div></div>
+  </div>
+
+  <div class="step" id="screen-app">
+  <div class="topbar">
+    <div class="brand"><span class="logo">🛡️</span><h1>Familin</h1></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="theme-select">
+        <option value="auto">自動</option>
+        <option value="light">ライト</option>
+        <option value="dark">ダーク</option>
+        <option value="calm">穏やか（優しい配色）</option>
+        <option value="darkcalm">穏やかダーク（暗くて優しい配色）</option>
+      </select>
+      <button class="ghost" id="btn-open-guide" title="使い方" style="font-size:14px;padding:8px 12px">📖</button>
+      <button class="ghost" id="btn-relock" title="ロックする" style="font-size:14px;padding:8px 12px">🔒</button>
+    </div>
+  </div>
+
+  <div class="privacy-note">🔒 登録内容は暗号化されて、この端末の中だけに保存されます</div>
+
+  <div class="voice-picker-row">
+    <label for="voice-select">🔊 読み上げの声</label>
+    <select id="voice-select"><option value="">（この端末で確認中…）</option></select>
+    <button class="ghost" id="btn-voice-test">試しに聞く</button>
+  </div>
+
+  <div class="people-row" id="people-row"></div>
+  <div class="people-actions" id="people-actions" style="display:none">
+    <button class="ghost" id="btn-edit-person">✏️ 名前を変更</button>
+    <button class="danger" id="btn-delete-person">🗑 この人を削除</button>
+  </div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="list-head">
+    <h2 class="section-title">📋 登録一覧</h2>
+    <select id="list-view-mode">
+      <option value="urgency">緊急度順</option>
+      <option value="category">種類ごとにまとめる</option>
+      <option value="person">家族・名前ごとにまとめる</option>
+    </select>
+  </div>
+  <div class="list" id="list"></div>
+
+  <div class="panel">
+    <h2 id="form-title">＋ 新しく登録する</h2>
+    <input type="hidden" id="edit-id" value="">
+    <div class="row">
+      <div class="field">
+        <label>名称（例: パスポート）</label>
+        <input type="text" id="f-name" placeholder="パスポート">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>種類</label>
+        <select id="f-category"></select>
+      </div>
+      <div class="field">
+        <label>登録する人</label>
+        <select id="f-person"></select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>期限日</label>
+        <div class="date-select-row">
+          <select id="f-year"></select>
+          <select id="f-month"></select>
+          <select id="f-day"></select>
+        </div>
+        <div class="weekday-hint" id="f-date-weekday"></div>
+        <button type="button" class="ghost" id="btn-toggle-calendar" style="margin-top:8px;font-size:14px;padding:9px 14px">📅 カレンダーで選ぶ</button>
+        <div class="calendar-widget" id="calendar-widget" style="display:none"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>メモ（任意）</label>
+        <input type="text" id="f-memo" placeholder="更新に必要なもの、など">
+      </div>
+    </div>
+    <div class="row" id="row-license" style="display:none">
+      <div class="field">
+        <label>免許証の色（分かれば）</label>
+        <select id="f-license-color">
+          <option value="">選択してください</option>
+          <option value="ゴールド">ゴールド</option>
+          <option value="ブルー">ブルー</option>
+          <option value="グリーン">グリーン</option>
+          <option value="わからない">わからない</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" id="row-senior" style="display:none">
+      <label class="checkline"><input type="checkbox" id="f-license-senior"> 更新時に70歳以上になる</label>
+    </div>
+    <div class="btnrow">
+      <button class="primary" id="btn-save">登録する</button>
+    </div>
+    <div class="btnrow" id="btnrow-cancel" style="display:none">
+      <button class="ghost" id="btn-cancel">編集をやめる</button>
+    </div>
+  </div>
+
+  <div class="feedback-panel">
+    <h2>💬 感想を送る</h2>
+    <p class="lead">使ってみて、いかがでしたか？分かりにくかった点や、欲しい機能など、なんでも聞かせてください。</p>
+    <label style="display:block;font-size:14px;color:var(--soft);margin-bottom:5px">お名前（任意）</label>
+    <input type="text" id="fb-name" placeholder="例: お母さん" style="margin-bottom:12px">
+    <label style="display:block;font-size:14px;color:var(--soft);margin-bottom:5px">感想・改善してほしい点</label>
+    <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
+    <div class="btnrow" style="margin-top:14px">
+      <button class="line-btn" id="btn-line-send">📩 LINEで送る</button>
+    </div>
+    <div class="copy-fallback">
+      LINEアプリが開かない場合は
+      <button id="btn-copy-fb">文章をコピーする</button>
+      して、LINEに貼り付けて送ってください。
+    </div>
+  </div>
+
+  <footer>登録した情報はこの端末の中だけに暗号化されて保存され、外部には送信されません。</footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<button id="btn-stop-speech" style="display:none">⏹ 読み上げを止める</button>
+
+<div class="modal-back" id="modal-confirm">
+  <div class="modal-box">
+    <p id="modal-confirm-text"></p>
+    <div class="btnrow">
+      <button class="ghost" id="modal-confirm-cancel">やめる</button>
+      <button class="danger" id="modal-confirm-ok">はい</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-input">
+  <div class="modal-box">
+    <p id="modal-input-label"></p>
+    <input type="text" id="modal-input-field" maxlength="20">
+    <div class="btnrow">
+      <button class="ghost" id="modal-input-cancel">やめる</button>
+      <button class="primary" id="modal-input-ok">決定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-person">
+  <div class="modal-box">
+    <p id="modal-person-title">家族を追加</p>
+    <div class="icon-grid" id="icon-grid"></div>
+    <input type="text" id="modal-person-name" placeholder="呼び方（例: おじいさん、たかしさん）" maxlength="20">
+    <div class="btnrow">
+      <button class="ghost" id="modal-person-cancel">やめる</button>
+      <button class="primary" id="modal-person-ok">決定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-guide">
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3>📖 使い方</h3>
+      <button class="ghost" id="btn-guide-close">閉じる</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-cover">
+        <div class="logo">🛡️</div>
+        <h4>Familin 使い方ガイド</h4>
+        <p>むずかしい言葉を使わずに、順番どおりに書いてあります。</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">?</div><h5>Familinって何？</h5></div>
+        <p>パスポート・車検・保険など、期限のあるものをまとめて登録すると、期限が近づいたときに教えてくれます。</p>
+        <div class="guide-callout good"><b>「あと〇日です」ではなく</b>「今これをやってください」と、次にやることまで教えてくれます。</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>登録する</h5></div>
+        <p>「＋ 新しく登録する」から、名称・種類・期限日・登録する人を入れて「登録する」を押します。</p>
+        <div class="guide-callout warn"><b>運転免許を選んだとき</b>免許の色や年齢の欄も出てきます。分かる範囲で大丈夫です。</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>一覧で見る</h5></div>
+        <p>「📋 登録一覧」に並びます。右上の選択欄で「種類ごと」「家族ごと」にまとめて見ることもできます。上の人物ボタン（本人・おじいさんなど）を押すと、その人の分だけに絞り込めます。</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>編集・削除する</h5></div>
+        <p>各項目の「編集」を押すと、下の登録フォームに内容が入ります。書き換えて「更新する」を押してください。「📅 カレンダーに登録」を押すと、スマホのカレンダーアプリにも予定として追加できます。</p>
+        <div class="guide-callout bad"><b>削除について</b>「削除」を押すと確認画面が出ます。誤って消えることはありません。</div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>見逃さないための工夫</h5></div>
+        <p>今すぐ対応が必要なものがあると、開いた瞬間に全画面の警告が出ます。「🔊 読み上げ」で音声でも確認できます（声は選べます）。</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>ロックする</h5></div>
+        <p>右上の🔒ボタンでロックできます。次に開くときは最初に決めた暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">💬</div><h5>感想を送る</h5></div>
+        <p>一番下の「💬 感想を送る」から、使ってみた感想をLINEで送れます。</p>
+      </div>
+
+      <div class="security-note">
+        🔒 登録した内容は、この端末の中で暗号化されて保存されます。開発者にも中身は見えません。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert-overlay" id="alert-overlay">
+  <div class="alert-box">
+    <div class="alert-head">🔴 今すぐ確認してください</div>
+    <div class="alert-sub" id="alert-sub"></div>
+    <div id="alert-list"></div>
+    <div class="alert-btns">
+      <button class="ghost" id="btn-alert-read">🔊 読み上げる</button>
+      <button class="primary" id="btn-alert-ok">確認しました</button>
+    </div>
+  </div>
+</div>
+
+<script src="crypto.js"></script>
+<script>
+// ============================================================
+// 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
+// ============================================================
+const 種類一覧 = ["パスポート","ビザ・在留資格","運転免許","車検","保険",
+                   "サブスクリプション","資格・免許更新","ドメイン","その他の契約書類"];
+
+const 種類の既定値 = {
+  "パスポート": { 警告開始日数: 180, 行動: {
+    "切れ": "海外へ渡航できない状態です。至急、パスポートセンターで更新手続きをしてください。",
+    "危険": "残存有効期間が短いと入国を拒否される国があります。早めに更新を予約してください。",
+    "注意": "更新窓口は混み合うことがあります。余裕を持って手続きの予約をしてください。",
+    "様子見": "まだ余裕があります。次の海外渡航の予定が決まったら残存期間を確認してください。",
+  }},
+  "ビザ・在留資格": { 警告開始日数: 90, 行動: {
+    "切れ": "オーバーステイの状態の可能性があります。至急、出入国在留管理庁に相談してください。",
+    "危険": "在留期間更新許可申請は満了日の3か月前から可能です。至急、申請を始めてください。",
+    "注意": "更新に必要な書類（在職証明・課税証明など）の準備を始めてください。",
+    "様子見": "まだ申請可能期間ではありません。必要書類の種類だけ確認しておくと安心です。",
+  }},
+  "運転免許": { 警告開始日数: 60, 行動: {
+    "切れ": "運転できません。失効後6か月以内なら学科・技能試験免除で再取得できる場合があります。",
+    "危険": "更新期間（誕生日の前後1か月）です。運転免許センター・警察署で更新してください。",
+    "注意": "更新はがきの内容を確認し、更新に行く日を決めてください。",
+    "様子見": "まだ更新期間前です。更新はがきが届いたら内容を確認してください。",
+  }},
+  "車検": { 警告開始日数: 30, 行動: {
+    "切れ": "公道を走行できません（無車検運行は違法です）。至急、車検を通してください。",
+    "危険": "車検の予約をまだしていなければ、今すぐ指定工場かディーラーに連絡してください。",
+    "注意": "車検の予約を取ってください。人気の工場は予約が埋まりやすいです。",
+    "様子見": "まだ余裕がありますが、予約枠を確認しておくと安心です。",
+  }},
+  "保険": { 警告開始日数: 30, 行動: {
+    "切れ": "補償が切れている可能性があります。至急、保険会社に確認・更新してください。",
+    "危険": "更新案内が来ているはずです。内容を確認し、継続するか見直すか決めてください。",
+    "注意": "更新の時期です。補償内容や保険料を見直す良い機会でもあります。",
+    "様子見": "まだ余裕があります。更新案内が届くのを待ってください。",
+  }},
+  "サブスクリプション": { 警告開始日数: 7, 行動: {
+    "切れ": "既に自動更新され、請求が発生している可能性があります。明細を確認してください。",
+    "危険": "もうすぐ自動更新されます。継続するか解約するか、今日中に決めてください。",
+    "注意": "自動更新日が近づいています。使っていないなら解約手続きを検討してください。",
+    "様子見": "まだ余裕があります。",
+  }},
+  "資格・免許更新": { 警告開始日数: 60, 行動: {
+    "切れ": "資格が失効している可能性があります。所轄団体・機関に確認してください。",
+    "危険": "更新講習の予約や必要書類の準備を、今すぐ始めてください。",
+    "注意": "更新に必要な手続き（講習・書類提出など）を調べ始めてください。",
+    "様子見": "まだ余裕があります。更新方法だけ確認しておくと安心です。",
+  }},
+  "ドメイン": { 警告開始日数: 14, 行動: {
+    "切れ": "ドメインが失効し、第三者に取得される恐れがあります。至急、更新してください。",
+    "危険": "自動更新の設定と支払い方法（カードの有効期限など）を今すぐ確認してください。",
+    "注意": "更新時期が近づいています。自動更新設定を確認してください。",
+    "様子見": "まだ余裕があります。",
+  }},
+  "その他の契約書類": { 警告開始日数: 30, 行動: {
+    "切れ": "契約の期限が過ぎています。内容を確認し、必要な対応を取ってください。",
+    "危険": "契約更新の条件を確認し、必要な手続きを今すぐ始めてください。",
+    "注意": "契約の更新時期です。内容を確認してください。",
+    "様子見": "まだ余裕があります。",
+  }},
+};
+
+const 段階の表示 = {
+  "切れ":   { ラベル: "超重要", 色: "bad" },
+  "危険":   { ラベル: "重要", 色: "bad" },
+  "注意":   { ラベル: "まあまあ重要", 色: "warn" },
+  "様子見": { ラベル: "余裕あり", 色: "good" },
+};
+
+const 免許色の説明 = {
+  "ゴールド": "有効期間は5年です（更新期間満了時に70歳以上の場合は短くなります）。更新時講習は「優良運転者講習」で、時間は約30分です。",
+  "ブルー":   "有効期間は3年または5年です（初めての更新、または軽微な違反がある場合は3年）。更新時講習は「一般運転者講習」（約1時間）または「違反運転者講習」（約2時間）です。どちらに該当するかは、届いた更新案内はがきで確認してください。",
+  "グリーン": "初めての免許のため有効期間は3年です。更新時講習は「初回更新者講習」で、時間は約2時間です。",
+};
+const 高齢者講習の説明 = "更新期間満了日（誕生日の1か月後）に70歳以上になる方は、更新の前に「高齢者講習」を受ける必要があります（75歳以上はさらに「認知機能検査」も必要です）。会場の予約が混み合うため、更新案内が届いたら早めに予約してください。";
+
+function 残り日数を表す文章(残り日数){
+  if(残り日数 === null || 残り日数 === undefined) return "不明";
+  if(残り日数 < 0) return (-残り日数) + "日 超過";
+  if(残り日数 === 0) return "今日が期限";
+  return "あと " + 残り日数 + "日";
+}
+
+function 判定する(期限日文字列, 種類, 免許の色, 高齢者講習対象){
+  const 設定 = 種類の既定値[種類] || 種類の既定値["その他の契約書類"];
+  const 警告開始日数 = 設定.警告開始日数;
+
+  const 期限 = new Date(期限日文字列 + "T00:00:00");
+  if(isNaN(期限.getTime())){
+    return { 残り日数: null, 段階: "様子見", 段階ラベル: "日付を確認してください", 色: "warn",
+      今やること: "登録された期限日を確認してください（読み取れませんでした）。" };
+  }
+  const 今日 = new Date(); 今日.setHours(0,0,0,0);
+  const 残り日数 = Math.round((期限 - 今日) / 86400000);
+
+  let 段階;
+  if(残り日数 < 0) 段階 = "切れ";
+  else if(残り日数 <= Math.max(3, Math.floor(警告開始日数 / 10))) 段階 = "危険";
+  else if(残り日数 <= 警告開始日数) 段階 = "注意";
+  else 段階 = "様子見";
+
+  const 表示 = 段階の表示[段階];
+  let 行動文 = 設定.行動[段階];
+
+  if(種類 === "運転免許"){
+    const 追加文 = [];
+    if(免許の色 && 免許色の説明[免許の色]) 追加文.push(免許色の説明[免許の色]);
+    if(高齢者講習対象) 追加文.push(高齢者講習の説明);
+    if(追加文.length) 行動文 = 行動文 + " " + 追加文.join(" ");
+  }
+
+  return { 残り日数, 段階, 段階ラベル: 表示.ラベル, 色: 表示.色, 今やること: 行動文 };
+}
+
+// ============================================================
+// 金庫（暗号化されたデータ）の、開いている間だけのメモリ上のコピー
+// 保存・読み込みは crypto.js の関数（IndexedDB + AES-256-GCM）を使う。
+// ============================================================
+let 現在のDEK = null;
+let 金庫データ = { items: [], people: null };
+
+function 既定人物一覧(){
+  return [
+    {id:"p_honnin", name:"本人", icon:"🙂"},
+    {id:"p_ojii",   name:"おじいさん", icon:"👴"},
+    {id:"p_obaa",   name:"おばあさん", icon:"👵"},
+    {id:"p_kodomo", name:"こども", icon:"🧒"},
+  ];
+}
+
+function 項目一覧を読む(){
+  return 金庫データ.items || [];
+}
+async function 項目一覧を保存する(items){
+  金庫データ.items = items;
+  await データを保存する(現在のDEK, 金庫データ);
+}
+function 人物一覧を読む(){
+  return 金庫データ.people || 既定人物一覧();
+}
+async function 人物一覧を保存する(people){
+  金庫データ.people = people;
+  await データを保存する(現在のDEK, 金庫データ);
+}
+
+// ============================================================
+// 画面まわり
+// ============================================================
+const 選択 = document.getElementById("f-category");
+種類一覧.forEach(c => {
+  const o = document.createElement("option");
+  o.value = c; o.textContent = c;
+  選択.appendChild(o);
+});
+
+function 免許欄の表示を更新する(){
+  const on = 選択.value === "運転免許";
+  document.getElementById("row-license").style.display = on ? "flex" : "none";
+  document.getElementById("row-senior").style.display = on ? "flex" : "none";
+}
+選択.addEventListener("change", 免許欄の表示を更新する);
+免許欄の表示を更新する();
+
+// 期限日は「年・月・日」を選ぶ方式＋見た目のカレンダーの二本立て
+const 曜日一覧 = ["日","月","火","水","木","金","土"];
+const 今年 = new Date().getFullYear();
+
+function 年月日の選択肢を作る(){
+  const 年 = document.getElementById("f-year");
+  const 月 = document.getElementById("f-month");
+  年.innerHTML = '<option value="">年</option>';
+  for(let y = 今年 - 3; y <= 今年 + 15; y++){
+    const o = document.createElement("option"); o.value = y; o.textContent = y + "年";
+    年.appendChild(o);
+  }
+  月.innerHTML = '<option value="">月</option>';
+  for(let m = 1; m <= 12; m++){
+    const o = document.createElement("option"); o.value = m; o.textContent = m + "月";
+    月.appendChild(o);
+  }
+  日の選択肢を更新する();
+}
+
+function 日の選択肢を更新する(){
+  const 年 = document.getElementById("f-year");
+  const 月 = document.getElementById("f-month");
+  const 日 = document.getElementById("f-day");
+  const 今の日 = 日.value;
+  const 年数 = parseInt(年.value, 10);
+  const 月数 = parseInt(月.value, 10);
+  const 月の日数 = (年数 && 月数) ? new Date(年数, 月数, 0).getDate() : 31;
+  日.innerHTML = '<option value="">日</option>';
+  for(let d = 1; d <= 月の日数; d++){
+    const o = document.createElement("option"); o.value = d; o.textContent = d + "日";
+    日.appendChild(o);
+  }
+  if(今の日 && parseInt(今の日, 10) <= 月の日数) 日.value = 今の日;
+}
+
+function 選択中の期限日(){
+  const y = parseInt(document.getElementById("f-year").value, 10);
+  const m = parseInt(document.getElementById("f-month").value, 10);
+  const d = parseInt(document.getElementById("f-day").value, 10);
+  if(!y || !m || !d) return "";
+  return y + "-" + String(m).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+}
+
+function 期限日を設定する(iso文字列){
+  年月日の選択肢を作る();
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso文字列 || "");
+  if(m){
+    document.getElementById("f-year").value = parseInt(m[1],10);
+    document.getElementById("f-month").value = parseInt(m[2],10);
+    日の選択肢を更新する();
+    document.getElementById("f-day").value = parseInt(m[3],10);
+  }
+  曜日表示を更新する();
+  document.getElementById("calendar-widget").style.display = "none";
+}
+
+function 曜日表示を更新する(){
+  const v = 選択中の期限日();
+  const el = document.getElementById("f-date-weekday");
+  if(!v){ el.textContent = ""; return; }
+  const d = new Date(v + "T00:00:00");
+  if(isNaN(d.getTime())){ el.textContent = ""; return; }
+  el.textContent = d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日（" + 曜日一覧[d.getDay()] + "曜日）";
+}
+
+let カレンダー表示中の年月 = null;
+
+function カレンダーが開いているか(){
+  return document.getElementById("calendar-widget").style.display !== "none";
+}
+
+function カレンダーを描画する(){
+  const el = document.getElementById("calendar-widget");
+  const y = parseInt(document.getElementById("f-year").value, 10) || 今年;
+  const m = parseInt(document.getElementById("f-month").value, 10) || (new Date().getMonth() + 1);
+  const 選択日 = parseInt(document.getElementById("f-day").value, 10);
+  カレンダー表示中の年月 = {y, m};
+
+  const 曜日ヘッダ = 曜日一覧.map(w => `<div class="cal-dow">${w}</div>`).join("");
+  const 月初の曜日 = new Date(y, m - 1, 1).getDay();
+  const 月の日数 = new Date(y, m, 0).getDate();
+  const 今日 = new Date();
+
+  let セル = "";
+  for(let i = 0; i < 月初の曜日; i++) セル += `<div class="cal-day empty"></div>`;
+  for(let d = 1; d <= 月の日数; d++){
+    const 今日か = (y === 今日.getFullYear() && m === 今日.getMonth() + 1 && d === 今日.getDate());
+    const 選択中か = (d === 選択日);
+    セル += `<button type="button" class="cal-day${選択中か ? " selected" : ""}${今日か ? " today" : ""}" data-day="${d}">${d}</button>`;
+  }
+
+  el.innerHTML = `
+    <div class="cal-head">
+      <button type="button" class="ghost" id="cal-prev">‹ 前の月</button>
+      <span class="cal-title">${y}年${m}月</span>
+      <button type="button" class="ghost" id="cal-next">次の月 ›</button>
+    </div>
+    <div class="cal-grid">${曜日ヘッダ}${セル}</div>
+  `;
+
+  document.getElementById("cal-prev").addEventListener("click", () => 月を移動する(-1));
+  document.getElementById("cal-next").addEventListener("click", () => 月を移動する(1));
+  el.querySelectorAll(".cal-day[data-day]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("f-year").value = カレンダー表示中の年月.y;
+      document.getElementById("f-month").value = カレンダー表示中の年月.m;
+      日の選択肢を更新する();
+      document.getElementById("f-day").value = btn.dataset.day;
+      曜日表示を更新する();
+      カレンダーを描画する();
+    });
+  });
+}
+
+function 月を移動する(差){
+  let {y, m} = カレンダー表示中の年月;
+  m += 差;
+  if(m < 1){ m = 12; y -= 1; }
+  if(m > 12){ m = 1; y += 1; }
+  if(y < 今年 - 3 || y > 今年 + 15) return;
+  document.getElementById("f-year").value = y;
+  document.getElementById("f-month").value = m;
+  日の選択肢を更新する();
+  カレンダーを描画する();
+}
+
+document.getElementById("btn-toggle-calendar").addEventListener("click", () => {
+  const el = document.getElementById("calendar-widget");
+  if(カレンダーが開いているか()){ el.style.display = "none"; }
+  else { el.style.display = "block"; カレンダーを描画する(); }
+});
+
+年月日の選択肢を作る();
+document.getElementById("f-year").addEventListener("change", () => {
+  日の選択肢を更新する(); 曜日表示を更新する();
+  if(カレンダーが開いているか()) カレンダーを描画する();
+});
+document.getElementById("f-month").addEventListener("change", () => {
+  日の選択肢を更新する(); 曜日表示を更新する();
+  if(カレンダーが開いているか()) カレンダーを描画する();
+});
+document.getElementById("f-day").addEventListener("change", () => {
+  曜日表示を更新する();
+  if(カレンダーが開いているか()) カレンダーを描画する();
+});
+曜日表示を更新する();
+
+function エスケープ(s){
+  const d = document.createElement("div");
+  d.textContent = s || "";
+  return d.innerHTML;
+}
+
+// ============================================================
+// 家族の名前ボタン（本人・おじいさん・おばあさんなど）
+// ============================================================
+let 選択中の人物ID = null;
+
+const 人物アイコン候補 = ["🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","🐻","🐱","🌸"];
+
+function 人物名を取り出す(name){
+  const m = /（([^）]+)）\s*$/.exec(name || "");
+  return m ? m[1] : null;
+}
+
+function 項目の人物情報(item){
+  if(item.person_id){
+    const 人 = 人物一覧を読む().find(p => p.id === item.person_id);
+    if(人) return {name: 人.name, icon: 人.icon || "🙂"};
+  }
+  const 推測 = 人物名を取り出す(item.name);
+  return {name: 推測 || "未設定", icon: null};
+}
+function 項目の人物名(item){ return 項目の人物情報(item).name; }
+
+function 人物選択欄を更新する(){
+  const select = document.getElementById("f-person");
+  const 今の値 = select.value;
+  select.innerHTML = '<option value="">（未設定）</option>' +
+    人物一覧を読む().map(p => `<option value="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}</option>`).join("");
+  if([...select.options].some(o => o.value === 今の値)) select.value = 今の値;
+  else if(選択中の人物ID) select.value = 選択中の人物ID;
+}
+
+function アイコン欄を描画する(選択中){
+  const el = document.getElementById("icon-grid");
+  el.innerHTML = 人物アイコン候補.map(icon =>
+    `<button type="button" class="icon-choice${icon === 選択中 ? " selected" : ""}" data-icon="${icon}">${icon}</button>`
+  ).join("");
+  el.querySelectorAll(".icon-choice").forEach(btn => {
+    btn.addEventListener("click", () => {
+      el.querySelectorAll(".icon-choice").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    });
+  });
+}
+
+function カスタム人物編集(タイトル, 初期アイコン, 初期名前){
+  return new Promise(resolve => {
+    document.getElementById("modal-person-title").textContent = タイトル;
+    アイコン欄を描画する(初期アイコン || "🙂");
+    const nameField = document.getElementById("modal-person-name");
+    nameField.value = 初期名前 || "";
+    document.getElementById("modal-person").classList.add("show");
+    nameField.focus();
+    const okBtn = document.getElementById("modal-person-ok");
+    const cancelBtn = document.getElementById("modal-person-cancel");
+    function 片付ける(結果){
+      document.getElementById("modal-person").classList.remove("show");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      resolve(結果);
+    }
+    function onOk(){
+      const 選択アイコン = document.querySelector("#icon-grid .icon-choice.selected");
+      const icon = 選択アイコン ? 選択アイコン.dataset.icon : "🙂";
+      const name = nameField.value.trim();
+      if(!name){ nameField.focus(); return; }
+      片付ける({icon, name});
+    }
+    function onCancel(){ 片付ける(null); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  });
+}
+
+function 人物タブを描画する(){
+  const people = 人物一覧を読む();
+  const el = document.getElementById("people-row");
+  let html = `<button class="person-pill${選択中の人物ID === null ? " active" : ""}" data-person="">すべて</button>`;
+  people.forEach(p => {
+    html += `<button class="person-pill${選択中の人物ID === p.id ? " active" : ""}" data-person="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}</button>`;
+  });
+  html += `<button class="person-pill add" id="btn-add-person">＋ 追加</button>`;
+  el.innerHTML = html;
+
+  el.querySelectorAll(".person-pill[data-person]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      選択中の人物ID = btn.dataset.person || null;
+      人物タブを描画する();
+      人物選択欄を更新する();
+      描画する();
+    });
+  });
+  document.getElementById("btn-add-person").addEventListener("click", async () => {
+    const 結果 = await カスタム人物編集("家族を追加", "🙂", "");
+    if(!結果) return;
+    const list = 人物一覧を読む();
+    list.push({id: "p_" + Date.now(), name: 結果.name, icon: 結果.icon});
+    await 人物一覧を保存する(list);
+    人物タブを描画する();
+    人物選択欄を更新する();
+  });
+
+  document.getElementById("people-actions").style.display = 選択中の人物ID ? "flex" : "none";
+}
+
+document.getElementById("btn-edit-person").addEventListener("click", async () => {
+  if(!選択中の人物ID) return;
+  const list = 人物一覧を読む();
+  const target = list.find(p => p.id === 選択中の人物ID);
+  if(!target) return;
+  const 結果 = await カスタム人物編集("名前・アイコンを変更", target.icon, target.name);
+  if(!結果) return;
+  target.name = 結果.name;
+  target.icon = 結果.icon;
+  await 人物一覧を保存する(list);
+  人物タブを描画する();
+  人物選択欄を更新する();
+  描画する();
+});
+
+document.getElementById("btn-delete-person").addEventListener("click", async () => {
+  if(!選択中の人物ID) return;
+  const ok = await カスタム確認("この人を削除して大丈夫ですか？登録済みの項目は消えず、「未設定」になります。");
+  if(!ok) return;
+  const list = 人物一覧を読む().filter(p => p.id !== 選択中の人物ID);
+  await 人物一覧を保存する(list);
+  const items = 項目一覧を読む().map(i => i.person_id === 選択中の人物ID ? Object.assign({}, i, {person_id: ""}) : i);
+  await 項目一覧を保存する(items);
+  選択中の人物ID = null;
+  人物タブを描画する();
+  人物選択欄を更新する();
+  描画する();
+});
+
+// ---- カレンダー（.ics）へ登録 ----
+function ICS用に整える(文){
+  return String(文 || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;")
+    .replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+function カレンダーに登録(id){
+  const item = (window.__items || []).find(i => i.id === id);
+  if(!item) return;
+  const 期限8桁 = item.expire_date.replace(/-/g, "");
+  const 今 = new Date();
+  const 発行時刻 = 今.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const uid = "familin-" + item.id + "-" + Date.now() + "@local";
+  const 件名 = ICS用に整える("【Familin】" + item.name + "の期限");
+  const 説明 = ICS用に整える("今やること: " + item.今やること);
+  const 行 = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Familin//JA//", "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    "UID:" + uid,
+    "DTSTAMP:" + 発行時刻,
+    "DTSTART;VALUE=DATE:" + 期限8桁,
+    "DTEND;VALUE=DATE:" + 期限8桁,
+    "SUMMARY:" + 件名,
+    "DESCRIPTION:" + 説明,
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:-P7D", "END:VALARM",
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:-P1D", "END:VALARM",
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:PT9H", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR",
+  ];
+  const ics = 行.join("\r\n");
+  const blob = new Blob([ics], {type: "text/calendar;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "familin-" + item.name.replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, "") + ".ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  お知らせ("カレンダー用ファイルをダウンロードしました。開いて追加すると、7日前・前日・当日にカレンダー側の通知でお知らせします。", true);
+}
+
+function 項目カードHTML(i){
+  const 区分部分 = [
+    (i.sub_type && i.sub_type !== "わからない") ? i.sub_type + "免許" : "",
+    i.is_senior ? "70歳以上" : "",
+  ].filter(Boolean).join("・");
+  const 人物情報 = 項目の人物情報(i);
+  return `
+  <div class="item">
+    <div class="top">
+      <div>
+        <div class="name">${エスケープ(i.name)}${人物情報.name !== "未設定" ? ` <span class="meta" style="display:inline">（${人物情報.icon ? エスケープ(人物情報.icon) : "👤"} ${エスケープ(人物情報.name)}）</span>` : ""}</div>
+        <div class="cat">${エスケープ(i.category)}${区分部分 ? "（" + エスケープ(区分部分) + "）" : ""} ・ 期限 ${i.expire_date}（${i.残り日数文}）</div>
+      </div>
+      <span class="chip ${i.色}">${i.段階ラベル}</span>
+    </div>
+    <div class="action">${エスケープ(i.今やること)}</div>
+    ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
+    <div class="row-btns">
+      <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
+      <button class="danger" onclick="削除する('${i.id}')">削除</button>
+      <button class="ghost" onclick="カレンダーに登録('${i.id}')">📅 カレンダーに登録</button>
+      <button class="ghost" onclick="項目を読み上げる('${i.id}')">🔊 読み上げ</button>
+    </div>
+  </div>`;
+}
+
+function カテゴリー別に描画する(items){
+  let html = "";
+  種類一覧.forEach(cat => {
+    const group = items.filter(i => i.category === cat);
+    if(group.length === 0) return;
+    html += `<div class="group-header">${エスケープ(cat)}（${group.length}件）</div>`;
+    html += group.map(項目カードHTML).join("");
+  });
+  return html;
+}
+
+function 人物別に描画する(items){
+  const groups = new Map();
+  items.forEach(i => {
+    const 情報 = 項目の人物情報(i);
+    if(!groups.has(情報.name)) groups.set(情報.name, {icon: 情報.icon, items: []});
+    groups.get(情報.name).items.push(i);
+  });
+  const keys = [...groups.keys()].sort((a, b) => (a === "未設定" ? 1 : 0) - (b === "未設定" ? 1 : 0));
+  let html = "";
+  keys.forEach(key => {
+    const group = groups.get(key);
+    html += `<div class="group-header">${group.icon ? エスケープ(group.icon) : "👤"} ${エスケープ(key)}（${group.items.length}件）</div>`;
+    html += group.items.map(項目カードHTML).join("");
+  });
+  return html;
+}
+
+function 描画する(){
+  人物タブを描画する();
+  人物選択欄を更新する();
+
+  let items = 項目一覧を読む().map(raw => {
+    const 判定 = 判定する(raw.expire_date, raw.category, raw.sub_type, raw.is_senior);
+    return Object.assign({}, raw, 判定, { 残り日数文: 残り日数を表す文章(判定.残り日数) });
+  }).sort((a, b) => {
+    const 順位 = { "切れ": 0, "危険": 1, "注意": 2, "様子見": 3 };
+    const pa = 順位[a.段階] ?? 9, pb = 順位[b.段階] ?? 9;
+    if(pa !== pb) return pa - pb;
+    return (a.残り日数 ?? 999999) - (b.残り日数 ?? 999999);
+  });
+
+  window.__items = items;
+
+  if(選択中の人物ID){
+    const 人 = 人物一覧を読む().find(p => p.id === 選択中の人物ID);
+    if(人) items = items.filter(i => 項目の人物名(i) === 人.name);
+  }
+
+  const banner = document.getElementById("banner");
+  const list = document.getElementById("list");
+  const 切れ数 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険").length;
+  const 注意数 = items.filter(i => i.段階 === "注意").length;
+
+  banner.innerHTML = `
+    <div class="cell bad${切れ数 > 0 ? " alert" : ""}">
+      ${切れ数 > 0 ? '<span class="cell-flag">🔴</span>' : ""}
+      <div class="num">${切れ数}</div><span>今すぐ対応が必要</span>
+    </div>
+    <div class="cell warn"><div class="num">${注意数}</div><span>今週〜今月中に対応</span></div>
+    <div class="cell"><div class="num">${items.length}</div><span>登録件数</span></div>
+  `;
+
+  if(items.length === 0){
+    list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
+  } else {
+    const モード = document.getElementById("list-view-mode").value;
+    if(モード === "category") list.innerHTML = カテゴリー別に描画する(items);
+    else if(モード === "person") list.innerHTML = 人物別に描画する(items);
+    else list.innerHTML = items.map(項目カードHTML).join("");
+  }
+
+  if(!window.__alertShown){
+    window.__alertShown = true;
+    緊急オーバーレイを確認する(items);
+  }
+}
+
+function 緊急オーバーレイを確認する(items){
+  const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
+  if(緊急.length === 0) return;
+
+  document.getElementById("alert-sub").textContent = "今すぐ対応が必要なものが " + 緊急.length + " 件あります。";
+  document.getElementById("alert-list").innerHTML = 緊急.map(i => `
+    <div class="alert-item">
+      <div class="name">${エスケープ(i.name)}</div>
+      <div class="cat">${エスケープ(i.category)}・期限 ${i.expire_date}（${i.残り日数文}）</div>
+      <div class="act">${エスケープ(i.今やること)}</div>
+    </div>
+  `).join("");
+  document.getElementById("alert-overlay").classList.add("show");
+
+  document.getElementById("btn-alert-read").onclick = () => {
+    const 数詞 = ["1つ目","2つ目","3つ目","4つ目","5つ目","6つ目","7つ目","8つ目"];
+    const 文章 = 緊急.map((i, idx) => (数詞[idx] || (idx+1)+"つ目") + "、" + i.name + "。" + i.今やること).join(" ");
+    読み上げる("今すぐ対応が必要なものが" + 緊急.length + "件あります。" + 文章);
+  };
+}
+document.getElementById("btn-alert-ok").addEventListener("click", () => {
+  try { speechSynthesis.cancel(); } catch(e) {}
+  document.getElementById("alert-overlay").classList.remove("show");
+});
+
+// ---- 読み上げ ----
+function 日付を読み上げ用にする(期限日){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(期限日 || "");
+  if(!m) return 期限日 || "";
+  return m[1] + "年" + parseInt(m[2],10) + "月" + parseInt(m[3],10) + "日";
+}
+const 音声候補の優先順 = ["haruka", "kyoko", "otoya", "sayaka", "mizuki", "nanami"];
+let 選択済み音声名 = null;
+
+function 日本語の音声一覧(){
+  try { return speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("ja")); }
+  catch(e) { return []; }
+}
+
+function 音声候補を更新する(){
+  const 候補 = 日本語の音声一覧();
+  const select = document.getElementById("voice-select");
+  if(候補.length === 0){
+    select.innerHTML = '<option value="">この端末では声が見つかりませんでした</option>';
+    選択済み音声名 = null;
+    return;
+  }
+  let 保存済み = null;
+  try { 保存済み = localStorage.getItem("familin_voice"); } catch(e) {}
+
+  select.innerHTML = 候補.map(v => `<option value="${エスケープ(v.name)}">${エスケープ(v.name.replace(/ - Japanese.*$/, ""))}</option>`).join("");
+
+  if(保存済み && 候補.some(v => v.name === 保存済み)){
+    選択済み音声名 = 保存済み;
+  } else {
+    const おすすめ =
+      候補.find(v => v.localService === false) ||
+      音声候補の優先順.map(名前 => 候補.find(v => v.name.toLowerCase().includes(名前))).find(Boolean) ||
+      候補[0];
+    選択済み音声名 = おすすめ.name;
+  }
+  select.value = 選択済み音声名;
+}
+
+if("speechSynthesis" in window){
+  音声候補を更新する();
+  speechSynthesis.onvoiceschanged = 音声候補を更新する;
+}
+
+document.getElementById("voice-select").addEventListener("change", (e) => {
+  選択済み音声名 = e.target.value;
+  try { localStorage.setItem("familin_voice", 選択済み音声名); } catch(err) {}
+});
+document.getElementById("btn-voice-test").addEventListener("click", () => {
+  読み上げる("これは声の確認です。パスポートの期限は今週中に対応してください。");
+});
+
+document.getElementById("btn-stop-speech").addEventListener("click", () => {
+  try { speechSynthesis.cancel(); } catch(e) {}
+});
+if("speechSynthesis" in window){
+  setInterval(() => {
+    const btn = document.getElementById("btn-stop-speech");
+    const 話し中 = speechSynthesis.speaking || speechSynthesis.pending;
+    btn.style.display = 話し中 ? "block" : "none";
+  }, 250);
+}
+
+function 読み上げ用に整える(文章){
+  return String(文章 || "").replace(/[「」『』【】]/g, "");
+}
+
+function 読み上げる(文章){
+  try {
+    if(!("speechSynthesis" in window)){ お知らせ("残念ながら、この画面では読み上げ機能が使えないようです。", true); return; }
+    speechSynthesis.cancel();
+    const 声 = 日本語の音声一覧().find(v => v.name === 選択済み音声名);
+    const 文一覧 = 読み上げ用に整える(文章).split("。").map(s => s.trim()).filter(Boolean);
+    文一覧.forEach(文 => {
+      const 発話 = new SpeechSynthesisUtterance(文 + "。");
+      発話.lang = "ja-JP"; 発話.rate = 0.93; 発話.pitch = 1.03;
+      if(声) 発話.voice = 声;
+      speechSynthesis.speak(発話);
+    });
+  } catch(e) {}
+}
+function 項目を読み上げる(id){
+  const item = (window.__items || []).find(i => i.id === id);
+  if(!item) return;
+  読み上げる(item.name + "です。種類は" + item.category + "。期限は" +
+    日付を読み上げ用にする(item.expire_date) + "、" + item.残り日数文 + "です。" + item.今やること);
+}
+
+// ---- 登録・編集・削除 ----
+function 編集開始(id){
+  const item = (window.__items || []).find(i => i.id === id);
+  if(!item) return;
+  document.getElementById("edit-id").value = item.id;
+  document.getElementById("f-name").value = item.name;
+  document.getElementById("f-category").value = item.category;
+  期限日を設定する(item.expire_date);
+  document.getElementById("f-memo").value = item.memo || "";
+  document.getElementById("f-license-color").value = item.sub_type || "";
+  document.getElementById("f-license-senior").checked = !!item.is_senior;
+  免許欄の表示を更新する();
+  人物選択欄を更新する();
+  document.getElementById("f-person").value = item.person_id || "";
+  document.getElementById("form-title").textContent = "編集する";
+  document.getElementById("btn-save").textContent = "更新する";
+  document.getElementById("btnrow-cancel").style.display = "flex";
+  document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
+}
+function 編集終了(){
+  document.getElementById("edit-id").value = "";
+  document.getElementById("f-name").value = "";
+  期限日を設定する("");
+  document.getElementById("f-memo").value = "";
+  document.getElementById("f-license-color").value = "";
+  document.getElementById("f-license-senior").checked = false;
+  免許欄の表示を更新する();
+  人物選択欄を更新する();
+  document.getElementById("f-person").value = 選択中の人物ID || "";
+  document.getElementById("form-title").textContent = "＋ 新しく登録する";
+  document.getElementById("btn-save").textContent = "登録する";
+  document.getElementById("btnrow-cancel").style.display = "none";
+}
+document.getElementById("btn-cancel").addEventListener("click", 編集終了);
+
+document.getElementById("btn-save").addEventListener("click", async () => {
+  const id = document.getElementById("edit-id").value;
+  const name = document.getElementById("f-name").value.trim();
+  const category = document.getElementById("f-category").value;
+  const expire_date = 選択中の期限日();
+  const memo = document.getElementById("f-memo").value.trim();
+  if(!name || !expire_date){ お知らせ("名称と期限日を、教えてくださいね。", true); return; }
+
+  const sub_type = category === "運転免許" ? document.getElementById("f-license-color").value : "";
+  const is_senior = category === "運転免許" ? document.getElementById("f-license-senior").checked : false;
+  const person_id = document.getElementById("f-person").value;
+
+  const items = 項目一覧を読む();
+  if(id){
+    const idx = items.findIndex(i => i.id === id);
+    if(idx >= 0) items[idx] = Object.assign({}, items[idx], { name, category, expire_date, memo, sub_type, is_senior, person_id });
+  } else {
+    items.push({ id: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+      name, category, expire_date, memo, sub_type, is_senior, person_id });
+  }
+  await 項目一覧を保存する(items);
+  編集終了();
+  描画する();
+  お知らせ(id ? "更新できました！" : "登録できました！");
+});
+
+function カスタム確認(メッセージ){
+  return new Promise(resolve => {
+    document.getElementById("modal-confirm-text").textContent = メッセージ;
+    document.getElementById("modal-confirm").classList.add("show");
+    const okBtn = document.getElementById("modal-confirm-ok");
+    const cancelBtn = document.getElementById("modal-confirm-cancel");
+    function 片付ける(結果){
+      document.getElementById("modal-confirm").classList.remove("show");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      resolve(結果);
+    }
+    function onOk(){ 片付ける(true); }
+    function onCancel(){ 片付ける(false); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+  });
+}
+
+function カスタム入力(ラベル, 初期値){
+  return new Promise(resolve => {
+    document.getElementById("modal-input-label").textContent = ラベル;
+    const field = document.getElementById("modal-input-field");
+    field.value = 初期値 || "";
+    document.getElementById("modal-input").classList.add("show");
+    field.focus();
+    const okBtn = document.getElementById("modal-input-ok");
+    const cancelBtn = document.getElementById("modal-input-cancel");
+    function 片付ける(結果){
+      document.getElementById("modal-input").classList.remove("show");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      field.removeEventListener("keydown", onKey);
+      resolve(結果);
+    }
+    function onOk(){ 片付ける(field.value.trim() || null); }
+    function onCancel(){ 片付ける(null); }
+    function onKey(e){ if(e.key === "Enter") onOk(); }
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+    field.addEventListener("keydown", onKey);
+  });
+}
+
+document.getElementById("btn-open-guide").addEventListener("click", () => {
+  document.getElementById("modal-guide").classList.add("show");
+});
+document.getElementById("btn-guide-close").addEventListener("click", () => {
+  document.getElementById("modal-guide").classList.remove("show");
+});
+
+async function 削除する(id){
+  const ok = await カスタム確認("この項目を削除して大丈夫ですか？");
+  if(!ok) return;
+  const items = 項目一覧を読む().filter(i => i.id !== id);
+  await 項目一覧を保存する(items);
+  描画する();
+}
+
+function お知らせ(文章, 長め){
+  const el = document.getElementById("toast");
+  el.textContent = 文章;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 長め ? 4500 : 2200);
+}
+
+// ---- 画面の色 ----
+const テーマ選択 = document.getElementById("theme-select");
+function 保存済みテーマ(){ try { return localStorage.getItem("familin_theme") || "auto"; } catch(e) { return "auto"; } }
+function テーマを反映する(値){
+  if(値 === "light" || 値 === "dark" || 値 === "calm" || 値 === "darkcalm") document.documentElement.setAttribute("data-theme", 値);
+  else document.documentElement.removeAttribute("data-theme");
+}
+テーマ選択.value = 保存済みテーマ();
+テーマを反映する(テーマ選択.value);
+テーマ選択.addEventListener("change", () => {
+  テーマを反映する(テーマ選択.value);
+  try { localStorage.setItem("familin_theme", テーマ選択.value); } catch(e) {}
+});
+
+const 一覧表示選択 = document.getElementById("list-view-mode");
+try { 一覧表示選択.value = localStorage.getItem("familin_listview") || "urgency"; } catch(e) {}
+一覧表示選択.addEventListener("change", () => {
+  try { localStorage.setItem("familin_listview", 一覧表示選択.value); } catch(e) {}
+  描画する();
+});
+
+// ---- 感想をLINEで送る ----
+function 感想メッセージを作る(){
+  const お名前 = document.getElementById("fb-name").value.trim();
+  const 本文 = document.getElementById("fb-text").value.trim();
+  if(!本文) return null;
+  return "【Familinの感想】\n" + (お名前 ? "（" + お名前 + "より）\n" : "") + 本文;
+}
+
+document.getElementById("btn-line-send").addEventListener("click", () => {
+  const メッセージ = 感想メッセージを作る();
+  if(!メッセージ){ お知らせ("一言だけでも、感想を聞かせてくださいね。", true); return; }
+  location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(メッセージ);
+});
+
+async function クリップボードにコピーする(文章){
+  try { await navigator.clipboard.writeText(文章); return true; }
+  catch(e) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = 文章;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch(e2) { return false; }
+  }
+}
+
+document.getElementById("btn-copy-fb").addEventListener("click", async () => {
+  const メッセージ = 感想メッセージを作る();
+  if(!メッセージ){ お知らせ("一言だけでも、感想を聞かせてくださいね。", true); return; }
+  const 成功 = await クリップボードにコピーする(メッセージ);
+  if(成功) お知らせ("コピーできました。LINEに貼り付けて送ってくださいね。", true);
+  else お知らせ("うまくコピーできませんでした…上の感想欄の文章を選んで、手動でコピーしてみてください。", true);
+});
+
+// ============================================================
+// 暗証番号の設定・ロック（crypto.js の本物の暗号化と接続）
+// ============================================================
+function 画面を切り替える(id){
+  document.querySelectorAll(".step").forEach(el => el.classList.remove("show"));
+  document.getElementById(id).classList.add("show");
+}
+
+async function 金庫データを読み込んでから進む(){
+  金庫データ = await データを読み込む(現在のDEK);
+  if(!金庫データ.people) 金庫データ.people = 既定人物一覧();
+  window.__alertShown = false;
+  画面を切り替える("screen-app");
+  描画する();
+}
+
+async function 起動時の画面を決める(){
+  if(!(await 設定済みか())){ 画面を切り替える("screen-setup"); return; }
+  画面を切り替える("screen-lock");
+}
+
+document.getElementById("btn-setup").addEventListener("click", async () => {
+  const p1 = document.getElementById("setup-pin1").value.trim();
+  const p2 = document.getElementById("setup-pin2").value.trim();
+  const err = document.getElementById("error-setup");
+  err.style.display = "none";
+  if(!/^[0-9]{4,6}$/.test(p1)){
+    err.textContent = "4〜6桁の数字で入力してください。";
+    err.style.display = "block";
+    return;
+  }
+  if(p1 !== p2){
+    err.textContent = "2つの番号が一致しません。もう一度入力してください。";
+    err.style.display = "block";
+    document.getElementById("setup-pin2").value = "";
+    return;
+  }
+  const { dek, recoveryKey } = await 金庫を新規作成する(p1);
+  現在のDEK = dek;
+  金庫データ = { items: [], people: 既定人物一覧() };
+  await データを保存する(現在のDEK, 金庫データ);
+  document.getElementById("recovery-key-display").textContent = recoveryKey;
+  画面を切り替える("screen-recovery-display");
+});
+
+document.getElementById("chk-saved").addEventListener("change", (e) => {
+  document.getElementById("btn-continue").disabled = !e.target.checked;
+});
+document.getElementById("btn-continue").addEventListener("click", () => {
+  window.__alertShown = false;
+  画面を切り替える("screen-app");
+  描画する();
+});
+
+document.getElementById("btn-unlock").addEventListener("click", async () => {
+  const pin = document.getElementById("lock-pin").value.trim();
+  const err = document.getElementById("error-lock");
+  err.style.display = "none";
+  const dek = await PINで開く(pin);
+  document.getElementById("lock-pin").value = "";
+  if(dek){
+    現在のDEK = dek;
+    await 金庫データを読み込んでから進む();
+  } else {
+    err.textContent = "暗証番号が違います。";
+    err.style.display = "block";
+  }
+});
+document.getElementById("lock-pin").addEventListener("keydown", e => {
+  if(e.key === "Enter") document.getElementById("btn-unlock").click();
+});
+document.getElementById("btn-goto-recovery").addEventListener("click", () => 画面を切り替える("screen-recovery-entry"));
+document.getElementById("btn-back-to-lock").addEventListener("click", () => 画面を切り替える("screen-lock"));
+
+document.getElementById("btn-recover").addEventListener("click", async () => {
+  const 入力 = document.getElementById("recovery-input").value.trim().toUpperCase();
+  const err = document.getElementById("error-recovery");
+  err.style.display = "none";
+  const dek = await 回復キーで開く(入力);
+  if(dek){
+    現在のDEK = dek;
+    画面を切り替える("screen-newpin");
+  } else {
+    err.textContent = "回復キーが違います。ハイフンを含め、正確に入力してください。";
+    err.style.display = "block";
+  }
+});
+document.getElementById("recovery-input").addEventListener("keydown", e => {
+  if(e.key === "Enter") document.getElementById("btn-recover").click();
+});
+
+document.getElementById("btn-set-newpin").addEventListener("click", async () => {
+  const p1 = document.getElementById("newpin1").value.trim();
+  const p2 = document.getElementById("newpin2").value.trim();
+  const err = document.getElementById("error-newpin");
+  err.style.display = "none";
+  if(!/^[0-9]{4,6}$/.test(p1)){
+    err.textContent = "4〜6桁の数字で入力してください。";
+    err.style.display = "block";
+    return;
+  }
+  if(p1 !== p2){
+    err.textContent = "2つの番号が一致しません。";
+    err.style.display = "block";
+    return;
+  }
+  await PINを再設定する(現在のDEK, p1);
+  await 金庫データを読み込んでから進む();
+});
+
+document.getElementById("btn-relock").addEventListener("click", () => {
+  現在のDEK = null;
+  金庫データ = { items: [], people: null };
+  try { speechSynthesis.cancel(); } catch(e) {}
+  document.getElementById("lock-pin").value = "";
+  画面を切り替える("screen-lock");
+});
+
+document.getElementById("btn-reset-all").addEventListener("click", async () => {
+  const ok = await カスタム確認("暗証番号・登録データ・回復キーをすべて消して、最初からやり直します。よろしいですか？");
+  if(!ok) return;
+  await 金庫を初期化する();
+  現在のDEK = null;
+  金庫データ = { items: [], people: null };
+  location.reload();
+});
+
+起動時の画面を決める();
+
+// ---- PWA: サービスワーカーを登録（オフラインでも開けるようにする） ----
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
