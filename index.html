@@ -205,6 +205,26 @@
   .copy-fallback button{background:none;border:none;color:var(--accent);font-weight:700;
     text-decoration:underline;font-size:13.5px;padding:4px;cursor:pointer}
 
+  .today-group{margin-bottom:18px}
+  .today-group-head{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;margin-bottom:10px}
+  .today-group-head .count{font-size:13.5px;font-weight:700;padding:3px 10px;border-radius:999px}
+  .today-group.urgent .today-group-head .count{background:var(--bad-soft);color:var(--bad)}
+  .today-group.soon .today-group-head .count{background:var(--warn-soft);color:var(--warn)}
+  .today-card{display:flex;align-items:center;gap:12px;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+  .today-group.urgent .today-card{background:var(--bad-soft);border:1.5px solid var(--bad)}
+  .today-group.soon .today-card{background:var(--warn-soft);border:1px solid var(--warn)}
+  .today-card .icon{font-size:26px;flex:none}
+  .today-card .body{flex:1;min-width:0}
+  .today-card .who{font-size:13.5px;font-weight:700;opacity:.85}
+  .today-group.urgent .today-card .who{color:var(--bad)}
+  .today-group.soon .today-card .who{color:var(--warn)}
+  .today-card .what{font-size:16.5px;font-weight:700;color:var(--ink);margin:2px 0}
+  .today-card .detail{font-size:14px;color:var(--soft)}
+  .today-card button{flex:none;font-size:13.5px;padding:9px 14px;border-radius:9px;border:none;
+    cursor:pointer;font-weight:700;font-family:inherit;background:var(--surface);color:var(--ink)}
+  .today-calm{background:var(--good-soft);color:var(--good);border-radius:14px;
+    padding:20px 18px;text-align:center;font-size:15.5px;font-weight:700;margin-bottom:18px}
+
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:10px;
     font-size:14.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;z-index:50;
@@ -369,8 +389,10 @@
 
   <div class="banner" id="banner"></div>
 
+  <div id="today-summary"></div>
+
   <div class="list-head">
-    <h2 class="section-title">📋 登録一覧</h2>
+    <h2 class="section-title">📋 すべての登録</h2>
     <select id="list-view-mode">
       <option value="urgency">緊急度順</option>
       <option value="category">種類ごとにまとめる</option>
@@ -1100,6 +1122,46 @@ function 項目カードHTML(i){
   </div>`;
 }
 
+function 今日やることを描画する(items){
+  const el = document.getElementById("today-summary");
+  const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
+  const 注意 = items.filter(i => i.段階 === "注意");
+
+  if(緊急.length === 0 && 注意.length === 0){
+    el.innerHTML = '<div class="today-calm">😊 今日やることはありません。ゆっくり過ごしてください。</div>';
+    return;
+  }
+
+  const カードHTML = (i, 詳細文) => {
+    const 人物情報 = 項目の人物情報(i);
+    return `
+    <div class="today-card">
+      <div class="icon">${人物情報.icon || "🙂"}</div>
+      <div class="body">
+        <div class="who">${エスケープ(人物情報.name)}</div>
+        <div class="what">${エスケープ(i.name)}</div>
+        <div class="detail">${エスケープ(詳細文)}</div>
+      </div>
+      <button type="button" onclick="編集開始('${i.id}')">やることを見る</button>
+    </div>`;
+  };
+
+  let html = "";
+  if(緊急.length > 0){
+    html += `<div class="today-group urgent">
+      <div class="today-group-head">🔴 今日やること <span class="count">${緊急.length}件</span></div>
+      ${緊急.map(i => カードHTML(i, i.今やること)).join("")}
+    </div>`;
+  }
+  if(注意.length > 0){
+    html += `<div class="today-group soon">
+      <div class="today-group-head">🟡 そろそろ <span class="count">${注意.length}件</span></div>
+      ${注意.map(i => カードHTML(i, i.残り日数文)).join("")}
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
 function カテゴリー別に描画する(items){
   let html = "";
   種類一覧.forEach(cat => {
@@ -1162,6 +1224,8 @@ function 描画する(){
     <div class="cell warn"><div class="num">${注意数}</div><span>今週〜今月中に対応</span></div>
     <div class="cell"><div class="num">${items.length}</div><span>登録件数</span></div>
   `;
+
+  今日やることを描画する(items);
 
   if(items.length === 0){
     list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
