@@ -66,6 +66,11 @@
   .privacy-note{background:var(--accent-soft);color:var(--accent);border-radius:12px;
     padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:700;text-align:center}
 
+  .photo-capture-row{text-align:center;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .photo-capture-row .primary{width:100%;font-size:17px;padding:16px}
+  .photo-capture-hint{color:var(--soft);font-size:13.5px;margin:8px 0 0}
+  #photo-analyzing{margin-top:10px;font-size:14.5px;color:var(--accent);font-weight:700}
+
   .voice-picker-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
     background:var(--surface);border:1px solid var(--line);border-radius:12px;
     padding:12px 16px;margin-bottom:16px;font-size:14.5px}
@@ -377,6 +382,12 @@
   <div class="panel">
     <h2 id="form-title">＋ 新しく登録する</h2>
     <input type="hidden" id="edit-id" value="">
+    <div class="photo-capture-row" id="photo-capture-row">
+      <button type="button" class="primary" id="btn-photo-capture">📷 写真を撮って登録する</button>
+      <p class="photo-capture-hint">郵便物や学校のプリントを撮るだけで、内容を読み取ります</p>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+      <div id="photo-analyzing" style="display:none">🔍 内容を読み取っています…</div>
+    </div>
     <div class="row">
       <div class="field">
         <label>名称（例: パスポート）</label>
@@ -569,7 +580,7 @@
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
 // ============================================================
 const 種類一覧 = ["パスポート","ビザ・在留資格","運転免許","車検","保険",
-                   "サブスクリプション","資格・免許更新","ドメイン","その他の契約書類"];
+                   "サブスクリプション","資格・免許更新","ドメイン","学校","その他の契約書類"];
 
 const 種類の既定値 = {
   "パスポート": { 警告開始日数: 180, 行動: {
@@ -618,6 +629,12 @@ const 種類の既定値 = {
     "切れ": "ドメインが失効し、第三者に取得される恐れがあります。至急、更新してください。",
     "危険": "自動更新の設定と支払い方法（カードの有効期限など）を今すぐ確認してください。",
     "注意": "更新時期が近づいています。自動更新設定を確認してください。",
+    "様子見": "まだ余裕があります。",
+  }},
+  "学校": { 警告開始日数: 14, 行動: {
+    "切れ": "提出期限が過ぎています。学校に確認し、早めに提出してください。",
+    "危険": "提出期限が近づいています。持ち物・記入内容を確認してください。",
+    "注意": "提出期限が近づいています。準備を始めてください。",
     "様子見": "まだ余裕があります。",
   }},
   "その他の契約書類": { 警告開始日数: 30, 行動: {
@@ -1319,6 +1336,89 @@ function 編集終了(){
   document.getElementById("btnrow-cancel").style.display = "none";
 }
 document.getElementById("btn-cancel").addEventListener("click", 編集終了);
+
+// ============================================================
+// 写真を撮って登録する（AIによる自動読み取り）
+// ============================================================
+const API_BASE = "https://torumamo.jp/api";
+
+function 画像を圧縮してbase64にする(file){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("読み込みに失敗しました"));
+    reader.onload = () => { img.src = reader.result; };
+    img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
+    img.onload = () => {
+      const 最大辺 = 1600;
+      let { width, height } = img;
+      if(width > 最大辺 || height > 最大辺){
+        const 比率 = Math.min(最大辺 / width, 最大辺 / height);
+        width = Math.round(width * 比率); height = Math.round(height * 比率);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      resolve(dataUrl.split(",")[1]);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function 名前に近い人物を探す(person_hint){
+  if(!person_hint) return "";
+  const list = 人物一覧を読む();
+  const 完全一致 = list.find(p => p.name === person_hint);
+  if(完全一致) return 完全一致.id;
+  const 部分一致 = list.find(p => person_hint.includes(p.name) || p.name.includes(person_hint));
+  return 部分一致 ? 部分一致.id : "";
+}
+
+document.getElementById("btn-photo-capture").addEventListener("click", () => {
+  document.getElementById("photo-input").click();
+});
+
+document.getElementById("photo-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+
+  const 解析中表示 = document.getElementById("photo-analyzing");
+  const ボタン = document.getElementById("btn-photo-capture");
+  解析中表示.style.display = "block";
+  ボタン.disabled = true;
+
+  try {
+    const base64 = await 画像を圧縮してbase64にする(file);
+    const res = await fetch(API_BASE + "/analyze.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: base64, mediaType: "image/jpeg" }),
+    });
+    if(!res.ok) throw new Error("解析に失敗しました");
+    const 結果 = await res.json();
+    if(結果.error) throw new Error(結果.error);
+
+    編集終了();
+    if(結果.title) document.getElementById("f-name").value = 結果.title;
+    if(結果.category && 種類一覧.includes(結果.category)) document.getElementById("f-category").value = 結果.category;
+    if(結果.due_date) 期限日を設定する(結果.due_date);
+    const 人物ID = 名前に近い人物を探す(結果.person_hint);
+    if(人物ID) document.getElementById("f-person").value = 人物ID;
+    const メモ内容 = [結果.action, 結果.memo].filter(Boolean).join(" / ");
+    if(メモ内容) document.getElementById("f-memo").value = メモ内容;
+    免許欄の表示を更新する();
+
+    document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
+    お知らせ("読み取れました。内容を確認して「登録する」を押してください。", true);
+  } catch(err) {
+    お知らせ("読み取れませんでした。お手数ですが手入力をお願いします。", true);
+  } finally {
+    解析中表示.style.display = "none";
+    ボタン.disabled = false;
+  }
+});
 
 document.getElementById("btn-save").addEventListener("click", async () => {
   const id = document.getElementById("edit-id").value;
