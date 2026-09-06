@@ -225,6 +225,9 @@
   .today-calm{background:var(--good-soft);color:var(--good);border-radius:14px;
     padding:20px 18px;text-align:center;font-size:15.5px;font-weight:700;margin-bottom:18px}
 
+  .budget-note{background:var(--accent-soft);color:var(--accent);border-radius:12px;
+    padding:14px 18px;margin-bottom:18px;font-size:14.5px;font-weight:700;text-align:center}
+
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:10px;
     font-size:14.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;z-index:50;
@@ -390,6 +393,7 @@
   <div class="banner" id="banner"></div>
 
   <div id="today-summary"></div>
+  <div id="budget-forecast"></div>
 
   <div class="list-head">
     <h2 class="section-title">📋 すべての登録</h2>
@@ -437,6 +441,12 @@
         <div class="weekday-hint" id="f-date-weekday"></div>
         <button type="button" class="ghost" id="btn-toggle-calendar" style="margin-top:8px;font-size:14px;padding:9px 14px">📅 カレンダーで選ぶ</button>
         <div class="calendar-widget" id="calendar-widget" style="display:none"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>費用の目安（任意・円）</label>
+        <input type="number" id="f-cost" placeholder="例: 12000" min="0" inputmode="numeric">
       </div>
     </div>
     <div class="row">
@@ -1112,6 +1122,7 @@ function 項目カードHTML(i){
       <span class="chip ${i.色}">${i.段階ラベル}</span>
     </div>
     <div class="action">${エスケープ(i.今やること)}</div>
+    ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
     ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
     <div class="row-btns">
       <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
@@ -1160,6 +1171,19 @@ function 今日やることを描画する(items){
     </div>`;
   }
   el.innerHTML = html;
+}
+
+function 出費予告を描画する(items){
+  const el = document.getElementById("budget-forecast");
+  const 今日 = new Date(); 今日.setHours(0,0,0,0);
+  const 対象 = items.filter(i => {
+    if(!i.cost || i.cost <= 0) return false;
+    if(i.残り日数 === null || i.残り日数 === undefined) return false;
+    return i.残り日数 >= 0 && i.残り日数 <= 30;
+  });
+  if(対象.length === 0){ el.innerHTML = ""; return; }
+  const 合計 = 対象.reduce((sum, i) => sum + i.cost, 0);
+  el.innerHTML = `💰 今後30日で、家族全体で約 ${合計.toLocaleString()}円 の更新費用が見込まれます（${対象.length}件）`;
 }
 
 function カテゴリー別に描画する(items){
@@ -1226,6 +1250,7 @@ function 描画する(){
   `;
 
   今日やることを描画する(items);
+  出費予告を描画する(items);
 
   if(items.length === 0){
     list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
@@ -1375,6 +1400,7 @@ function 編集開始(id){
   document.getElementById("f-category").value = item.category;
   期限日を設定する(item.expire_date);
   document.getElementById("f-memo").value = item.memo || "";
+  document.getElementById("f-cost").value = item.cost || "";
   document.getElementById("f-license-color").value = item.sub_type || "";
   document.getElementById("f-license-senior").checked = !!item.is_senior;
   免許欄の表示を更新する();
@@ -1390,6 +1416,7 @@ function 編集終了(){
   document.getElementById("f-name").value = "";
   期限日を設定する("");
   document.getElementById("f-memo").value = "";
+  document.getElementById("f-cost").value = "";
   document.getElementById("f-license-color").value = "";
   document.getElementById("f-license-senior").checked = false;
   免許欄の表示を更新する();
@@ -1492,6 +1519,7 @@ document.getElementById("btn-save").addEventListener("click", async () => {
   const memo = document.getElementById("f-memo").value.trim();
   if(!name || !expire_date){ お知らせ("名称と期限日を、教えてくださいね。", true); return; }
 
+  const cost = document.getElementById("f-cost").value ? parseInt(document.getElementById("f-cost").value, 10) : null;
   const sub_type = category === "運転免許" ? document.getElementById("f-license-color").value : "";
   const is_senior = category === "運転免許" ? document.getElementById("f-license-senior").checked : false;
   const person_id = document.getElementById("f-person").value;
@@ -1499,10 +1527,10 @@ document.getElementById("btn-save").addEventListener("click", async () => {
   const items = 項目一覧を読む();
   if(id){
     const idx = items.findIndex(i => i.id === id);
-    if(idx >= 0) items[idx] = Object.assign({}, items[idx], { name, category, expire_date, memo, sub_type, is_senior, person_id });
+    if(idx >= 0) items[idx] = Object.assign({}, items[idx], { name, category, expire_date, memo, cost, sub_type, is_senior, person_id });
   } else {
     items.push({ id: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
-      name, category, expire_date, memo, sub_type, is_senior, person_id });
+      name, category, expire_date, memo, cost, sub_type, is_senior, person_id });
   }
   await 項目一覧を保存する(items);
   編集終了();
