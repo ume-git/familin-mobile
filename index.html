@@ -52,11 +52,12 @@
     --good:#8fc496; --good-soft:#253527;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
+  body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
     font-family:"Yu Gothic UI","Hiragino Sans","Meiryo",sans-serif;line-height:1.85;font-size:18px}
   .wrap{max-width:560px;margin:0 auto;padding:20px 16px 100px}
 
-  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px 8px;margin-bottom:14px;flex-wrap:wrap}
+  .topbar > div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:10px}
   .brand .logo{font-size:26px}
   .brand h1{font-size:21px;margin:0}
@@ -1227,6 +1228,17 @@ function 音声候補を更新する(){
 if("speechSynthesis" in window){
   音声候補を更新する();
   speechSynthesis.onvoiceschanged = 音声候補を更新する;
+  let 音声確認回数 = 0;
+  const 音声確認タイマー = setInterval(() => {
+    音声確認回数++;
+    if(日本語の音声一覧().length > 0 || 音声確認回数 > 20){
+      clearInterval(音声確認タイマー);
+      音声候補を更新する();
+    }
+  }, 300);
+} else {
+  const row = document.querySelector(".voice-picker-row");
+  if(row) row.style.display = "none";
 }
 
 document.getElementById("voice-select").addEventListener("change", (e) => {
