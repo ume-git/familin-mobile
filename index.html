@@ -228,6 +228,12 @@
   .budget-note{background:var(--accent-soft);color:var(--accent);border-radius:12px;
     padding:14px 18px;margin-bottom:18px;font-size:14.5px;font-weight:700;text-align:center}
 
+  .ask-row{display:flex;gap:8px;margin-bottom:10px}
+  .ask-row input{flex:1}
+  .ask-row button{flex:none;font-size:14.5px;padding:0 18px}
+  .ask-answer{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:18px;font-size:15px;line-height:1.7;color:var(--ink)}
+
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:10px;
     font-size:14.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;z-index:50;
@@ -394,6 +400,12 @@
 
   <div id="today-summary"></div>
   <div id="budget-forecast"></div>
+
+  <div class="ask-row">
+    <input type="text" id="ask-input" placeholder="例: 今月やることは？">
+    <button type="button" class="ghost" id="btn-ask">トルマモに聞く</button>
+  </div>
+  <div id="ask-answer" class="ask-answer" style="display:none"></div>
 
   <div class="list-head">
     <h2 class="section-title">📋 すべての登録</h2>
@@ -1509,6 +1521,39 @@ document.getElementById("photo-input").addEventListener("change", async (e) => {
     解析中表示.style.display = "none";
     ボタン.disabled = false;
   }
+});
+
+// ============================================================
+// トルマモに聞く（登録済みデータへの質問応答のみ。前面に出るAIチャットにはしない）
+// ============================================================
+async function トルマモに聞く(){
+  const input = document.getElementById("ask-input");
+  const 質問 = input.value.trim();
+  if(!質問) return;
+  const btn = document.getElementById("btn-ask");
+  const answerEl = document.getElementById("ask-answer");
+  btn.disabled = true;
+  answerEl.style.display = "block";
+  answerEl.textContent = "考えています…";
+  try {
+    const res = await fetch(API_BASE + "/ask.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: window.__items || [], question: 質問 }),
+    });
+    if(!res.ok) throw new Error("failed");
+    const データ = await res.json();
+    if(データ.error) throw new Error(データ.error);
+    answerEl.textContent = データ.answer || "うまく答えられませんでした。";
+  } catch(err) {
+    answerEl.textContent = "今は答えられませんでした。少し時間をおいて、もう一度お試しください。";
+  } finally {
+    btn.disabled = false;
+  }
+}
+document.getElementById("btn-ask").addEventListener("click", トルマモに聞く);
+document.getElementById("ask-input").addEventListener("keydown", (e) => {
+  if(e.key === "Enter") トルマモに聞く();
 });
 
 document.getElementById("btn-save").addEventListener("click", async () => {
