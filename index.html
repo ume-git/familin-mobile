@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Familin — 家族のお守り</title>
+<title>トルマモ — 家族のお守り</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#2d6a74">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Familin">
+<meta name="apple-mobile-web-app-title" content="トルマモ">
 <style>
   :root{
     --bg:#f4f6f7; --surface:#ffffff; --ink:#1c2024; --soft:#5c6570; --line:#e2e6e8;
@@ -270,7 +270,7 @@
     <div class="auth-wrap"><div class="auth-box">
       <div class="lock-emoji">🔑</div>
       <h2>暗証番号を決めてください</h2>
-      <p class="lead">最初に1回だけ、4〜6桁の好きな数字を決めます。次にFamilinを開くときから、この番号が必要になります。</p>
+      <p class="lead">最初に1回だけ、4〜6桁の好きな数字を決めます。次にトルマモを開くときから、この番号が必要になります。</p>
       <div class="security-note">🔒 登録した内容は、この端末の中で暗号化されたうえで保存されます。この端末の外には一切送信されません。</div>
       <div class="error" id="error-setup"></div>
       <label class="field-label">暗証番号（4〜6桁の数字）</label>
@@ -292,14 +292,14 @@
         <input type="checkbox" id="chk-saved">
         <span>控えました（このキーはもう表示されません）</span>
       </label>
-      <button class="primary wide-btn" id="btn-continue" disabled>Familinを開く</button>
+      <button class="primary wide-btn" id="btn-continue" disabled>トルマモを開く</button>
     </div></div>
   </div>
 
   <div class="step" id="screen-lock">
     <div class="auth-wrap"><div class="auth-box">
       <div class="lock-emoji">🔒</div>
-      <h2>Familin はロックされています</h2>
+      <h2>トルマモ はロックされています</h2>
       <div class="error" id="error-lock"></div>
       <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" placeholder="暗証番号">
       <button class="primary wide-btn" id="btn-unlock">開く</button>
@@ -334,7 +334,7 @@
 
   <div class="step" id="screen-app">
   <div class="topbar">
-    <div class="brand"><span class="logo">🛡️</span><h1>Familin</h1></div>
+    <div class="brand"><span class="logo">🛡️</span><h1>トルマモ</h1></div>
     <div style="display:flex;gap:8px;align-items:center">
       <select id="theme-select">
         <option value="auto">自動</option>
@@ -502,12 +502,12 @@
     <div class="guide-body">
       <div class="guide-cover">
         <div class="logo">🛡️</div>
-        <h4>Familin 使い方ガイド</h4>
+        <h4>トルマモ 使い方ガイド</h4>
         <p>むずかしい言葉を使わずに、順番どおりに書いてあります。</p>
       </div>
 
       <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">?</div><h5>Familinって何？</h5></div>
+        <div class="guide-step-head"><div class="guide-step-num">?</div><h5>トルマモって何？</h5></div>
         <p>パスポート・車検・保険など、期限のあるものをまとめて登録すると、期限が近づいたときに教えてくれます。</p>
         <div class="guide-callout good"><b>「あと〇日です」ではなく</b>「今これをやってください」と、次にやることまで教えてくれます。</div>
       </div>
@@ -1028,10 +1028,10 @@ function カレンダーに登録(id){
   const 今 = new Date();
   const 発行時刻 = 今.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const uid = "familin-" + item.id + "-" + Date.now() + "@local";
-  const 件名 = ICS用に整える("【Familin】" + item.name + "の期限");
+  const 件名 = ICS用に整える("【トルマモ】" + item.name + "の期限");
   const 説明 = ICS用に整える("今やること: " + item.今やること);
   const 行 = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Familin//JA//", "CALSCALE:GREGORIAN",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Torumamo//JA//", "CALSCALE:GREGORIAN",
     "BEGIN:VEVENT",
     "UID:" + uid,
     "DTSTAMP:" + 発行時刻,
@@ -1438,7 +1438,7 @@ function 感想メッセージを作る(){
   const お名前 = document.getElementById("fb-name").value.trim();
   const 本文 = document.getElementById("fb-text").value.trim();
   if(!本文) return null;
-  return "【Familinの感想】\n" + (お名前 ? "（" + お名前 + "より）\n" : "") + 本文;
+  return "【トルマモの感想】\n" + (お名前 ? "（" + お名前 + "より）\n" : "") + 本文;
 }
 
 document.getElementById("btn-line-send").addEventListener("click", () => {
