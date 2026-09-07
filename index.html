@@ -185,10 +185,24 @@
   .guide-callout.bad{background:var(--bad-soft);color:var(--bad)}
   .guide-callout.good{background:var(--good-soft);color:var(--good)}
 
-  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
-  .icon-choice{font-size:23px;padding:8px 0;border-radius:10px;border:2px solid var(--line);
-    background:var(--bg);cursor:pointer;text-align:center;line-height:1}
-  .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft)}
+  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:16px;
+    max-height:212px;overflow-y:auto;padding:4px;background:var(--bg);border-radius:var(--r-sm)}
+  .icon-choice{font-size:22px;padding:9px 0;border-radius:var(--r-sm);border:2px solid transparent;
+    background:var(--surface);cursor:pointer;text-align:center;line-height:1;transition:transform .12s}
+  .icon-choice:hover{transform:scale(1.12)}
+  .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.08)}
+
+  .settings-menu{display:flex;flex-direction:column;gap:8px;margin-top:22px;
+    padding-top:20px;border-top:1px solid var(--line)}
+  .settings-menu button{display:flex;align-items:center;gap:12px;width:100%;
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    font-size:15px;padding:14px 16px;text-align:left;font-weight:600}
+  .settings-menu button:hover{background:var(--bg)}
+  .settings-menu button span{font-size:18px}
+
+  .text-link{display:block;width:100%;background:none;border:none;color:var(--soft);
+    font-size:13.5px;font-weight:600;text-decoration:underline;padding:14px 0 2px;margin-top:4px}
+  .text-link:hover{color:var(--accent)}
   .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
   .row label{display:block;font-size:12.5px;color:var(--soft);margin-bottom:7px;font-weight:600}
   .row .field{flex:1;min-width:140px}
@@ -219,7 +233,8 @@
   .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
     padding:18px 20px;box-shadow:var(--shadow-sm)}
   .item .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-  .item .chip{margin-left:auto}
+  .item .chip{margin-left:auto;flex:none}
+  .item .top > div:first-child{flex:1;min-width:0}
   .item .name{font-weight:700;font-size:17.5px;line-height:1.5}
   .item .cat{color:var(--soft);font-size:13px;margin-top:4px}
   .chip{display:inline-block;font-weight:700;font-size:12px;padding:5px 11px;
@@ -418,9 +433,8 @@
   <div class="topbar">
     <div class="brand"><span class="logo">🛡️</span><h1>トルマモ</h1></div>
     <div>
-      <button class="icon-btn" id="btn-open-settings" title="設定">⚙</button>
-      <button class="icon-btn" id="btn-open-guide" title="使い方">📖</button>
       <button class="icon-btn" id="btn-relock" title="ロックする">🔒</button>
+      <button class="icon-btn" id="btn-open-settings" title="設定">⚙</button>
     </div>
   </div>
 
@@ -438,6 +452,7 @@
     <p class="photo-capture-hint">郵便物や学校のプリントを撮るだけで、期限・対象者・やることを読み取ります</p>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
     <div id="photo-analyzing" style="display:none">🔍 内容を読み取っています…</div>
+    <button type="button" class="text-link" id="btn-open-form">手で入力して登録する</button>
   </div>
 
   <div class="ask-row">
@@ -456,7 +471,7 @@
   </div>
   <div class="list" id="list"></div>
 
-  <div class="panel">
+  <div class="panel" id="form-panel" style="display:none">
     <h2 id="form-title">＋ 新しく登録する</h2>
     <input type="hidden" id="edit-id" value="">
     <div class="row">
@@ -523,23 +538,6 @@
     </div>
   </div>
 
-  <div class="feedback-panel">
-    <h2>💬 感想を送る</h2>
-    <p class="lead">使ってみて、いかがでしたか？分かりにくかった点や、欲しい機能など、なんでも聞かせてください。</p>
-    <label style="display:block;font-size:14px;color:var(--soft);margin-bottom:5px">お名前（任意）</label>
-    <input type="text" id="fb-name" placeholder="例: お母さん" style="margin-bottom:12px">
-    <label style="display:block;font-size:14px;color:var(--soft);margin-bottom:5px">感想・改善してほしい点</label>
-    <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
-    <div class="btnrow" style="margin-top:14px">
-      <button class="line-btn" id="btn-line-send">📩 LINEで送る</button>
-    </div>
-    <div class="copy-fallback">
-      LINEアプリが開かない場合は
-      <button id="btn-copy-fb">文章をコピーする</button>
-      して、LINEに貼り付けて送ってください。
-    </div>
-  </div>
-
   <footer>登録した情報はこの端末の中だけに暗号化されて保存され、外部には送信されません。</footer>
   </div>
 </div>
@@ -572,7 +570,41 @@
       <label></label>
       <button class="ghost" id="btn-voice-test">試しに聞く</button>
     </div>
-    <p class="privacy-note" style="margin-top:20px">🔒 登録内容は暗号化されて、この端末の中だけに保存されます。<br>写真は読み取りの直後に破棄され、サーバーには残りません。</p>
+
+    <div class="settings-menu">
+      <button type="button" id="btn-open-guide"><span>📖</span> 使い方ガイド</button>
+      <button type="button" id="btn-open-feedback"><span>💬</span> 感想・要望を送る</button>
+    </div>
+
+    <p class="privacy-note" style="margin-top:18px">🔒 登録内容は暗号化されて、この端末の中だけに保存されます。写真は読み取りの直後に破棄され、サーバーには残りません。</p>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-feedback">
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3>💬 感想・要望を送る</h3>
+      <button class="ghost" id="btn-feedback-close">閉じる</button>
+    </div>
+    <div class="guide-body">
+      <p class="lead" style="color:var(--soft);font-size:14px;margin:0 0 18px">使ってみて、いかがでしたか？分かりにくかった点や、欲しい機能など、なんでも聞かせてください。</p>
+      <div class="row"><div class="field">
+        <label>お名前（任意）</label>
+        <input type="text" id="fb-name" placeholder="例: お母さん">
+      </div></div>
+      <div class="row"><div class="field">
+        <label>感想・改善してほしい点</label>
+        <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
+      </div></div>
+      <div class="btnrow" style="margin-top:6px">
+        <button class="line-btn" id="btn-line-send">📩 LINEで送る</button>
+      </div>
+      <div class="copy-fallback">
+        LINEアプリが開かない場合は
+        <button id="btn-copy-fb">文章をコピーする</button>
+        して、LINEに貼り付けて送ってください。
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1010,7 +1042,16 @@ function エスケープ(s){
 // ============================================================
 let 選択中の人物ID = null;
 
-const 人物アイコン候補 = ["🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","🐻","🐱","🌸"];
+const 人物アイコン候補 = [
+  // 家族
+  "🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","👶","🧔","👱",
+  // いきもの
+  "🐻","🐱","🐶","🐰","🐼","🦊","🐨","🐹","🐯","🦁","🐷","🐸",
+  "🐧","🐥","🦉","🐢","🐳","🦈","🐝","🦋","🐙","🦕",
+  // すきなもの
+  "🌸","🌻","🌈","⭐","🔥","🍀","🍎","🍓","🍰","☕","⚽","🎸",
+  "🚗","✈️","🎣","🎮","📚","🎨","👑","💎","🌙","☀️",
+];
 
 function 人物名を取り出す(name){
   const m = /（([^）]+)）\s*$/.exec(name || "");
@@ -1484,7 +1525,7 @@ function 編集開始(id){
   document.getElementById("form-title").textContent = "編集する";
   document.getElementById("btn-save").textContent = "更新する";
   document.getElementById("btnrow-cancel").style.display = "flex";
-  document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
+  入力フォームを開く();
 }
 function 編集終了(){
   document.getElementById("edit-id").value = "";
@@ -1501,7 +1542,21 @@ function 編集終了(){
   document.getElementById("btn-save").textContent = "登録する";
   document.getElementById("btnrow-cancel").style.display = "none";
 }
-document.getElementById("btn-cancel").addEventListener("click", 編集終了);
+function 入力フォームを開く(){
+  document.getElementById("form-panel").style.display = "block";
+  document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
+}
+function 入力フォームを閉じる(){
+  document.getElementById("form-panel").style.display = "none";
+}
+document.getElementById("btn-open-form").addEventListener("click", () => {
+  編集終了();
+  入力フォームを開く();
+});
+document.getElementById("btn-cancel").addEventListener("click", () => {
+  編集終了();
+  入力フォームを閉じる();
+});
 
 // ============================================================
 // 写真を撮って登録する（AIによる自動読み取り）
@@ -1586,7 +1641,7 @@ document.getElementById("photo-input").addEventListener("change", async (e) => {
     if(メモ内容) document.getElementById("f-memo").value = メモ内容;
     免許欄の表示を更新する();
 
-    document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
+    入力フォームを開く();
     お知らせ("読み取れました。内容を確認して「登録する」を押してください。", true);
   } catch(err) {
     お知らせ("読み取れませんでした。お手数ですが手入力をお願いします。", true);
@@ -1652,7 +1707,9 @@ document.getElementById("btn-save").addEventListener("click", async () => {
   }
   await 項目一覧を保存する(items);
   編集終了();
+  入力フォームを閉じる();
   描画する();
+  window.scrollTo({top:0, behavior:"instant"});
   お知らせ(id ? "更新できました！" : "登録できました！");
 });
 
@@ -1701,7 +1758,15 @@ function カスタム入力(ラベル, 初期値){
 }
 
 document.getElementById("btn-open-guide").addEventListener("click", () => {
+  document.getElementById("modal-settings").classList.remove("show");
   document.getElementById("modal-guide").classList.add("show");
+});
+document.getElementById("btn-open-feedback").addEventListener("click", () => {
+  document.getElementById("modal-settings").classList.remove("show");
+  document.getElementById("modal-feedback").classList.add("show");
+});
+document.getElementById("btn-feedback-close").addEventListener("click", () => {
+  document.getElementById("modal-feedback").classList.remove("show");
 });
 document.getElementById("btn-guide-close").addEventListener("click", () => {
   document.getElementById("modal-guide").classList.remove("show");
