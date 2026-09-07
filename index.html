@@ -102,7 +102,10 @@
     border:1px solid var(--line)}
   .capture-card .primary{width:100%;font-size:17px;padding:17px;
     box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 32%, transparent)}
+  .capture-card .capture-sub{width:100%;margin-top:9px;font-size:14.5px;padding:13px}
   .capture-card .photo-capture-hint{color:var(--soft);font-size:13px;margin:12px 0 0;line-height:1.6}
+  .capture-safe{color:var(--soft);font-size:12px;line-height:1.6;margin:14px 0 0;
+    padding-top:14px;border-top:1px solid var(--line)}
   #photo-analyzing{margin-top:14px;font-size:14px;color:var(--accent);font-weight:700}
 
   .settings-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -448,10 +451,13 @@
   <div id="budget-forecast"></div>
 
   <div class="capture-card">
-    <button type="button" class="primary" id="btn-photo-capture">📷 写真を撮って登録する</button>
+    <button type="button" class="primary" id="btn-photo-capture">📷 カメラで撮って登録する</button>
+    <button type="button" class="ghost capture-sub" id="btn-photo-album">🖼 アルバムの写真から登録する</button>
     <p class="photo-capture-hint">郵便物や学校のプリントを撮るだけで、期限・対象者・やることを読み取ります</p>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="photo-input-album" accept="image/*" style="display:none">
     <div id="photo-analyzing" style="display:none">🔍 内容を読み取っています…</div>
+    <p class="capture-safe">🔒 写真は読み取りのあと、その場で消えます。保存も共有もされません。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">詳しく</button></p>
     <button type="button" class="text-link" id="btn-open-form">手で入力して登録する</button>
   </div>
 
@@ -580,6 +586,53 @@
   </div>
 </div>
 
+<div class="modal-back" id="modal-security">
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3>🔒 安全のしくみ</h3>
+      <button class="ghost" id="btn-security-close">閉じる</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>登録した内容は、この端末から出ません</h5></div>
+        <p>パスポート番号や保険の情報などは、あなたのスマホの中で暗号化して保存しています。暗号を解く鍵は、あなたが決めた暗証番号からその場で作られるもので、どこにも保存していません。だから、私たち開発者を含め、誰も中身を見ることはできません。</p>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>写真は、読み取った直後に消えます</h5></div>
+        <p>撮った写真は、文字を読み取るあいだだけサーバーを通ります。読み取りが終わった時点で消え、保存もしません。写真そのものがどこかに残ることはありません。</p>
+        <div class="guide-callout warn"><b>正直にお伝えすること</b>この読み取りの一瞬だけは、写真がインターネットを通ります（AIが文字を読むため）。気になる書類は、写真を使わず「手で入力して登録する」から登録してください。それなら一切外に出ません。</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>家族の誰かに見られることもありません</h5></div>
+        <p>このアプリは、家族どうしでデータを共有していません。同じアプリを使っていても、登録した内容はそれぞれの端末の中だけにあります。</p>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>アカウント登録も、個人情報の入力も不要です</h5></div>
+        <p>メールアドレスも名前も登録しません。だから、あなたが誰なのかを私たちが知ることはありません。</p>
+      </div>
+      <div class="guide-callout bad"><b>ひとつだけ、お願い</b>暗証番号を忘れると、私たちでも中身を取り出せません（鍵を持っていないためです）。最初に表示される「回復キー」は、必ず控えておいてください。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-calendar">
+  <div class="modal-box">
+    <div class="guide-head" style="padding:0 0 16px;margin-bottom:20px">
+      <h3>カレンダーに追加</h3>
+      <button class="ghost" id="btn-calendar-close">閉じる</button>
+    </div>
+    <p style="font-size:14px;color:var(--soft);margin:0 0 4px">追加する予定</p>
+    <p style="font-weight:700;margin:0 0 20px" id="cal-choice-name"></p>
+    <div class="settings-menu" style="margin-top:0;padding-top:0;border-top:none">
+      <button type="button" id="btn-cal-google"><span>📅</span> Googleカレンダーに追加</button>
+      <button type="button" id="btn-cal-ics"><span>🍎</span> iPhoneのカレンダーに追加</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--soft);margin:16px 0 0;line-height:1.6">
+      追加すると、7日前・前日・当日にカレンダー側からお知らせが届きます。
+    </p>
+  </div>
+</div>
+
 <div class="modal-back" id="modal-feedback">
   <div class="modal-box guide-box">
     <div class="guide-head">
@@ -597,12 +650,14 @@
         <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
       </div></div>
       <div class="btnrow" style="margin-top:6px">
-        <button class="line-btn" id="btn-line-send">📩 LINEで送る</button>
+        <button class="primary" id="btn-fb-send">送信する</button>
       </div>
       <div class="copy-fallback">
-        LINEアプリが開かない場合は
+        うまく送れないときは
+        <button id="btn-line-send">LINEで送る</button>
+        か
         <button id="btn-copy-fb">文章をコピーする</button>
-        して、LINEに貼り付けて送ってください。
+        もできます。
       </div>
     </div>
   </div>
@@ -1184,40 +1239,58 @@ function ICS用に整える(文){
   return String(文 || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;")
     .replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
+// カレンダー登録は、端末によって使えるやり方が違うので、選んでもらう。
+let カレンダー対象の項目 = null;
+
 function カレンダーに登録(id){
   const item = (window.__items || []).find(i => i.id === id);
   if(!item) return;
-  const 期限8桁 = item.expire_date.replace(/-/g, "");
-  const 今 = new Date();
-  const 発行時刻 = 今.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-  const uid = "familin-" + item.id + "-" + Date.now() + "@local";
-  const 件名 = ICS用に整える("【トルマモ】" + item.name + "の期限");
-  const 説明 = ICS用に整える("今やること: " + item.今やること);
-  const 行 = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Torumamo//JA//", "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT",
-    "UID:" + uid,
-    "DTSTAMP:" + 発行時刻,
-    "DTSTART;VALUE=DATE:" + 期限8桁,
-    "DTEND;VALUE=DATE:" + 期限8桁,
-    "SUMMARY:" + 件名,
-    "DESCRIPTION:" + 説明,
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:-P7D", "END:VALARM",
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:-P1D", "END:VALARM",
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + 件名, "TRIGGER:PT9H", "END:VALARM",
-    "END:VEVENT", "END:VCALENDAR",
-  ];
-  const ics = 行.join("\r\n");
-  const blob = new Blob([ics], {type: "text/calendar;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "familin-" + item.name.replace(/[^\w\-ぁ-んァ-ヶ一-龠]/g, "") + ".ics";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  お知らせ("カレンダー用ファイルをダウンロードしました。開いて追加すると、7日前・前日・当日にカレンダー側の通知でお知らせします。", true);
+  カレンダー対象の項目 = item;
+  document.getElementById("cal-choice-name").textContent = item.name + "（" + item.expire_date + "）";
+  document.getElementById("modal-calendar").classList.add("show");
+}
+
+function グーグルカレンダーに追加する(){
+  const item = カレンダー対象の項目;
+  if(!item) return;
+  const 日 = item.expire_date.replace(/-/g, "");
+  const 翌日 = (() => {
+    const d = new Date(item.expire_date + "T00:00:00");
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0,10).replace(/-/g, "");
+  })();
+  const url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent("【トルマモ】" + item.name + "の期限")
+    + "&dates=" + 日 + "/" + 翌日
+    + "&details=" + encodeURIComponent("今やること: " + (item.今やること || ""));
+  window.open(url, "_blank", "noopener");
+  document.getElementById("modal-calendar").classList.remove("show");
+}
+
+function カレンダーファイルで追加する(){
+  const item = カレンダー対象の項目;
+  if(!item) return;
+  // サーバー経由で、正しい形式のカレンダーファイルを受け取る。
+  // 予定名がURLに残らないよう、フォーム送信（POST）で渡す。
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = API_BASE + "/ics.php";
+  form.target = "_blank";
+  const 値 = {
+    title: "【トルマモ】" + item.name + "の期限",
+    date: item.expire_date,
+    note: "今やること: " + (item.今やること || ""),
+  };
+  Object.entries(値).forEach(([k, v]) => {
+    const input = document.createElement("input");
+    input.type = "hidden"; input.name = k; input.value = v;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+  document.getElementById("modal-calendar").classList.remove("show");
+  お知らせ("カレンダーに追加すると、7日前・前日・当日にお知らせが届きます。", true);
 }
 
 function 項目カードHTML(i){
@@ -1609,16 +1682,19 @@ function 名前に近い人物を探す(person_hint){
 document.getElementById("btn-photo-capture").addEventListener("click", () => {
   document.getElementById("photo-input").click();
 });
+document.getElementById("btn-photo-album").addEventListener("click", () => {
+  document.getElementById("photo-input-album").click();
+});
 
-document.getElementById("photo-input").addEventListener("change", async (e) => {
+async function 写真を読み取る(e){
   const file = e.target.files[0];
   e.target.value = "";
   if(!file) return;
 
   const 解析中表示 = document.getElementById("photo-analyzing");
-  const ボタン = document.getElementById("btn-photo-capture");
+  const ボタン一覧 = [document.getElementById("btn-photo-capture"), document.getElementById("btn-photo-album")];
   解析中表示.style.display = "block";
-  ボタン.disabled = true;
+  ボタン一覧.forEach(b => b.disabled = true);
 
   try {
     const base64 = await 画像を圧縮してbase64にする(file);
@@ -1637,7 +1713,8 @@ document.getElementById("photo-input").addEventListener("change", async (e) => {
     if(結果.due_date) 期限日を設定する(結果.due_date);
     const 人物ID = 名前に近い人物を探す(結果.person_hint);
     if(人物ID) document.getElementById("f-person").value = 人物ID;
-    const メモ内容 = [結果.action, 結果.memo].filter(Boolean).join(" / ");
+    const 時刻部分 = 結果.due_time ? ("期限の時刻: " + 結果.due_time) : "";
+    const メモ内容 = [結果.action, 時刻部分, 結果.memo].filter(Boolean).join(" / ");
     if(メモ内容) document.getElementById("f-memo").value = メモ内容;
     免許欄の表示を更新する();
 
@@ -1647,9 +1724,11 @@ document.getElementById("photo-input").addEventListener("change", async (e) => {
     お知らせ("読み取れませんでした。お手数ですが手入力をお願いします。", true);
   } finally {
     解析中表示.style.display = "none";
-    ボタン.disabled = false;
+    ボタン一覧.forEach(b => b.disabled = false);
   }
-});
+}
+document.getElementById("photo-input").addEventListener("change", 写真を読み取る);
+document.getElementById("photo-input-album").addEventListener("change", 写真を読み取る);
 
 // ============================================================
 // トルマモに聞く（登録済みデータへの質問応答のみ。前面に出るAIチャットにはしない）
@@ -1767,6 +1846,47 @@ document.getElementById("btn-open-feedback").addEventListener("click", () => {
 });
 document.getElementById("btn-feedback-close").addEventListener("click", () => {
   document.getElementById("modal-feedback").classList.remove("show");
+});
+document.getElementById("btn-calendar-close").addEventListener("click", () => {
+  document.getElementById("modal-calendar").classList.remove("show");
+});
+document.getElementById("btn-open-security").addEventListener("click", () => {
+  document.getElementById("modal-security").classList.add("show");
+});
+document.getElementById("btn-security-close").addEventListener("click", () => {
+  document.getElementById("modal-security").classList.remove("show");
+});
+document.getElementById("btn-cal-google").addEventListener("click", グーグルカレンダーに追加する);
+document.getElementById("btn-cal-ics").addEventListener("click", カレンダーファイルで追加する);
+
+document.getElementById("btn-fb-send").addEventListener("click", async () => {
+  const 本文 = document.getElementById("fb-text").value.trim();
+  if(!本文){ お知らせ("感想を書いてから送ってくださいね。"); return; }
+  const btn = document.getElementById("btn-fb-send");
+  btn.disabled = true;
+  btn.textContent = "送信中…";
+  try {
+    const res = await fetch(API_BASE + "/feedback.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("fb-name").value.trim(),
+        text: 本文,
+        device: navigator.userAgent,
+      }),
+    });
+    if(!res.ok) throw new Error("failed");
+    const データ = await res.json();
+    if(!データ.ok) throw new Error("failed");
+    document.getElementById("fb-text").value = "";
+    document.getElementById("modal-feedback").classList.remove("show");
+    お知らせ("送信しました。ありがとうございます！", true);
+  } catch(err) {
+    お知らせ("送信できませんでした。下のLINEかコピーでお願いします。", true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "送信する";
+  }
 });
 document.getElementById("btn-guide-close").addEventListener("click", () => {
   document.getElementById("modal-guide").classList.remove("show");
