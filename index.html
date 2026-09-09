@@ -11,64 +11,85 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="トルマモ">
 <style>
+  /* ============================================================
+     色のしくみ
+     「テーマカラー（色み）」と「明るさ（ライト・ダーク）」を切り離してある。
+     色は data-color、明るさは data-mode で指定する。
+     色ごとに決めるのは 色相(--hue) と 鮮やかさ(--sat) の2つだけで、
+     残りの配色はそこから機械的に作る。だから12色でも24通りでも破綻しない。
+     ============================================================ */
+  /* --al は「明るいときのテーマ色の明度」。白文字が読める範囲でいちばん鮮やかに
+     見えるところを、色ごとに手で決めている（黄や緑は暗めにしないと白文字が沈む）。 */
+  :root{ --hue:195; --sat:52%; --al:38%; }    /* 既定は「うみ」 */
+  :root[data-color="umi"]      { --hue:195; --sat:56%; --al:36% }
+  :root[data-color="sora"]     { --hue:212; --sat:62%; --al:45% }
+  :root[data-color="sumire"]   { --hue:258; --sat:50%; --al:53% }
+  :root[data-color="budou"]    { --hue:287; --sat:44%; --al:49% }
+  :root[data-color="sakura"]   { --hue:338; --sat:62%; --al:52% }
+  :root[data-color="ichigo"]   { --hue:356; --sat:66%; --al:50% }
+  :root[data-color="mikan"]    { --hue:24;  --sat:76%; --al:43% }
+  :root[data-color="himawari"] { --hue:42;  --sat:72%; --al:37% }
+  :root[data-color="matcha"]   { --hue:88;  --sat:42%; --al:33% }
+  :root[data-color="mori"]     { --hue:154; --sat:44%; --al:32% }
+  :root[data-color="kinari"]   { --hue:33;  --sat:30%; --al:39% }
+  :root[data-color="sumi"]     { --hue:220; --sat:10%; --al:31% }
+
+  /* 明るいときの配色 */
   :root{
-    --bg:#f4f6f7; --surface:#ffffff; --ink:#1c2024; --soft:#5c6570; --line:#e2e6e8;
-    --accent:#2d6a74; --accent-soft:#e2eef0;
+    --bg:hsl(var(--hue) 42% 95.5%);
+    --surface:hsl(var(--hue) 60% 99.5%);
+    --ink:hsl(var(--hue) 28% 14%);
+    --soft:hsl(var(--hue) 14% 41%);
+    --line:hsl(var(--hue) 28% 87%);
+    --accent:hsl(var(--hue) var(--sat) var(--al));
+    --accent-soft:hsl(var(--hue) calc(var(--sat) * .75) 91%);
     --bad:#b13a3a; --bad-soft:#fbe9e9;
     --warn:#a8721f; --warn-soft:#faf1e0;
     --good:#2f7d4f; --good-soft:#e6f3ea;
     --line-green:#06c755;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]):not([data-theme="calm"]):not([data-theme="darkcalm"]){
-      --bg:#12171b; --surface:#1a2126; --ink:#e7edef; --soft:#9aa7ad; --line:#2c3438;
-      --accent:#6cbac4; --accent-soft:#1c3236;
-      --bad:#e0827c; --bad-soft:#3a2020;
-      --warn:#e3b65a; --warn-soft:#3a2f14;
-      --good:#6fc492; --good-soft:#173226;
-    }
-  }
-  :root[data-theme="dark"]{
-    --bg:#12171b; --surface:#1a2126; --ink:#e7edef; --soft:#9aa7ad; --line:#2c3438;
-    --accent:#6cbac4; --accent-soft:#1c3236;
-    --bad:#e0827c; --bad-soft:#3a2020;
-    --warn:#e3b65a; --warn-soft:#3a2f14;
-    --good:#6fc492; --good-soft:#173226;
-  }
-  /* 「穏やか」— 刺激の少ない、あたたかみのある配色 */
-  :root[data-theme="calm"]{
-    --bg:#f5efe4; --surface:#fffdf7; --ink:#3f362c; --soft:#8c8172; --line:#e6dcc8;
-    --accent:#6b8f7d; --accent-soft:#e3ece6;
-    --bad:#b6604f; --bad-soft:#f5e4de;
-    --warn:#b08a3e; --warn-soft:#f3ead4;
-    --good:#5f8f5a; --good-soft:#e6efe2;
-  }
-  /* 「穏やかダーク」— 暗いけれど黒すぎず・青すぎない、あたたかく落ち着いた配色 */
-  :root[data-theme="darkcalm"]{
-    --bg:#211c17; --surface:#2b241d; --ink:#ede5d8; --soft:#a89a86; --line:#3d342a;
-    --accent:#8fae9c; --accent-soft:#33413a;
-    --bad:#d98a72; --bad-soft:#43291f;
-    --warn:#d9b671; --warn-soft:#40341b;
-    --good:#8fc496; --good-soft:#253527;
-  }
-  :root{
-    --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
     --shadow-sm:0 1px 2px rgba(16,24,32,.05), 0 1px 3px rgba(16,24,32,.04);
     --shadow-md:0 2px 4px rgba(16,24,32,.04), 0 8px 20px rgba(16,24,32,.07);
     --shadow-lg:0 12px 40px rgba(16,24,32,.18);
-    --ring:0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
   }
+
+  /* 暗いときの配色。同じ中身を2か所に書くのは、
+     「端末に合わせる」と「ダークを選んだ」の両方に効かせるため。 */
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]):not([data-theme="calm"]){
+    :root:not([data-mode="light"]){
+      --bg:hsl(var(--hue) 20% 8.5%);
+      --surface:hsl(var(--hue) 18% 12.5%);
+      --ink:hsl(var(--hue) 14% 92%);
+      --soft:hsl(var(--hue) 10% 63%);
+      --line:hsl(var(--hue) 14% 22%);
+      --accent:hsl(var(--hue) calc(var(--sat) * .9) 66%);
+      --accent-soft:hsl(var(--hue) calc(var(--sat) * .55) 20%);
+      --bad:#e0827c; --bad-soft:#3a2020;
+      --warn:#e3b65a; --warn-soft:#3a2f14;
+      --good:#6fc492; --good-soft:#173226;
       --shadow-sm:0 1px 2px rgba(0,0,0,.3);
       --shadow-md:0 2px 6px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.28);
       --shadow-lg:0 16px 48px rgba(0,0,0,.5);
     }
   }
-  :root[data-theme="dark"], :root[data-theme="darkcalm"]{
+  :root[data-mode="dark"]{
+    --bg:hsl(var(--hue) 20% 8.5%);
+    --surface:hsl(var(--hue) 18% 12.5%);
+    --ink:hsl(var(--hue) 14% 92%);
+    --soft:hsl(var(--hue) 10% 63%);
+    --line:hsl(var(--hue) 14% 22%);
+    --accent:hsl(var(--hue) calc(var(--sat) * .9) 66%);
+    --accent-soft:hsl(var(--hue) calc(var(--sat) * .55) 20%);
+    --bad:#e0827c; --bad-soft:#3a2020;
+    --warn:#e3b65a; --warn-soft:#3a2f14;
+    --good:#6fc492; --good-soft:#173226;
     --shadow-sm:0 1px 2px rgba(0,0,0,.3);
     --shadow-md:0 2px 6px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.28);
     --shadow-lg:0 16px 48px rgba(0,0,0,.5);
+  }
+
+  :root{
+    --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
+    --ring:0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
   }
 
   *{box-sizing:border-box}
@@ -111,6 +132,34 @@
   .version-note{color:var(--soft);font-size:12px;margin:14px 0 0;text-align:center;
     display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
   .version-note .text-link{width:auto;padding:0;font-size:12px;display:inline}
+
+  .settings-block{margin-bottom:26px}
+  .settings-label{font-size:13px;font-weight:700;color:var(--soft);
+    letter-spacing:.06em;margin-bottom:10px}
+  .settings-hint{font-size:12px;color:var(--soft);margin:9px 0 0;line-height:1.65}
+
+  .seg{display:flex;gap:0;background:var(--bg);border:1px solid var(--line);
+    border-radius:var(--r-full);padding:3px}
+  .seg button{flex:1;background:transparent;border:none;box-shadow:none;
+    border-radius:var(--r-full);padding:10px 6px;font-size:13.5px;font-weight:700;
+    color:var(--soft);font-family:inherit;cursor:pointer;transition:all .15s}
+  .seg button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+  /* テーマカラーの見本。押した色がそのまま画面全体に反映される。 */
+  .color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
+  .color-swatch{position:relative;aspect-ratio:1;border-radius:var(--r-full);
+    border:2px solid transparent;background:transparent;padding:0;box-shadow:none;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:transform .15s}
+  .color-swatch:active{transform:scale(.9)}
+  .color-swatch i{display:block;width:100%;height:100%;border-radius:var(--r-full);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+  .color-swatch.active{border-color:var(--ink)}
+  .color-swatch.active::after{content:"✓";position:absolute;color:#fff;
+    font-size:15px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+  .color-swatch span{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);
+    font-size:10px;color:var(--soft);white-space:nowrap;font-weight:600}
+  .color-grid{padding-bottom:20px}
 
   .settings-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .settings-row label{color:var(--soft);font-size:13px;flex:none;min-width:88px}
@@ -284,10 +333,26 @@
     text-decoration:underline;font-size:13.5px;padding:4px;cursor:pointer}
 
   .today-section{margin:6px 0 26px}
-  .today-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  .today-head{display:flex;align-items:center;gap:10px;
     margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--line)}
-  .today-title{font-size:20px;font-weight:700;margin:0;color:var(--ink);letter-spacing:.02em}
+  .today-title{flex:1;font-size:20px;font-weight:700;margin:0;color:var(--ink);letter-spacing:.02em}
   .today-date{flex:none;font-size:13px;font-weight:700;color:var(--soft)}
+
+  /* トルマモ（キャラクター）。期限の状態で表情が変わる＝見ただけで様子が分かる。 */
+  .mascot{display:block;color:var(--accent)}
+  .mascot .body{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+  .mascot .face{fill:currentColor;stroke:currentColor}
+  .mascot-slot{flex:none;display:flex;align-items:center}
+  .mascot-slot .mascot{width:34px;height:37px}
+  .mascot-big{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .mascot-big .mascot{width:76px;height:82px}
+  @media (prefers-reduced-motion: no-preference){
+    .mascot-big .mascot{animation:mascot-float 3.4s ease-in-out infinite}
+  }
+  @keyframes mascot-float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-5px)}
+  }
 
   .today-group{margin-bottom:20px}
   #today-summary .today-group:last-child{margin-bottom:0}
@@ -477,6 +542,7 @@
 
   <section class="today-section">
     <div class="today-head">
+      <span class="mascot-slot" id="mascot-slot"></span>
       <h2 class="today-title">今日の確認</h2>
       <span class="today-date" id="today-date"></span>
     </div>
@@ -601,15 +667,20 @@
       <h3>設定</h3>
       <button class="ghost" id="btn-settings-close">閉じる</button>
     </div>
-    <div class="settings-row">
-      <label for="theme-select">画面の色</label>
-      <select id="theme-select">
-        <option value="auto">自動</option>
-        <option value="light">ライト</option>
-        <option value="dark">ダーク</option>
-        <option value="calm">穏やか</option>
-        <option value="darkcalm">穏やかダーク</option>
-      </select>
+    <div class="settings-block">
+      <div class="settings-label">明るさ</div>
+      <div class="seg" id="mode-seg">
+        <button type="button" data-mode="auto">自動</button>
+        <button type="button" data-mode="light">☀️ ライト</button>
+        <button type="button" data-mode="dark">🌙 ダーク</button>
+      </div>
+      <p class="settings-hint">「自動」は、スマホの設定に合わせて朝は明るく夜は暗くなります。</p>
+    </div>
+
+    <div class="settings-block">
+      <div class="settings-label">テーマカラー</div>
+      <div class="color-grid" id="color-grid"></div>
+      <p class="settings-hint">どの色も、ライトとダークの両方で使えます。</p>
     </div>
     <div class="settings-row">
       <label for="voice-select">読み上げの声</label>
@@ -1401,6 +1472,44 @@ function 項目を開閉する(id){
   if(見出し) 見出し.setAttribute("aria-expanded", 開く ? "true" : "false");
 }
 
+// ---- トルマモ（キャラクター） ----
+// 盾のかたちの体に、期限の状態に応じた表情をつける。
+// にっこり＝急ぎなし、みまもり＝そろそろあり、しんぱい＝今日やることあり。
+function マスコットSVG(気分){
+  const 表情 = {
+    にっこり: `
+      <path class="face" d="M14.5 25.5q3.5-4.6 7 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+      <path class="face" d="M26.5 25.5q3.5-4.6 7 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
+      <path class="face" d="M20 31.5q4 3.8 8 0" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+    みまもり: `
+      <circle class="face" cx="18" cy="25" r="2.9" stroke="none"/>
+      <circle class="face" cx="30" cy="25" r="2.9" stroke="none"/>
+      <path class="face" d="M20.5 32h7" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+    しんぱい: `
+      <path class="face" d="M13.8 22.2l4.6-2M34.2 22.2l-4.6-2" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+      <circle class="face" cx="18" cy="26.6" r="3" stroke="none"/>
+      <circle class="face" cx="30" cy="26.6" r="3" stroke="none"/>
+      <ellipse class="face" cx="24" cy="34" rx="2.7" ry="2.2" stroke="none"/>`,
+  }[気分] || "";
+  return `<svg class="mascot" viewBox="0 0 48 52" role="img" aria-label="トルマモ">
+    <path class="body" d="M24 3 L43 9 V27 C43 37 34.5 44.5 24 48 C13.5 44.5 5 37 5 27 V9 Z"
+      stroke-linejoin="round"/>
+    ${表情}
+  </svg>`;
+}
+
+function マスコットの気分(){
+  const items = window.__items || [];
+  if(items.some(i => i.段階 === "切れ" || i.段階 === "危険")) return "しんぱい";
+  if(items.some(i => i.段階 === "注意")) return "みまもり";
+  return "にっこり";
+}
+
+function マスコットを更新する(){
+  const 枠 = document.getElementById("mascot-slot");
+  if(枠) 枠.innerHTML = マスコットSVG(マスコットの気分());
+}
+
 function 今日やることを描画する(items){
   const el = document.getElementById("today-summary");
 
@@ -1412,7 +1521,12 @@ function 今日やることを描画する(items){
   const 注意 = items.filter(i => i.段階 === "注意");
 
   if(緊急.length === 0 && 注意.length === 0){
-    el.innerHTML = '<div class="today-calm">😊 今日やることはありません。ゆっくり過ごしてください。</div>';
+    el.innerHTML = `<div class="today-calm">
+      <div class="mascot-big">${マスコットSVG("にっこり")}
+        <div>今日やることはありません。<br>ゆっくり過ごしてください。</div>
+      </div>
+    </div>`;
+    マスコットを更新する();
     return;
   }
 
@@ -1450,6 +1564,7 @@ function 今日やることを描画する(items){
     </div>`;
   }
   el.innerHTML = html;
+  マスコットを更新する();
 }
 
 function 出費予告を描画する(items){
@@ -2005,19 +2120,91 @@ function お知らせ(文章, 長め){
   setTimeout(() => { el.style.display = "none"; }, 長め ? 4500 : 2200);
 }
 
-// ---- 画面の色 ----
-const テーマ選択 = document.getElementById("theme-select");
-function 保存済みテーマ(){ try { return localStorage.getItem("familin_theme") || "auto"; } catch(e) { return "auto"; } }
-function テーマを反映する(値){
-  if(値 === "light" || 値 === "dark" || 値 === "calm" || 値 === "darkcalm") document.documentElement.setAttribute("data-theme", 値);
-  else document.documentElement.removeAttribute("data-theme");
+// ---- 画面の色（テーマカラー × 明るさ） ----
+const テーマカラー一覧 = [
+  { id: "umi",      名: "うみ",     色: "hsl(195 56% 40%)" },
+  { id: "sora",     名: "そら",     色: "hsl(212 62% 49%)" },
+  { id: "sumire",   名: "すみれ",   色: "hsl(258 50% 57%)" },
+  { id: "budou",    名: "ぶどう",   色: "hsl(287 44% 53%)" },
+  { id: "sakura",   名: "さくら",   色: "hsl(338 62% 58%)" },
+  { id: "ichigo",   名: "いちご",   色: "hsl(356 66% 54%)" },
+  { id: "mikan",    名: "みかん",   色: "hsl(24 76% 48%)"  },
+  { id: "himawari",名: "ひまわり", 色: "hsl(42 78% 47%)"  },
+  { id: "matcha",   名: "まっちゃ", 色: "hsl(88 42% 38%)"  },
+  { id: "mori",     名: "もり",     色: "hsl(154 44% 34%)" },
+  { id: "kinari",   名: "きなり",   色: "hsl(33 34% 46%)"  },
+  { id: "sumi",     名: "すみ",     色: "hsl(220 10% 38%)" },
+];
+
+function 色の設定を読む(){
+  let 明るさ = "auto", 色 = "umi";
+  try {
+    明るさ = localStorage.getItem("torumamo_mode") || "";
+    色 = localStorage.getItem("torumamo_color") || "";
+    // 以前の4種類（ライト/ダーク/穏やか/穏やかダーク）から引き継ぐ。
+    if(!明るさ){
+      const 旧 = localStorage.getItem("familin_theme") || "auto";
+      明るさ = (旧 === "dark" || 旧 === "darkcalm") ? "dark"
+             : (旧 === "light" || 旧 === "calm") ? "light" : "auto";
+      if(!色) 色 = (旧 === "calm" || 旧 === "darkcalm") ? "kinari" : "umi";
+    }
+  } catch(e) {}
+  if(!["auto", "light", "dark"].includes(明るさ)) 明るさ = "auto";
+  if(!テーマカラー一覧.some(c => c.id === 色)) 色 = "umi";
+  return { 明るさ, 色 };
 }
-テーマ選択.value = 保存済みテーマ();
-テーマを反映する(テーマ選択.value);
-テーマ選択.addEventListener("change", () => {
-  テーマを反映する(テーマ選択.value);
-  try { localStorage.setItem("familin_theme", テーマ選択.value); } catch(e) {}
+
+function 色を反映する({ 明るさ, 色 }){
+  const 根 = document.documentElement;
+  if(明るさ === "auto") 根.removeAttribute("data-mode");
+  else 根.setAttribute("data-mode", 明るさ);
+  根.setAttribute("data-color", 色);
+  // スマホの上下の帯（アドレスバーなど）も画面の色に合わせる。
+  const 帯 = document.querySelector('meta[name="theme-color"]');
+  if(帯) 帯.setAttribute("content", getComputedStyle(根).getPropertyValue("--bg").trim());
+}
+
+function 色の画面を描く(){
+  const 今 = 色の設定を読む();
+
+  document.querySelectorAll("#mode-seg button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.mode === 今.明るさ);
+  });
+
+  const 枠 = document.getElementById("color-grid");
+  枠.innerHTML = テーマカラー一覧.map(c => `
+    <button type="button" class="color-swatch${c.id === 今.色 ? " active" : ""}"
+      data-color="${c.id}" title="${c.名}" aria-label="${c.名}">
+      <i style="background:${c.色}"></i><span>${c.名}</span>
+    </button>`).join("");
+
+  枠.querySelectorAll(".color-swatch").forEach(btn => {
+    btn.addEventListener("click", () => {
+      try { localStorage.setItem("torumamo_color", btn.dataset.color); } catch(e) {}
+      色を反映する(色の設定を読む());
+      色の画面を描く();
+      マスコットを更新する();
+    });
+  });
+}
+
+document.querySelectorAll("#mode-seg button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    try { localStorage.setItem("torumamo_mode", btn.dataset.mode); } catch(e) {}
+    色を反映する(色の設定を読む());
+    色の画面を描く();
+  });
 });
+
+// 「自動」のとき、端末が明るさを切り替えたらその場で追従させる。
+try {
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if(色の設定を読む().明るさ === "auto") 色を反映する(色の設定を読む());
+  });
+} catch(e) {}
+
+色を反映する(色の設定を読む());
+色の画面を描く();
 
 const 一覧表示選択 = document.getElementById("list-view-mode");
 try { 一覧表示選択.value = localStorage.getItem("familin_listview") || "urgency"; } catch(e) {}
@@ -2196,7 +2383,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-09c";
+const アプリの版 = "2026-09-09d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
