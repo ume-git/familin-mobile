@@ -245,19 +245,29 @@
 
   .list{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
   .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
-    padding:18px 20px;box-shadow:var(--shadow-sm)}
-  .item .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-  .item .chip{margin-left:auto;flex:none}
-  .item .top > div:first-child{flex:1;min-width:0}
-  .item .name{font-weight:700;font-size:17.5px;line-height:1.5}
-  .item .cat{color:var(--soft);font-size:13px;margin-top:4px}
+    box-shadow:var(--shadow-sm);overflow:hidden}
+  .item-head{width:100%;display:flex;align-items:center;gap:10px;text-align:left;
+    padding:14px 15px;background:transparent;border:none;box-shadow:none;
+    font-family:inherit;color:var(--ink);cursor:pointer}
+  .item-head:hover{background:var(--bg)}
+  .item-main{flex:1;min-width:0}
+  .item .chip{flex:none}
+  .item .name{font-weight:700;font-size:16px;line-height:1.45;display:block}
+  .item .who-tag{font-size:11.5px;font-weight:700;color:var(--soft);
+    background:var(--bg);padding:2px 8px;border-radius:var(--r-full);
+    margin-left:5px;white-space:nowrap}
+  .item .cat{color:var(--soft);font-size:12.5px;margin-top:4px;display:block}
+  .item-caret{flex:none;color:var(--soft);font-size:16px;line-height:1;
+    transition:transform .18s}
+  .item-head[aria-expanded="true"] .item-caret{transform:rotate(180deg)}
+  .item-detail{padding:0 15px 15px}
   .chip{display:inline-block;font-weight:700;font-size:12px;padding:5px 11px;
     border-radius:var(--r-full);white-space:nowrap;letter-spacing:.02em}
   .chip.bad{background:var(--bad-soft);color:var(--bad)}
   .chip.warn{background:var(--warn-soft);color:var(--warn)}
   .chip.good{background:var(--good-soft);color:var(--good)}
-  .action{margin-top:14px;font-size:15px;background:var(--bg);border-radius:var(--r-sm);
-    padding:13px 15px;line-height:1.7}
+  .action{margin-top:2px;font-size:14.5px;background:var(--bg);border-radius:var(--r-sm);
+    padding:12px 14px;line-height:1.7}
   .meta{margin-top:9px;color:var(--soft);font-size:13px}
   .row-btns{margin-top:14px;display:flex;gap:7px;flex-wrap:wrap}
   .row-btns button{font-size:13px;padding:8px 13px}
@@ -279,35 +289,38 @@
   .today-title{font-size:20px;font-weight:700;margin:0;color:var(--ink);letter-spacing:.02em}
   .today-date{flex:none;font-size:13px;font-weight:700;color:var(--soft)}
 
-  .today-group{margin-bottom:24px}
+  .today-group{margin-bottom:20px}
   #today-summary .today-group:last-child{margin-bottom:0}
-  .today-group.urgent{background:var(--bad-soft);border-radius:var(--r-lg);
-    padding:16px 14px 7px;margin-bottom:16px}
-  .today-group.urgent .today-card{border-color:transparent}
   .today-group-head{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;
-    margin-bottom:12px;color:var(--soft);letter-spacing:.05em}
+    margin-bottom:10px;color:var(--soft);letter-spacing:.05em}
   .today-group-head .count{font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--r-full)}
   .today-group.urgent .today-group-head{color:var(--bad)}
   .today-group.urgent .today-group-head .count{background:var(--bad);color:#fff}
   .today-group.soon .today-group-head .count{background:var(--warn-soft);color:var(--warn)}
-  .today-card{display:flex;align-items:flex-start;gap:14px;border-radius:var(--r-md);
-    padding:16px 18px;margin-bottom:9px;background:var(--surface);
-    border:1px solid var(--line);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
-  .today-card .card-actions{display:flex;justify-content:flex-end;margin-top:12px}
+
+  /* 1件を1行に圧縮する。左の「あと何日」を主役にして、一目で切迫度が分かるようにする。 */
+  .today-card{width:100%;display:flex;align-items:center;gap:13px;text-align:left;
+    border-radius:var(--r-md);padding:13px 15px 13px 17px;margin-bottom:8px;
+    background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-sm);
+    position:relative;overflow:hidden;font-family:inherit;color:var(--ink);cursor:pointer}
+  .today-card:hover{border-color:var(--soft)}
   .today-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
   .today-group.urgent .today-card::before{background:var(--bad)}
   .today-group.soon .today-card::before{background:var(--warn)}
-  .today-group.urgent .today-card{box-shadow:var(--shadow-md)}
-  .today-card .icon{font-size:25px;flex:none;width:42px;height:42px;border-radius:var(--r-full);
-    background:var(--bg);display:flex;align-items:center;justify-content:center;margin-left:4px}
-  .today-card .body{flex:1;min-width:0}
-  .today-card .who{font-size:12px;font-weight:700;color:var(--soft);letter-spacing:.03em}
-  .today-card .what{font-size:16px;font-weight:700;color:var(--ink);margin:3px 0;line-height:1.5}
-  .today-card .detail{font-size:13.5px;color:var(--soft);line-height:1.6}
-  .today-card button{flex:none;font-size:12.5px;padding:9px 13px;border-radius:var(--r-sm);
-    border:1px solid var(--line);cursor:pointer;font-weight:700;font-family:inherit;
-    background:transparent;color:var(--soft);align-self:flex-start}
-  .today-card button:hover{background:var(--bg);color:var(--ink)}
+  .today-days{flex:none;width:56px;text-align:center;line-height:1.05}
+  .today-days b{display:block;font-size:27px;font-weight:800;letter-spacing:-.03em}
+  .today-days b.short{font-size:16px;line-height:1.5}
+  .today-days small{display:block;font-size:10.5px;font-weight:700;
+    color:var(--soft);margin-top:3px;letter-spacing:.02em}
+  .today-group.urgent .today-days b{color:var(--bad)}
+  .today-group.soon .today-days b{color:var(--warn)}
+  .today-body{flex:1;min-width:0}
+  .today-what{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.45;
+    display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .today-who{flex:none;font-size:11.5px;font-weight:700;color:var(--soft);
+    background:var(--bg);padding:2px 8px;border-radius:var(--r-full)}
+  .today-todo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;font-size:13px;color:var(--soft);line-height:1.55;margin-top:3px}
   .today-calm{color:var(--soft);border:1px dashed var(--line);border-radius:var(--r-md);
     padding:26px 18px;text-align:center;font-size:14.5px;margin-bottom:0}
 
@@ -462,12 +475,6 @@
     </div>
   </div>
 
-  <div class="people-row" id="people-row"></div>
-  <div class="people-actions" id="people-actions" style="display:none">
-    <button class="ghost" id="btn-edit-person">✏️ 名前を変更</button>
-    <button class="danger" id="btn-delete-person">🗑 この人を削除</button>
-  </div>
-
   <section class="today-section">
     <div class="today-head">
       <h2 class="today-title">今日の確認</h2>
@@ -475,7 +482,6 @@
     </div>
     <div id="today-summary"></div>
   </section>
-  <div id="budget-forecast"></div>
 
   <div class="capture-card">
     <button type="button" class="primary" id="btn-photo-capture">📷 カメラで撮って登録する</button>
@@ -488,11 +494,21 @@
     <button type="button" class="text-link" id="btn-open-form">手で入力して登録する</button>
   </div>
 
+  <div id="budget-forecast"></div>
+
   <div class="ask-row">
     <input type="text" id="ask-input" placeholder="例: 今月やることは？">
     <button type="button" class="ghost" id="btn-ask">聞く</button>
   </div>
   <div id="ask-answer" class="ask-answer" style="display:none"></div>
+
+  <!-- 家族での絞り込みは「登録一覧」だけにかかる補助機能なので、一覧の直前に置く。
+       「今日の確認」は絞り込みに関わらず、いつも家族全員分を見せる。 -->
+  <div class="people-row" id="people-row"></div>
+  <div class="people-actions" id="people-actions" style="display:none">
+    <button class="ghost" id="btn-edit-person">✏️ 名前を変更</button>
+    <button class="danger" id="btn-delete-person">🗑 この人を削除</button>
+  </div>
 
   <div class="list-head">
     <h2 class="section-title" id="list-title">すべての登録</h2>
@@ -1350,25 +1366,39 @@ function 項目カードHTML(i){
     i.is_senior ? "70歳以上" : "",
   ].filter(Boolean).join("・");
   const 人物情報 = 項目の人物情報(i);
+  // ふだんは「名前・種類・期限・状態」だけを見せて1行に収める。
+  // 押したときだけ、やること・費用・メモ・操作ボタンを開く。
   return `
   <div class="item">
-    <div class="top">
-      <div>
-        <div class="name">${エスケープ(i.name)}${人物情報.name !== "未設定" ? ` <span class="meta" style="display:inline">（${人物情報.icon ? エスケープ(人物情報.icon) : "👤"} ${エスケープ(人物情報.name)}）</span>` : ""}</div>
-        <div class="cat">${エスケープ(i.category)}${区分部分 ? "（" + エスケープ(区分部分) + "）" : ""} ・ 期限 ${i.expire_date}（${i.残り日数文}）</div>
-      </div>
+    <button type="button" class="item-head" onclick="項目を開閉する('${i.id}')" aria-expanded="false">
+      <span class="item-main">
+        <span class="name">${エスケープ(i.name)}${人物情報.name !== "未設定" ? ` <span class="who-tag">${人物情報.icon ? エスケープ(人物情報.icon) : "👤"} ${エスケープ(人物情報.name)}</span>` : ""}</span>
+        <span class="cat">${エスケープ(i.category)}${区分部分 ? "（" + エスケープ(区分部分) + "）" : ""} ・ ${i.expire_date}（${i.残り日数文}）</span>
+      </span>
       <span class="chip ${i.色}">${i.段階ラベル}</span>
-    </div>
-    <div class="action">${エスケープ(i.今やること)}</div>
-    ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
-    ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
-    <div class="row-btns">
-      <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
-      <button class="danger" onclick="削除する('${i.id}')">削除</button>
-      <button class="ghost" onclick="カレンダーに登録('${i.id}')">📅 カレンダーに登録</button>
-      <button class="ghost" onclick="項目を読み上げる('${i.id}')">🔊 読み上げ</button>
+      <span class="item-caret">⌄</span>
+    </button>
+    <div class="item-detail" id="detail-${i.id}" hidden>
+      <div class="action">${エスケープ(i.今やること)}</div>
+      ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
+      ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
+      <div class="row-btns">
+        <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
+        <button class="ghost" onclick="カレンダーに登録('${i.id}')">📅 カレンダー</button>
+        <button class="ghost" onclick="項目を読み上げる('${i.id}')">🔊 読み上げ</button>
+        <button class="danger" onclick="削除する('${i.id}')">削除</button>
+      </div>
     </div>
   </div>`;
+}
+
+function 項目を開閉する(id){
+  const 中身 = document.getElementById("detail-" + id);
+  if(!中身) return;
+  const 開く = 中身.hidden;
+  中身.hidden = !開く;
+  const 見出し = 中身.parentElement.querySelector(".item-head");
+  if(見出し) 見出し.setAttribute("aria-expanded", 開く ? "true" : "false");
 }
 
 function 今日やることを描画する(items){
@@ -1386,33 +1416,37 @@ function 今日やることを描画する(items){
     return;
   }
 
-  const カードHTML = (i, 詳細文) => {
+  // 残り日数を主役にする。カード全体を押せるようにして、行数と高さを減らす。
+  const 期限のHTML = (日数) => {
+    if(日数 == null) return `<b class="short">？</b><small>日付不明</small>`;
+    if(日数 < 0) return `<b class="short">切れて<br>います</b><small>${Math.abs(日数)}日前</small>`;
+    if(日数 === 0) return `<b class="short">今日</b><small>まで</small>`;
+    return `<b>${日数}</b><small>日後</small>`;
+  };
+
+  const カードHTML = (i) => {
     const 人物情報 = 項目の人物情報(i);
     return `
-    <div class="today-card">
-      <div class="icon">${人物情報.icon || "🙂"}</div>
-      <div class="body">
-        <div class="who">${エスケープ(人物情報.name)}</div>
-        <div class="what">${エスケープ(i.name)}</div>
-        <div class="detail">${エスケープ(詳細文)}</div>
-        <div class="card-actions">
-          <button type="button" onclick="編集開始('${i.id}')">やることを見る</button>
-        </div>
-      </div>
-    </div>`;
+    <button type="button" class="today-card" onclick="編集開始('${i.id}')">
+      <span class="today-days">${期限のHTML(i.残り日数)}</span>
+      <span class="today-body">
+        <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.icon || "🙂"} ${エスケープ(人物情報.name)}</span></span>
+        <span class="today-todo">${エスケープ(i.今やること || i.残り日数文 || "")}</span>
+      </span>
+    </button>`;
   };
 
   let html = "";
   if(緊急.length > 0){
     html += `<div class="today-group urgent">
       <div class="today-group-head">🔴 今日やること <span class="count">${緊急.length}件</span></div>
-      ${緊急.map(i => カードHTML(i, i.今やること)).join("")}
+      ${緊急.map(カードHTML).join("")}
     </div>`;
   }
   if(注意.length > 0){
     html += `<div class="today-group soon">
       <div class="today-group-head">🟡 そろそろ <span class="count">${注意.length}件</span></div>
-      ${注意.map(i => カードHTML(i, i.残り日数文)).join("")}
+      ${注意.map(カードHTML).join("")}
     </div>`;
   }
   el.innerHTML = html;
@@ -1475,6 +1509,11 @@ function 描画する(){
 
   window.__items = items;
 
+  // 「今日の確認」と出費予告は、絞り込みに関わらず家族全員分を見せる。
+  // 誰かに絞ったせいで急ぎの用事が隠れてしまうのを防ぐため。
+  今日やることを描画する(items);
+  出費予告を描画する(items);
+
   if(選択中の人物ID){
     const 人 = 人物一覧を読む().find(p => p.id === 選択中の人物ID);
     if(人) items = items.filter(i => 項目の人物名(i) === 人.name);
@@ -1483,9 +1522,6 @@ function 描画する(){
   const list = document.getElementById("list");
   document.getElementById("list-title").textContent =
     items.length ? `すべての登録（${items.length}件）` : "すべての登録";
-
-  今日やることを描画する(items);
-  出費予告を描画する(items);
 
   if(items.length === 0){
     list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
