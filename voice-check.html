@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>トルマモ｜声のしらべ</title>
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#fff; --ink:#1B2430; --soft:#68758A; --line:#E1E6EC;
+    --accent:#2E6C8E; --accent-soft:#E8F1F6;
+    --ok:#2F6B4F; --ok-soft:#E7F1EB;
+    --warn:#A8761A; --warn-soft:#FAF1DF;
+    --bad:#B23A2E; --bad-soft:#FAECE9;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#111820; --surface:#1A222C; --ink:#E7ECF3; --soft:#9AA7B8; --line:#2B3542;
+      --accent:#7FB0DE; --accent-soft:#1B2A38;
+      --ok:#79C09B; --ok-soft:#182B22;
+      --warn:#D6A950; --warn-soft:#2C2417;
+      --bad:#E5806F; --bad-soft:#33201D;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    font-size:16px;line-height:1.75;padding:22px 16px 60px}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 6px}
+  .lead{color:var(--soft);font-size:14px;margin:0 0 22px}
+  h2{font-size:15px;margin:30px 0 10px;letter-spacing:.03em}
+
+  .verdict{border-radius:14px;padding:18px 18px;margin-bottom:8px;border:1.5px solid}
+  .verdict.ok{background:var(--ok-soft);border-color:var(--ok)}
+  .verdict.warn{background:var(--warn-soft);border-color:var(--warn)}
+  .verdict.bad{background:var(--bad-soft);border-color:var(--bad)}
+  .verdict.calm{background:var(--accent-soft);border-color:var(--accent)}
+  .verdict .mark{font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:6px}
+  .verdict.ok .mark{color:var(--ok)}
+  .verdict.warn .mark{color:var(--warn)}
+  .verdict.bad .mark{color:var(--bad)}
+  .verdict.calm .mark{color:var(--accent)}
+  .verdict .pick{font-size:19px;font-weight:700;margin-bottom:8px;word-break:break-word}
+  .verdict p{margin:0;font-size:14px;line-height:1.8}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 15px;margin-bottom:9px}
+  .card.is-pick{border-color:var(--accent);border-width:1.5px}
+  .row1{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+  .vname{font-weight:700;font-size:15.5px;flex:1;min-width:0;word-break:break-word}
+  .badge{flex:none;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
+  .badge.pick{background:var(--accent);color:#fff}
+  .badge.native-ok{background:var(--ok-soft);color:var(--ok)}
+  .badge.native-ng{background:var(--bad-soft);color:var(--bad)}
+  .badge.native-un{background:var(--warn-soft);color:var(--warn)}
+  .kv{font-family:ui-monospace,"SFMono-Regular",Menlo,monospace;font-size:11.5px;
+    color:var(--soft);line-height:1.7;word-break:break-all}
+  .kv b{color:var(--ink);font-weight:600}
+  .speak{margin-top:10px;background:var(--surface);border:1px solid var(--line);
+    color:var(--accent);border-radius:9px;padding:9px 14px;font-size:13.5px;
+    font-weight:700;font-family:inherit;cursor:pointer}
+  .speak:active{background:var(--accent-soft)}
+
+  .env{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 15px;font-family:ui-monospace,monospace;font-size:11.5px;
+    color:var(--soft);word-break:break-all;line-height:1.8}
+  .note{font-size:13px;color:var(--soft);line-height:1.8;margin-top:24px;
+    padding-top:16px;border-top:1px solid var(--line)}
+  .empty{color:var(--soft);text-align:center;padding:30px 16px;
+    border:1px dashed var(--line);border-radius:12px}
+  #copy{width:100%;margin-top:14px;background:var(--accent);color:#fff;border:none;
+    border-radius:11px;padding:15px;font-size:15.5px;font-weight:700;
+    font-family:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>声のしらべ</h1>
+  <p class="lead">この端末が持っている声を全部並べ、トルマモがどれを選んでいるかを確かめます。あとで本物のアプリ（ネイティブ）に作り替えたとき、同じ声が使えるかどうかの判定も出します。</p>
+
+  <div id="verdict"></div>
+
+  <h2>日本語の声</h2>
+  <div id="ja-list"></div>
+
+  <h2>この端末</h2>
+  <div class="env" id="env"></div>
+
+  <button id="copy">この結果をぜんぶコピーする</button>
+
+  <p class="note">
+    判定のしくみ：iPhoneの「Siriの声」は、Appleが他社アプリに開放していないため、ネイティブアプリでは使えない可能性が高いものです。
+    一方 Kyoko・Otoya などの標準音声や、Androidの Google 日本語音声は、ネイティブアプリからも使える見込みがあります。
+    ここでの判定は名前からの推定なので、最終確認は実際のアプリで行います。
+  </p>
+</div>
+
+<script>
+// トルマモ本体（index.html）と同じ優先順・同じ点数計算をそのまま使う。
+// ここで選ばれる声が、実際にトルマモが喋っている声。
+const 音声候補の優先順 = [
+  "siri", "premium", "enhanced", "neural", "natural",
+  "google", "o-ren", "oren", "kyoko", "nanami", "haruka",
+  "hattori", "mizuki", "otoya", "sayaka",
+];
+
+function エスケープ(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function 日本語の音声一覧(){
+  try { return speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("ja")); }
+  catch(e) { return []; }
+}
+
+function 点数(v){
+  const 名 = v.name.toLowerCase();
+  const 順位 = 音声候補の優先順.findIndex(語 => 名.includes(語));
+  return 順位 === -1 ? 音声候補の優先順.length : 順位;
+}
+
+// 名前とvoiceURIから、ネイティブアプリでも使えそうかを推定する。
+function ネイティブ判定(v){
+  const 手がかり = ((v.voiceURI || "") + " " + v.name).toLowerCase();
+
+  if(手がかり.includes("siri")){
+    return {
+      種別: "ng",
+      札: "ネイティブ✕",
+      見出し: "この声はネイティブアプリでは使えない見込みです",
+      説明: "Siriの声はAppleが他社アプリに開放していません。Flutterに作り替えると、この声は選べなくなる可能性が高いです。"
+        + "移行するなら、下の一覧から Kyoko などの標準音声で聞き比べて、代わりに使える声を決めておく必要があります。",
+    };
+  }
+  if(手がかり.includes("kyoko") || 手がかり.includes("otoya")
+     || 手がかり.includes("hattori") || 手がかり.includes("o-ren") || 手がかり.includes("oren")){
+    return {
+      種別: "ok",
+      札: "ネイティブ◯",
+      見出し: "この声はネイティブアプリでも使える見込みです",
+      説明: "iOS標準の日本語音声です。Flutterに作り替えても同じ声を指定できる見込みなので、"
+        + "「声が変わってしまう」という移行リスクはほぼありません。",
+    };
+  }
+  if(手がかり.includes("google")){
+    return {
+      種別: "ok",
+      札: "ネイティブ◯",
+      見出し: "この声はネイティブアプリでも使える見込みです",
+      説明: "Androidの標準音声エンジンの声です。Flutterからも同じものを指定できる見込みです。",
+    };
+  }
+  if(手がかり.includes("nanami") || 手がかり.includes("haruka") || 手がかり.includes("ayumi")){
+    return {
+      種別: "un",
+      札: "PCの声",
+      見出し: "これはパソコン（Windows）の声です",
+      説明: "スマホでの結果を見たいので、この画面をスマホで開き直してください。",
+    };
+  }
+  return {
+    種別: "un",
+    札: "判定できず",
+    見出し: "この声は名前から判定できませんでした",
+    説明: "下の voiceURI を控えておいてください。移行するときに、同じ識別子が使えるかを直接確かめます。",
+  };
+}
+
+function 描画する(){
+  const 候補 = 日本語の音声一覧();
+  const 一覧欄 = document.getElementById("ja-list");
+  const 判定欄 = document.getElementById("verdict");
+
+  if(候補.length === 0){
+    判定欄.innerHTML = '<div class="verdict calm"><div class="mark">さがしています</div>'
+      + '<p>まだ声が見つかりません。数秒待つか、一度画面のどこかを触ってみてください。'
+      + 'それでも出ないときは、この端末に日本語の音声が入っていない可能性があります。</p></div>';
+    一覧欄.innerHTML = '<div class="empty">日本語の声が見つかりませんでした</div>';
+    return;
+  }
+
+  // 保存済みの選択があればそれを、なければ点数の一番良いものを選ぶ（本体と同じ挙動）。
+  let 保存済み = null;
+  try { 保存済み = localStorage.getItem("familin_voice"); } catch(e) {}
+  const 選ばれた = (保存済み && 候補.find(v => v.name === 保存済み))
+    || 候補.slice().sort((a, b) => 点数(a) - 点数(b))[0];
+
+  const 判定 = ネイティブ判定(選ばれた);
+  判定欄.innerHTML = `
+    <div class="verdict ${判定.種別 === "ng" ? "bad" : 判定.種別 === "ok" ? "ok" : "warn"}">
+      <div class="mark">トルマモが今えらんでいる声${保存済み === 選ばれた.name ? "（あなたが設定したもの）" : "（自動でおすすめされたもの）"}</div>
+      <div class="pick">${エスケープ(選ばれた.name)}</div>
+      <p><b>${エスケープ(判定.見出し)}</b><br>${エスケープ(判定.説明)}</p>
+    </div>`;
+
+  一覧欄.innerHTML = 候補.map((v, i) => {
+    const j = ネイティブ判定(v);
+    const これ = v.name === 選ばれた.name;
+    return `
+      <div class="card${これ ? " is-pick" : ""}">
+        <div class="row1">
+          <div class="vname">${エスケープ(v.name)}</div>
+          ${これ ? '<span class="badge pick">採用中</span>' : ""}
+          <span class="badge native-${j.種別}">${エスケープ(j.札)}</span>
+        </div>
+        <div class="kv">
+          <b>voiceURI</b> ${エスケープ(v.voiceURI || "(なし)")}<br>
+          <b>lang</b> ${エスケープ(v.lang)}
+          <b>端末内</b> ${v.localService ? "はい" : "いいえ"}
+          <b>既定</b> ${v.default ? "はい" : "いいえ"}
+        </div>
+        <button class="speak" data-i="${i}">▶ この声で聞いてみる</button>
+      </div>`;
+  }).join("");
+
+  一覧欄.querySelectorAll(".speak").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const v = 候補[Number(btn.dataset.i)];
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance("お父さんの運転免許の更新です。今週中に、警察署で手続きをしてください。");
+        u.voice = v; u.lang = v.lang; u.rate = 1.0;
+        speechSynthesis.speak(u);
+      } catch(e) {
+        alert("この端末では再生できませんでした。");
+      }
+    });
+  });
+
+  document.getElementById("env").innerHTML =
+    `<b>userAgent</b> ${エスケープ(navigator.userAgent)}<br>`
+    + `<b>日本語の声</b> ${候補.length}件　<b>全部の声</b> ${speechSynthesis.getVoices().length}件<br>`
+    + `<b>画面</b> ${window.innerWidth}×${window.innerHeight}　`
+    + `<b>ホーム画面から起動</b> ${window.matchMedia("(display-mode: standalone)").matches || navigator.standalone ? "はい" : "いいえ"}`;
+}
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const 候補 = 日本語の音声一覧();
+  const 本文 = [
+    "【トルマモ 声のしらべ】",
+    navigator.userAgent,
+    "",
+    ...候補.map(v => `${v.name} / ${v.voiceURI || "-"} / ${v.lang} / 端末内:${v.localService}`),
+  ].join("\n");
+  try {
+    await navigator.clipboard.writeText(本文);
+    document.getElementById("copy").textContent = "コピーしました";
+  } catch(e) {
+    alert(本文);
+  }
+});
+
+描画する();
+// スマホでは声の一覧がすぐに用意されないことがあるので、何度か読み直す。
+if(typeof speechSynthesis !== "undefined"){
+  speechSynthesis.onvoiceschanged = 描画する;
+  let 回数 = 0;
+  const タイマー = setInterval(() => {
+    回数++;
+    if(日本語の音声一覧().length > 0 || 回数 > 20) clearInterval(タイマー);
+    描画する();
+  }, 300);
+}
+</script>
+</body>
+</html>

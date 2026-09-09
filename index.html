@@ -114,9 +114,16 @@
   .settings-row button{flex:none;font-size:13px;padding:10px 14px}
 
   .people-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
-  .person-pill{flex:none;background:var(--surface);border:1px solid var(--line);color:var(--soft);
+  .person-pill{flex:none;display:inline-flex;align-items:center;gap:7px;
+    background:var(--surface);border:1px solid var(--line);color:var(--soft);
     border-radius:var(--r-full);padding:8px 15px;font-size:14px;font-weight:600;
     box-shadow:var(--shadow-sm);transition:all .15s}
+  .pill-count{flex:none;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-full);
+    background:var(--bg);color:var(--soft);font-size:11.5px;font-weight:700;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center}
+  .pill-count.urgent{background:var(--bad);color:#fff}
+  .person-pill.active .pill-count{background:color-mix(in srgb, #fff 26%, transparent);color:#fff}
+  .person-pill.active .pill-count.urgent{background:#fff;color:var(--bad)}
   .person-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;
     box-shadow:0 2px 8px color-mix(in srgb, var(--accent) 34%, transparent)}
   .person-pill.add{background:transparent;border-style:dashed;color:var(--soft);box-shadow:none}
@@ -262,12 +269,22 @@
   .copy-fallback button{background:none;border:none;color:var(--accent);font-weight:700;
     text-decoration:underline;font-size:13.5px;padding:4px;cursor:pointer}
 
+  .today-section{margin:6px 0 26px}
+  .today-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+  .today-title{font-size:20px;font-weight:700;margin:0;color:var(--ink);letter-spacing:.02em}
+  .today-date{flex:none;font-size:13px;font-weight:700;color:var(--soft)}
+
   .today-group{margin-bottom:24px}
+  #today-summary .today-group:last-child{margin-bottom:0}
+  .today-group.urgent{background:var(--bad-soft);border-radius:var(--r-lg);
+    padding:16px 14px 7px;margin-bottom:16px}
+  .today-group.urgent .today-card{border-color:transparent}
   .today-group-head{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;
     margin-bottom:12px;color:var(--soft);letter-spacing:.05em}
   .today-group-head .count{font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--r-full)}
   .today-group.urgent .today-group-head{color:var(--bad)}
-  .today-group.urgent .today-group-head .count{background:var(--bad-soft);color:var(--bad)}
+  .today-group.urgent .today-group-head .count{background:var(--bad);color:#fff}
   .today-group.soon .today-group-head .count{background:var(--warn-soft);color:var(--warn)}
   .today-card{display:flex;align-items:flex-start;gap:14px;border-radius:var(--r-md);
     padding:16px 18px;margin-bottom:9px;background:var(--surface);
@@ -288,7 +305,7 @@
     background:transparent;color:var(--soft);align-self:flex-start}
   .today-card button:hover{background:var(--bg);color:var(--ink)}
   .today-calm{color:var(--soft);border:1px dashed var(--line);border-radius:var(--r-md);
-    padding:26px 18px;text-align:center;font-size:14.5px;margin-bottom:24px}
+    padding:26px 18px;text-align:center;font-size:14.5px;margin-bottom:0}
 
   .budget-note{background:var(--surface);border:1px solid var(--line);color:var(--soft);
     border-radius:var(--r-md);padding:14px 18px;margin-bottom:24px;font-size:13.5px;
@@ -447,7 +464,13 @@
     <button class="danger" id="btn-delete-person">🗑 この人を削除</button>
   </div>
 
-  <div id="today-summary"></div>
+  <section class="today-section">
+    <div class="today-head">
+      <h2 class="today-title">今日の確認</h2>
+      <span class="today-date" id="today-date"></span>
+    </div>
+    <div id="today-summary"></div>
+  </section>
   <div id="budget-forecast"></div>
 
   <div class="capture-card">
@@ -1174,12 +1197,35 @@ function カスタム人物編集(タイトル, 初期アイコン, 初期名前
   });
 }
 
+// 家族ボタンに「その人が何件かかえているか」を出す。
+// 急ぎ（切れ・危険）が1件でもあれば、数字を赤くして目立たせる。
+function 人物ごとの件数(){
+  const 全部 = 項目一覧を読む().map(raw => {
+    const 判定 = 判定する(raw.expire_date, raw.category, raw.sub_type, raw.is_senior);
+    return Object.assign({}, raw, 判定);
+  });
+  const 急ぎか = (i) => i.段階 === "切れ" || i.段階 === "危険";
+  return {
+    合計: { 件数: 全部.length, 急ぎ: 全部.some(急ぎか) },
+    人ごと: (name) => {
+      const 対象 = 全部.filter(i => 項目の人物名(i) === name);
+      return { 件数: 対象.length, 急ぎ: 対象.some(急ぎか) };
+    },
+  };
+}
+
+function 件数バッジHTML(集計){
+  if(!集計.件数) return "";
+  return `<span class="pill-count${集計.急ぎ ? " urgent" : ""}">${集計.件数}</span>`;
+}
+
 function 人物タブを描画する(){
   const people = 人物一覧を読む();
   const el = document.getElementById("people-row");
-  let html = `<button class="person-pill${選択中の人物ID === null ? " active" : ""}" data-person="">すべて</button>`;
+  const 集計 = 人物ごとの件数();
+  let html = `<button class="person-pill${選択中の人物ID === null ? " active" : ""}" data-person="">すべて${件数バッジHTML(集計.合計)}</button>`;
   people.forEach(p => {
-    html += `<button class="person-pill${選択中の人物ID === p.id ? " active" : ""}" data-person="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}</button>`;
+    html += `<button class="person-pill${選択中の人物ID === p.id ? " active" : ""}" data-person="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}${件数バッジHTML(集計.人ごと(p.name))}</button>`;
   });
   html += `<button class="person-pill add" id="btn-add-person">＋ 追加</button>`;
   el.innerHTML = html;
@@ -1322,6 +1368,11 @@ function 項目カードHTML(i){
 
 function 今日やることを描画する(items){
   const el = document.getElementById("today-summary");
+
+  const 曜日名 = ["日", "月", "火", "水", "木", "金", "土"];
+  const 今日 = new Date();
+  document.getElementById("today-date").textContent =
+    `${今日.getMonth() + 1}月${今日.getDate()}日（${曜日名[今日.getDay()]}）`;
   const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
   const 注意 = items.filter(i => i.段階 === "注意");
 
