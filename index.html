@@ -108,6 +108,10 @@
     padding-top:14px;border-top:1px solid var(--line)}
   #photo-analyzing{margin-top:14px;font-size:14px;color:var(--accent);font-weight:700}
 
+  .version-note{color:var(--soft);font-size:12px;margin:14px 0 0;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .version-note .text-link{width:auto;padding:0;font-size:12px;display:inline}
+
   .settings-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .settings-row label{color:var(--soft);font-size:13px;flex:none;min-width:88px}
   .settings-row select{flex:1;font-size:15px;padding:11px 12px}
@@ -606,6 +610,7 @@
     </div>
 
     <p class="privacy-note" style="margin-top:18px">🔒 登録内容は暗号化されて、この端末の中だけに保存されます。写真は読み取りの直後に破棄され、サーバーには残りません。</p>
+    <p class="version-note">版 <span id="app-version">-</span><button type="button" class="text-link" id="btn-force-update">最新に更新する</button></p>
   </div>
 </div>
 
@@ -2152,10 +2157,52 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 
 起動時の画面を決める();
 
+// ---- 版の表示と、手動での更新 ----
+// sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
+// 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
+const アプリの版 = "2026-09-09b";
+document.getElementById("app-version").textContent = アプリの版;
+
+document.getElementById("btn-force-update").addEventListener("click", async () => {
+  const ボタン = document.getElementById("btn-force-update");
+  ボタン.textContent = "確認中…";
+  try {
+    if("serviceWorker" in navigator){
+      const 一覧 = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(一覧.map(登録 => 登録.unregister()));
+    }
+    if("caches" in window){
+      const キー一覧 = await caches.keys();
+      await Promise.all(キー一覧.map(k => caches.delete(k)));
+    }
+  } catch(e) {}
+  // 保存した登録内容はIndexedDBにあるので、ここで消えることはない。
+  location.replace(location.pathname + "?v=" + Date.now());
+});
+
 // ---- PWA: サービスワーカーを登録（オフラインでも開けるようにする） ----
+// 新しい版を公開したとき、端末が古い版のまま止まらないようにする。
 if("serviceWorker" in navigator){
+  // 「もともとサービスワーカーに動かされていたか」を先に控える。
+  // 初回インストール時にも制御が切り替わるので、これが無いと無駄に再読み込みしてしまう。
+  const 最初から制御されていた = !!navigator.serviceWorker.controller;
+  let 再読み込み済み = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if(!最初から制御されていた) return;
+    if(再読み込み済み) return;
+    再読み込み済み = true;
+    location.reload();
+  });
+
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((登録) => {
+      登録.update().catch(() => {});
+      // アプリに戻ってきたときにも新しい版が出ていないか見に行く。
+      document.addEventListener("visibilitychange", () => {
+        if(!document.hidden) 登録.update().catch(() => {});
+      });
+    }).catch(() => {});
   });
 }
 </script>
