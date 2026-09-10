@@ -184,6 +184,25 @@
 const API_BASE = "https://torumamo.jp/api";
 const APP_KEY  = "tm-app-2d999b41dbbed3456c9fcf08c9473ede";
 
+// サーバー側は「https://ume-git.github.io から来た呼び出し」だけを通す。
+// 手元のファイル（file://）やほかの場所から開くと、ブラウザが出どころを null として送るため、
+// 押しても "Failed to fetch" になる。原因が分かるよう、先に知らせておく。
+const 正しい出どころ = "https://ume-git.github.io";
+const 出どころが違う = location.origin !== 正しい出どころ;
+
+if(出どころが違う){
+  const 帯 = document.createElement("div");
+  帯.className = "note";
+  帯.style.cssText = "border-left-color:var(--bad);background:var(--bad-soft);color:var(--ink);margin:0";
+  帯.innerHTML =
+    "<b>このページは、公開されている場所から開いてください。</b><br>" +
+    "いまは <b>" + 逃がす(location.origin || "手元のファイル") + "</b> から開いているため、" +
+    "サーバーが受け付けません（クラウドの声だけが鳴りません）。<br><br>" +
+    '<a href="' + 正しい出どころ + '/familin-mobile/voice-lab.html" ' +
+    'style="color:var(--accent);font-weight:700">' + 正しい出どころ + '/familin-mobile/voice-lab.html</a>';
+  document.querySelector("header").after(帯);
+}
+
 const 長い文 = document.getElementById("text").value;
 const 短い文 = "お父さんの運転免許の期限が、あと3日です。";
 
@@ -308,7 +327,13 @@ document.getElementById("cloud-voices").addEventListener("click", async (e) => {
     await 再生中.play();
     知らせる(声 + "（" + 型 + "）を再生しています。");
   } catch(err) {
-    知らせる(String(err && err.message ? err.message : err), true);
+    const 文 = String(err && err.message ? err.message : err);
+    // fetch そのものが失敗したときは、たいてい出どころか電波の問題。
+    知らせる(/failed to fetch|load failed|networkerror/i.test(文)
+      ? (出どころが違う
+          ? "サーバーに届きませんでした。上の赤い案内のURLから開き直してください。"
+          : "サーバーに届きませんでした。電波の状態を確かめて、もう一度お試しください。")
+      : 文, true);
   } finally {
     document.querySelectorAll("#cloud-voices button").forEach(x => x.disabled = false);
     b.textContent = "聴く";
