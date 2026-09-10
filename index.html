@@ -1874,6 +1874,27 @@ document.getElementById("btn-cancel").addEventListener("click", () => {
 // ============================================================
 const API_BASE = "https://torumamo.jp/api";
 
+// サーバー側の見張り番(guard.php)に見せる合言葉。
+// config.php の APP_KEY と、1文字も違わない同じ値にすること。
+//
+// これは秘密ではない。アプリ本体は公開されているので、探せば見つかる。
+// 役目は、URLを機械的に叩いて回る相手を追い返すこと。
+// 本当に守っているのは、サーバー側の1日の上限と、OpenAI管理画面の月額上限のほう。
+const APP_KEY = "tm-app-2d999b41dbbed3456c9fcf08c9473ede";
+
+// AIの窓口に送るときの、共通の見出し。
+const AIの見出し = { "Content-Type": "application/json", "X-Torumamo-Key": APP_KEY };
+
+// 上限に達したときなど、サーバーが日本語の説明を返してくることがある。
+// それがあればそのまま見せ、無ければ、あたりさわりのない文にする。
+async function 断られた理由(res, 既定文){
+  try {
+    const 中身 = await res.json();
+    if(中身 && 中身.message) return 中身.message;
+  } catch(e) {}
+  return 既定文;
+}
+
 // スマホで撮った写真は、撮影時の向き（EXIF）を持っている。
 // createImageBitmap の imageOrientation:"from-image" を使うと、その向きを反映して
 // 正しい向きに直してくれる（対応していない古い端末では従来のImageで読み込む）。
@@ -1924,6 +1945,8 @@ document.getElementById("btn-photo-album").addEventListener("click", () => {
   document.getElementById("photo-input-album").click();
 });
 
+const 読み取り失敗の文 = "読み取れませんでした。お手数ですが手入力をお願いします。";
+
 async function 写真を読み取る(e){
   const file = e.target.files[0];
   e.target.value = "";
@@ -1938,12 +1961,12 @@ async function 写真を読み取る(e){
     const base64 = await 画像を圧縮してbase64にする(file);
     const res = await fetch(API_BASE + "/analyze.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: AIの見出し,
       body: JSON.stringify({ image: base64, mediaType: "image/jpeg" }),
     });
-    if(!res.ok) throw new Error("解析に失敗しました");
+    if(!res.ok) throw new Error(await 断られた理由(res, 読み取り失敗の文));
     const 結果 = await res.json();
-    if(結果.error) throw new Error(結果.error);
+    if(結果.error) throw new Error(読み取り失敗の文);
 
     編集終了();
     if(結果.title) document.getElementById("f-name").value = 結果.title;
@@ -1959,7 +1982,7 @@ async function 写真を読み取る(e){
     入力フォームを開く();
     お知らせ("読み取れました。内容を確認して「登録する」を押してください。", true);
   } catch(err) {
-    お知らせ("読み取れませんでした。お手数ですが手入力をお願いします。", true);
+    お知らせ((err && err.message) ? err.message : 読み取り失敗の文, true);
   } finally {
     解析中表示.style.display = "none";
     ボタン一覧.forEach(b => b.disabled = false);
@@ -1971,6 +1994,8 @@ document.getElementById("photo-input-album").addEventListener("change", 写真�
 // ============================================================
 // トルマモに聞く（登録済みデータへの質問応答のみ。前面に出るAIチャットにはしない）
 // ============================================================
+const 応答失敗の文 = "今は答えられませんでした。少し時間をおいて、もう一度お試しください。";
+
 async function トルマモに聞く(){
   const input = document.getElementById("ask-input");
   const 質問 = input.value.trim();
@@ -1983,15 +2008,15 @@ async function トルマモに聞く(){
   try {
     const res = await fetch(API_BASE + "/ask.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: AIの見出し,
       body: JSON.stringify({ items: window.__items || [], question: 質問 }),
     });
-    if(!res.ok) throw new Error("failed");
+    if(!res.ok) throw new Error(await 断られた理由(res, 応答失敗の文));
     const データ = await res.json();
-    if(データ.error) throw new Error(データ.error);
+    if(データ.error) throw new Error(応答失敗の文);
     answerEl.textContent = データ.answer || "うまく答えられませんでした。";
   } catch(err) {
-    answerEl.textContent = "今は答えられませんでした。少し時間をおいて、もう一度お試しください。";
+    answerEl.textContent = (err && err.message) ? err.message : 応答失敗の文;
   } finally {
     btn.disabled = false;
   }
@@ -2106,7 +2131,7 @@ document.getElementById("btn-fb-send").addEventListener("click", async () => {
   try {
     const res = await fetch(API_BASE + "/feedback.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: AIの見出し,
       body: JSON.stringify({
         name: document.getElementById("fb-name").value.trim(),
         text: 本文,
@@ -2414,7 +2439,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-09e";
+const アプリの版 = "2026-09-10a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
