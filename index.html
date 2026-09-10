@@ -36,13 +36,33 @@
   :root[data-color="kinari"]   { --hue:33;  --hue2:14;  --sat:30%; --al:39% }
   :root[data-color="sumi"]     { --hue:220; --hue2:250; --sat:10%; --al:31% }
 
-  /* 明るいときの配色 */
+  /* ------------------------------------------------------------------
+     配色の考え方（2026-09-10 に作り直した）
+
+     以前は「地」と「カード」の明るさの差が 95.5% と 99.5% しかなく、
+     カードが浮いて見えなかった。影も 5% ほどの薄さで、実質見えていなかった。
+     さらにカードに 135度の斜めグラデーションを敷いていたため、
+     右下の角にだけ帯が出て、不自然な光り方をしていた。
+
+     そこで、
+       ・地をしっかり沈め、面との差を約7%に広げる
+       ・影は「近くの濃い影」と「遠くの薄い影」の重ねにする
+       ・面の上辺に細い明るい線を入れる（光は上から来る）
+       ・カードのグラデーションは上から下へ。斜めはやめる
+       ・入力欄は逆に沈ませる（へこんで見えると押せる場所と区別がつく）
+     という組み立てにしている。
+     ------------------------------------------------------------------ */
+
+  /* 明るいとき */
   :root{
-    --bg:hsl(var(--hue) 42% 95.5%);
-    --surface:hsl(var(--hue) 60% 99.5%);
-    --ink:hsl(var(--hue) 28% 14%);
-    --soft:hsl(var(--hue) 14% 41%);
-    --line:hsl(var(--hue) 28% 87%);
+    --bg:hsl(var(--hue) 38% 92.5%);
+    --surface:hsl(var(--hue) 55% 99.6%);
+    --surface-2:hsl(var(--hue) 40% 96.5%);
+    --card-top:hsl(var(--hue) 60% 100%);
+    --edge:rgba(255,255,255,.92);
+    --ink:hsl(var(--hue) 30% 13%);
+    --soft:hsl(var(--hue) 14% 40%);
+    --line:hsl(var(--hue) 26% 84%);
     --accent:hsl(var(--hue) var(--sat) var(--al));
     --accent-2:hsl(var(--hue2) var(--sat) calc(var(--al) + 9%));
     --accent-soft:hsl(var(--hue) calc(var(--sat) * .75) 91%);
@@ -53,20 +73,27 @@
     --warn:#a8721f; --warn-soft:#faf1e0;
     --good:#2f7d4f; --good-soft:#e6f3ea;
     --line-green:#06c755;
-    --shadow-sm:0 1px 2px rgba(16,24,32,.05), 0 1px 3px rgba(16,24,32,.04);
-    --shadow-md:0 2px 4px rgba(16,24,32,.04), 0 8px 20px rgba(16,24,32,.07);
-    --shadow-lg:0 12px 40px rgba(16,24,32,.18);
+    --shadow-sm:0 1px 1px rgba(16,24,32,.05), 0 2px 5px rgba(16,24,32,.07);
+    --shadow-md:0 1px 2px rgba(16,24,32,.06), 0 6px 14px rgba(16,24,32,.10),
+                0 16px 36px rgba(16,24,32,.07);
+    --shadow-lg:0 20px 60px rgba(16,24,32,.24);
+    --sunken:inset 0 1px 2px rgba(16,24,32,.08);
+    --press:inset 0 2px 5px rgba(16,24,32,.16);
   }
 
-  /* 暗いときの配色。同じ中身を2か所に書くのは、
-     「端末に合わせる」と「ダークを選んだ」の両方に効かせるため。 */
+  /* 暗いとき。同じ中身を2か所に書くのは、
+     「端末に合わせる（自動）」と「暗いを選んだ」の両方に効かせるため。
+     「ほどよい」を選んでいるときは自動の暗い配色を当てない。 */
   @media (prefers-color-scheme: dark){
-    :root:not([data-mode="light"]){
-      --bg:hsl(var(--hue) 20% 8.5%);
-      --surface:hsl(var(--hue) 18% 12.5%);
+    :root:not([data-mode="light"]):not([data-mode="mid"]){
+      --bg:hsl(var(--hue) 24% 6.5%);
+      --surface:hsl(var(--hue) 18% 13%);
+      --surface-2:hsl(var(--hue) 20% 9.5%);
+      --card-top:hsl(var(--hue) 17% 16.5%);
+      --edge:rgba(255,255,255,.07);
       --ink:hsl(var(--hue) 14% 92%);
       --soft:hsl(var(--hue) 10% 63%);
-      --line:hsl(var(--hue) 14% 22%);
+      --line:hsl(var(--hue) 14% 23%);
       --accent:hsl(var(--hue) calc(var(--sat) * .9) 66%);
       --accent-2:hsl(var(--hue2) calc(var(--sat) * .9) 71%);
       --accent-soft:hsl(var(--hue) calc(var(--sat) * .55) 20%);
@@ -76,17 +103,22 @@
       --bad:#e0827c; --bad-soft:#3a2020;
       --warn:#e3b65a; --warn-soft:#3a2f14;
       --good:#6fc492; --good-soft:#173226;
-      --shadow-sm:0 1px 2px rgba(0,0,0,.3);
-      --shadow-md:0 2px 6px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.28);
-      --shadow-lg:0 16px 48px rgba(0,0,0,.5);
+      --shadow-sm:0 1px 2px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+      --shadow-md:0 2px 6px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
+      --shadow-lg:0 24px 64px rgba(0,0,0,.6);
+      --sunken:inset 0 1px 3px rgba(0,0,0,.5);
+      --press:inset 0 2px 6px rgba(0,0,0,.55);
     }
   }
   :root[data-mode="dark"]{
-    --bg:hsl(var(--hue) 20% 8.5%);
-    --surface:hsl(var(--hue) 18% 12.5%);
+    --bg:hsl(var(--hue) 24% 6.5%);
+    --surface:hsl(var(--hue) 18% 13%);
+    --surface-2:hsl(var(--hue) 20% 9.5%);
+    --card-top:hsl(var(--hue) 17% 16.5%);
+    --edge:rgba(255,255,255,.07);
     --ink:hsl(var(--hue) 14% 92%);
     --soft:hsl(var(--hue) 10% 63%);
-    --line:hsl(var(--hue) 14% 22%);
+    --line:hsl(var(--hue) 14% 23%);
     --accent:hsl(var(--hue) calc(var(--sat) * .9) 66%);
     --accent-2:hsl(var(--hue2) calc(var(--sat) * .9) 71%);
     --accent-soft:hsl(var(--hue) calc(var(--sat) * .55) 20%);
@@ -96,18 +128,54 @@
     --bad:#e0827c; --bad-soft:#3a2020;
     --warn:#e3b65a; --warn-soft:#3a2f14;
     --good:#6fc492; --good-soft:#173226;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.3);
-    --shadow-md:0 2px 6px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.28);
-    --shadow-lg:0 16px 48px rgba(0,0,0,.5);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+    --shadow-md:0 2px 6px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
+    --shadow-lg:0 24px 64px rgba(0,0,0,.6);
+    --sunken:inset 0 1px 3px rgba(0,0,0,.5);
+    --press:inset 0 2px 6px rgba(0,0,0,.55);
+  }
+
+  /* ほどよい暗さ（ライトとダークの中間）。
+     真っ黒ではなく、炭のような灰色を土台にする。
+     昼の室内でも夜でも目が疲れにくく、白い面のまぶしさも出ない。 */
+  :root[data-mode="mid"]{
+    --bg:hsl(var(--hue) 13% 16%);
+    --surface:hsl(var(--hue) 12% 22.5%);
+    --surface-2:hsl(var(--hue) 13% 18.5%);
+    --card-top:hsl(var(--hue) 12% 26%);
+    --edge:rgba(255,255,255,.07);
+    --ink:hsl(var(--hue) 12% 91%);
+    --soft:hsl(var(--hue) 8% 67%);
+    --line:hsl(var(--hue) 10% 31%);
+    --accent:hsl(var(--hue) calc(var(--sat) * .85) 62%);
+    --accent-2:hsl(var(--hue2) calc(var(--sat) * .85) 67%);
+    --accent-soft:hsl(var(--hue) calc(var(--sat) * .4) 28%);
+    --pastel:hsl(var(--hue) 20% 28%);
+    --pastel-2:hsl(var(--hue2) 22% 25%);
+    --on-accent:hsl(var(--hue) 40% 10%);
+    --bad:#e08c86; --bad-soft:#43292a;
+    --warn:#e0bb6c; --warn-soft:#413720;
+    --good:#79c79a; --good-soft:#22392e;
+    --line-green:#06c755;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(0,0,0,.22);
+    --shadow-md:0 2px 6px rgba(0,0,0,.32), 0 12px 28px rgba(0,0,0,.26);
+    --shadow-lg:0 24px 60px rgba(0,0,0,.46);
+    --sunken:inset 0 1px 3px rgba(0,0,0,.32);
+    --press:inset 0 2px 6px rgba(0,0,0,.38);
   }
 
   :root{
     /* グラデーション。中の --pastel などは明るさで入れ替わるので、
-       この式は1回書けばライトでもダークでも成立する。 */
-    --grad-soft:linear-gradient(135deg, var(--pastel) 0%, var(--pastel-2) 100%);
-    --grad-accent:linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-    --grad-sheet:linear-gradient(180deg, var(--pastel) 0%, var(--bg) 42%);
-    --grad-card:linear-gradient(135deg, var(--surface) 62%, var(--pastel) 100%);
+       この式は1回書けばライト・ほどよい・ダークのどれでも成立する。
+
+       斜め（135度）はやめた。光は上から来るので、上から下へ流す。
+       角にだけ帯が出る不自然さは、これが原因だった。 */
+    --grad-soft:linear-gradient(150deg, var(--pastel) 0%, var(--pastel-2) 100%);
+    --grad-accent:linear-gradient(165deg,
+      color-mix(in srgb, var(--accent) 90%, white) 0%,
+      var(--accent) 44%, var(--accent-2) 100%);
+    --grad-sheet:radial-gradient(135% 62% at 50% -8%, var(--pastel) 0%, var(--bg) 72%);
+    --grad-card:linear-gradient(180deg, var(--card-top) 0%, var(--surface) 62%);
     --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
     --ring:0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
   }
@@ -131,7 +199,8 @@
     padding:14px 0 16px;margin-bottom:20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .topbar > div{display:flex;gap:6px;align-items:center}
   .brand{display:flex;align-items:center;gap:9px}
-  .brand .logo{font-size:24px;line-height:1}
+  .brand .logo{display:flex;align-items:center}
+  .brand .logo .mascot{width:26px;height:28px}
   .brand h1{font-size:20px;margin:0;font-weight:800;letter-spacing:.02em}
   .icon-btn{background:transparent;color:var(--soft);border:1px solid var(--line);
     width:40px;height:40px;padding:0;border-radius:var(--r-sm);font-size:16px;
@@ -143,7 +212,8 @@
 
   /* 中核機能（写真から登録）— 主役として一番目立たせる */
   .capture-card{background:var(--grad-card);border-radius:var(--r-lg);padding:22px 20px;
-    margin-bottom:24px;box-shadow:var(--shadow-md);text-align:center;
+    margin-bottom:24px;border:1px solid var(--line);
+    box-shadow:var(--shadow-md), inset 0 1px 0 var(--edge);text-align:center;
     border:1px solid var(--line)}
   .capture-card .primary{width:100%;font-size:17px;padding:17px;
     box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 32%, transparent)}
@@ -162,14 +232,30 @@
     letter-spacing:.06em;margin-bottom:10px}
   .settings-hint{font-size:12px;color:var(--soft);margin:9px 0 0;line-height:1.65}
 
-  .seg{display:flex;gap:0;background:var(--bg);border:1px solid var(--line);
-    border-radius:var(--r-full);padding:3px}
+  .seg{display:flex;gap:0;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--r-full);padding:3px;box-shadow:var(--sunken)}
   .seg button{flex:1;background:transparent;border:none;box-shadow:none;
-    border-radius:var(--r-full);padding:10px 6px;font-size:13.5px;font-weight:700;
-    color:var(--soft);font-family:inherit;cursor:pointer;transition:all .15s}
-  .seg button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+    border-radius:var(--r-full);padding:10px 4px;font-size:12.5px;font-weight:700;
+    color:var(--soft);font-family:inherit;cursor:pointer;transition:all .15s;
+    white-space:nowrap}
+  .seg button.active{background:var(--grad-card);color:var(--ink);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
 
   /* テーマカラーの見本。押した色がそのまま画面全体に反映される。 */
+  /* 免許証の色は、言葉より実物の帯の色で選ぶほうが早い。 */
+  .license-picks{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .license-pick{display:flex;align-items:center;justify-content:center;gap:7px;
+    padding:12px 8px;font-size:14px;font-weight:700;color:var(--soft);
+    background:var(--grad-card);border:1.5px solid var(--line);border-radius:var(--r-sm);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
+  .license-pick i{width:22px;height:13px;border-radius:3px;display:block;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
+  .license-pick.gold i{background:linear-gradient(180deg,#f4dc8a,#c9a53c)}
+  .license-pick.blue i{background:linear-gradient(180deg,#7fa8e0,#2f5fa8)}
+  .license-pick.green i{background:linear-gradient(180deg,#8ed3a4,#2f8a52)}
+  .license-pick.active{color:var(--ink);border-color:var(--accent);
+    box-shadow:var(--ring), inset 0 1px 0 var(--edge)}
+
   .color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
   .color-swatch{position:relative;aspect-ratio:1;border-radius:var(--r-full);
     border:2px solid transparent;background:transparent;padding:0;box-shadow:none;
@@ -194,7 +280,7 @@
   .person-pill{flex:none;display:inline-flex;align-items:center;gap:7px;
     background:var(--surface);border:1px solid var(--line);color:var(--soft);
     border-radius:var(--r-full);padding:8px 15px;font-size:14px;font-weight:600;
-    box-shadow:var(--shadow-sm);transition:all .15s}
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);transition:all .15s}
   .pill-count{flex:none;min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-full);
     background:var(--bg);color:var(--soft);font-size:11.5px;font-weight:700;line-height:1;
     display:inline-flex;align-items:center;justify-content:center}
@@ -296,9 +382,11 @@
   .row .field{flex:1;min-width:140px}
   input,select,textarea{
     width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:var(--r-sm);
-    font-size:16.5px;font-family:inherit;background:var(--bg);color:var(--ink);
+    font-size:16.5px;font-family:inherit;background:var(--surface-2);color:var(--ink);
+    box-shadow:var(--sunken);
     transition:border-color .15s,box-shadow .15s}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--ring)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
+    box-shadow:var(--sunken), var(--ring)}
   textarea{resize:vertical;min-height:70px}
   .checkline{display:flex;align-items:center;gap:10px;color:var(--ink);font-size:15.5px}
   .checkline input{width:auto}
@@ -308,18 +396,27 @@
   button:hover{filter:brightness(.97)}
   button:active{transform:translateY(1px)}
   button:disabled{opacity:.5;cursor:default}
-  .primary{background:var(--grad-accent);color:var(--on-accent);width:100%}
-  .ghost{background:transparent;color:var(--soft);border:1px solid var(--line)}
-  .ghost:hover{background:var(--bg);color:var(--ink)}
-  .danger{background:transparent;color:var(--soft);border:1px solid var(--line)}
+  .primary{background:var(--grad-accent);color:var(--on-accent);width:100%;
+    border:1px solid color-mix(in srgb, var(--accent) 72%, black);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),
+               0 1px 2px rgba(16,24,32,.14),
+               0 6px 16px color-mix(in srgb, var(--accent) 34%, transparent)}
+  .primary:active{box-shadow:var(--press);transform:translateY(1px)}
+  /* 押せるものは、カードと同じ「上が明るい」作りにそろえる */
+  .ghost{background:var(--grad-card);color:var(--soft);border:1px solid var(--line);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
+  .ghost:hover{color:var(--ink);border-color:var(--soft)}
+  .ghost:active{box-shadow:var(--press);transform:translateY(1px)}
+  .danger{background:var(--grad-card);color:var(--soft);border:1px solid var(--line);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
   .danger:hover{color:var(--bad);border-color:color-mix(in srgb, var(--bad) 45%, transparent);
     background:var(--bad-soft)}
   .btnrow{display:flex;gap:10px;margin-top:8px}
   .btnrow button{flex:1}
 
   .list{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
-  .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
-    box-shadow:var(--shadow-sm);overflow:hidden}
+  .item{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);overflow:hidden}
   .item-head{width:100%;display:flex;align-items:center;gap:10px;text-align:left;
     padding:14px 15px;background:transparent;border:none;box-shadow:none;
     font-family:inherit;color:var(--ink);cursor:pointer}
@@ -366,7 +463,8 @@
   /* トルマモ（キャラクター）。期限の状態で表情が変わる＝見ただけで様子が分かる。 */
   .mascot{display:block;color:var(--accent)}
   .mascot .body{stroke:var(--accent);stroke-width:2}
-  .mascot .face{fill:currentColor;stroke:currentColor}
+  .mascot .lens{fill:var(--accent)}
+  .mascot .glint{stroke:var(--on-accent);opacity:.85}
   .mascot-slot{flex:none;display:flex;align-items:center}
   .mascot-slot .mascot{width:34px;height:37px}
   .mascot-big{display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -391,7 +489,8 @@
   /* 1件を1行に圧縮する。左の「あと何日」を主役にして、一目で切迫度が分かるようにする。 */
   .today-card{width:100%;display:flex;align-items:center;gap:13px;text-align:left;
     border-radius:var(--r-md);padding:13px 15px 13px 17px;margin-bottom:8px;
-    background:var(--grad-card);border:1px solid var(--line);box-shadow:var(--shadow-sm);
+    background:var(--grad-card);border:1px solid var(--line);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);
     position:relative;overflow:hidden;font-family:inherit;color:var(--ink)}
   .today-card:hover{border-color:var(--soft)}
   .today-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
@@ -416,8 +515,9 @@
     background:none;border:none;box-shadow:none;padding:0;border-radius:0;
     font-family:inherit;font-size:inherit;font-weight:inherit;color:var(--ink);cursor:pointer}
   .today-done{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;
-    padding:9px 13px;border-radius:var(--r-sm);background:var(--bg);
-    border:1px solid var(--line);color:var(--soft);font-size:15px;line-height:1}
+    padding:9px 13px;border-radius:var(--r-sm);background:var(--grad-card);
+    border:1px solid var(--line);color:var(--soft);font-size:15px;line-height:1;
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
   .today-done small{font-size:9.5px;font-weight:700;letter-spacing:.02em}
   .today-done:hover{background:var(--good-soft);border-color:var(--good);color:var(--good)}
 
@@ -585,7 +685,7 @@
 
   <div class="step" id="screen-app">
   <div class="topbar">
-    <div class="brand"><span class="logo">🛡️</span><h1>トルマモ</h1></div>
+    <div class="brand"><span class="logo" id="brand-mark"></span><h1>トルマモ</h1></div>
     <div>
       <button class="icon-btn" id="btn-relock" title="ロックする">🔒</button>
       <button class="icon-btn" id="btn-open-settings" title="設定">⚙</button>
@@ -684,14 +784,15 @@
     </div>
     <div class="row" id="row-license" style="display:none">
       <div class="field">
-        <label>免許証の色（分かれば）</label>
-        <select id="f-license-color">
-          <option value="">選択してください</option>
-          <option value="ゴールド">ゴールド</option>
-          <option value="ブルー">ブルー</option>
-          <option value="グリーン">グリーン</option>
-          <option value="わからない">わからない</option>
-        </select>
+        <label>免許証の帯の色</label>
+        <input type="hidden" id="f-license-color">
+        <div class="license-picks" id="license-picks">
+          <button type="button" class="license-pick gold"  data-color="ゴールド"><i></i>ゴールド</button>
+          <button type="button" class="license-pick blue"  data-color="ブルー"><i></i>ブルー</button>
+          <button type="button" class="license-pick green" data-color="グリーン"><i></i>グリーン</button>
+          <button type="button" class="license-pick none"  data-color="わからない">わからない</button>
+        </div>
+        <p class="settings-hint" id="license-hint"></p>
       </div>
     </div>
     <div class="row" id="row-senior" style="display:none">
@@ -723,10 +824,12 @@
       <div class="settings-label">明るさ</div>
       <div class="seg" id="mode-seg">
         <button type="button" data-mode="auto">自動</button>
-        <button type="button" data-mode="light">☀️ ライト</button>
-        <button type="button" data-mode="dark">🌙 ダーク</button>
+        <button type="button" data-mode="light">明るい</button>
+        <button type="button" data-mode="mid">ほどよい</button>
+        <button type="button" data-mode="dark">暗い</button>
       </div>
-      <p class="settings-hint">「自動」は、スマホの設定に合わせて朝は明るく夜は暗くなります。</p>
+      <p class="settings-hint">「自動」は、スマホの設定に合わせて朝は明るく夜は暗くなります。<br>
+        「ほどよい」は、真っ黒ではない炭色です。白いまぶしさが苦手なときに。</p>
     </div>
 
     <div class="settings-block">
@@ -1120,7 +1223,28 @@ function 免許欄の表示を更新する(){
   const on = 選択.value === "運転免許";
   document.getElementById("row-license").style.display = on ? "flex" : "none";
   document.getElementById("row-senior").style.display = on ? "flex" : "none";
+  免許の色を反映する();
 }
+
+// 選ばれている色を見た目に映す。値そのものは今までどおり
+// f-license-color（隠し欄）に入るので、保存や読み込みの作りは変えていない。
+function 免許の色を反映する(){
+  const 今 = document.getElementById("f-license-color").value;
+  document.querySelectorAll("#license-picks .license-pick").forEach((b) => {
+    b.classList.toggle("active", b.dataset.color === 今);
+  });
+  const 案内 = document.getElementById("license-hint");
+  if(案内) 案内.textContent = 免許色の説明[今] || "";
+}
+
+document.getElementById("license-picks").addEventListener("click", (e) => {
+  const 押された = e.target.closest(".license-pick");
+  if(!押された) return;
+  const 欄 = document.getElementById("f-license-color");
+  // もう一度押したら選び直せるように、同じ色なら外す。
+  欄.value = (欄.value === 押された.dataset.color) ? "" : 押された.dataset.color;
+  免許の色を反映する();
+});
 選択.addEventListener("change", 免許欄の表示を更新する);
 免許欄の表示を更新する();
 
@@ -1548,31 +1672,27 @@ function 項目を開閉する(id){
 // 盾のかたちの体に、期限の状態に応じた表情をつける。
 // にっこり＝急ぎなし、みまもり＝そろそろあり、しんぱい＝今日やることあり。
 function マスコットSVG(気分){
-  const 表情 = {
-    にっこり: `
-      <path class="face" d="M14.5 25.5q3.5-4.6 7 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
-      <path class="face" d="M26.5 25.5q3.5-4.6 7 0" fill="none" stroke-width="2.4" stroke-linecap="round"/>
-      <path class="face" d="M20 31.5q4 3.8 8 0" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
-    みまもり: `
-      <circle class="face" cx="18" cy="25" r="2.9" stroke="none"/>
-      <circle class="face" cx="30" cy="25" r="2.9" stroke="none"/>
-      <path class="face" d="M20.5 32h7" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
-    しんぱい: `
-      <path class="face" d="M13.8 22.2l4.6-2M34.2 22.2l-4.6-2" fill="none" stroke-width="2.2" stroke-linecap="round"/>
-      <circle class="face" cx="18" cy="26.6" r="3" stroke="none"/>
-      <circle class="face" cx="30" cy="26.6" r="3" stroke="none"/>
-      <ellipse class="face" cx="24" cy="34" rx="2.7" ry="2.2" stroke="none"/>`,
-  }[気分] || "";
+  // 顔はやめた。「撮る」＋「守る」がそのまま形になるよう、
+  // 盾の中心をカメラのレンズにしている。
+  // 表情ではなく、レンズの縁の色で今の様子を伝える。
+  // 「しるし」は見出し用。ブランドの印が状態で赤くなるのは不自然なので、
+  // そのときだけ縁をテーマ色のままにする。
+  const 縁の色 = 気分 === "しるし" ? "var(--accent)"
+    : ({ にっこり: "var(--good)", みまもり: "var(--warn)", しんぱい: "var(--bad)" }[気分] || "var(--good)");
   const 塗り = "tm-grad-" + (マスコットSVG.通し = (マスコットSVG.通し || 0) + 1);
   return `<svg class="mascot" viewBox="0 0 48 52" role="img" aria-label="トルマモ">
-    <defs><linearGradient id="${塗り}" x1="0" y1="0" x2="1" y2="1">
+    <defs><linearGradient id="${塗り}" x1="0" y1="0" x2="0.3" y2="1">
       <stop offset="0%" stop-color="var(--pastel)"/>
       <stop offset="100%" stop-color="var(--pastel-2)"/>
     </linearGradient></defs>
     <path class="body" fill="url(#${塗り})"
       d="M24 3 L43 9 V27 C43 37 34.5 44.5 24 48 C13.5 44.5 5 37 5 27 V9 Z"
       stroke-linejoin="round"/>
-    ${表情}
+    <circle class="lens-ring" cx="24" cy="24.5" r="10.4" fill="none"
+      stroke="${縁の色}" stroke-width="2.8"/>
+    <circle class="lens" cx="24" cy="24.5" r="5.6"/>
+    <path class="glint" d="M20.2 20.6a5.4 5.4 0 0 1 3.1-2" fill="none"
+      stroke-width="2" stroke-linecap="round"/>
   </svg>`;
 }
 
@@ -1584,8 +1704,12 @@ function マスコットの気分(){
 }
 
 function マスコットを更新する(){
+  const 気分 = マスコットの気分();
   const 枠 = document.getElementById("mascot-slot");
-  if(枠) 枠.innerHTML = マスコットSVG(マスコットの気分());
+  if(枠) 枠.innerHTML = マスコットSVG(気分);
+  // 見出しの印も同じ形にそろえる（絵文字の盾はやめた）。
+  const 印 = document.getElementById("brand-mark");
+  if(印) 印.innerHTML = マスコットSVG("しるし");
 }
 
 function 今日やることを描画する(items){
@@ -2387,7 +2511,7 @@ function 色の設定を読む(){
       if(!色) 色 = (旧 === "calm" || 旧 === "darkcalm") ? "kinari" : "umi";
     }
   } catch(e) {}
-  if(!["auto", "light", "dark"].includes(明るさ)) 明るさ = "auto";
+  if(!["auto", "light", "mid", "dark"].includes(明るさ)) 明るさ = "auto";
   if(!テーマカラー一覧.some(c => c.id === 色)) 色 = "umi";
   return { 明るさ, 色 };
 }
@@ -2621,7 +2745,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-10b";
+const アプリの版 = "2026-09-10c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
