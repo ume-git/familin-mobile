@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>トルマモ 声くらべ</title>
+<style>
+  :root{
+    --bg:#eef2f4; --surface:#fff; --surface-2:#f4f8fa;
+    --ink:#15212b; --soft:#5a6d79; --line:#d2dde3;
+    --accent:#1f7f96; --accent-2:#199a86; --on-accent:#fff;
+    --good:#2f7d4f; --good-soft:#e4f1e9;
+    --warn:#a8721f; --warn-soft:#faf1e0;
+    --bad:#b13a3a; --bad-soft:#fbe9e9;
+    --edge:rgba(255,255,255,.9);
+    --sh:0 1px 1px rgba(16,24,32,.05), 0 2px 6px rgba(16,24,32,.08);
+    --sunken:inset 0 1px 2px rgba(16,24,32,.09);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d1418; --surface:#18222a; --surface-2:#131c22;
+      --ink:#e6eef2; --soft:#93a5b0; --line:#2a3a44;
+      --accent:#5fc0d6; --accent-2:#5fd4bd; --on-accent:#0a1418;
+      --good:#6fc492; --good-soft:#173226;
+      --warn:#e3b65a; --warn-soft:#3a2f14;
+      --bad:#e0827c; --bad-soft:#3a2020;
+      --edge:rgba(255,255,255,.07);
+      --sh:0 1px 2px rgba(0,0,0,.45), 0 4px 12px rgba(0,0,0,.35);
+      --sunken:inset 0 1px 3px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+    line-height:1.8;font-size:16px;font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;padding:22px 16px 90px;display:flex;flex-direction:column;gap:26px}
+
+  header h1{font-size:23px;margin:0 0 6px;font-weight:800;letter-spacing:.01em}
+  header p{margin:0;color:var(--soft);font-size:14px;line-height:1.75}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--sh), inset 0 1px 0 var(--edge);padding:18px 16px}
+  h2{font-size:16px;margin:0 0 4px;font-weight:800}
+  .sub{color:var(--soft);font-size:13px;margin:0 0 14px;line-height:1.7}
+
+  label{display:block;font-size:12px;font-weight:800;color:var(--soft);
+    letter-spacing:.04em;margin-bottom:6px}
+  textarea,select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;font-family:inherit;background:var(--surface-2);color:var(--ink);
+    box-shadow:var(--sunken)}
+  textarea{min-height:78px;resize:vertical;line-height:1.7}
+  button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:11px 14px;
+    font-size:14.5px;font-weight:700;font-family:inherit;background:var(--surface);
+    color:var(--ink);box-shadow:var(--sh), inset 0 1px 0 var(--edge)}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.45;cursor:default}
+  .primary{background:linear-gradient(165deg,var(--accent) 0%,var(--accent-2) 100%);
+    color:var(--on-accent);border-color:transparent;width:100%;font-size:16px;padding:14px}
+
+  .voices{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .voice{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;
+    background:var(--surface-2);border:1px solid var(--line);box-shadow:var(--sunken)}
+  .voice .who{flex:1;min-width:0}
+  .voice .nm{font-weight:700;font-size:15px;line-height:1.4;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .voice .mt{font-size:11.5px;color:var(--soft);line-height:1.5}
+  .voice button{flex:none;padding:9px 13px;font-size:13.5px}
+  .tag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;
+    border-radius:999px;letter-spacing:.03em;vertical-align:1px;margin-left:6px}
+  .tag.dev{background:var(--good-soft);color:var(--good)}
+  .tag.net{background:var(--warn-soft);color:var(--warn)}
+
+  .rows{display:flex;flex-direction:column;gap:0;margin-top:6px}
+  .row{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+  .row:last-child{border-bottom:none}
+  .row .name{flex:none;width:116px;font-weight:700;font-size:14.5px;line-height:1.5}
+  .row .body{flex:1;min-width:0;font-size:13.5px;color:var(--soft);line-height:1.7}
+  .row .body a{color:var(--accent);font-weight:700}
+  .row .body b{color:var(--ink)}
+
+  .note{background:var(--surface-2);border-left:3px solid var(--line);border-radius:0 8px 8px 0;
+    padding:12px 14px;font-size:13px;color:var(--soft);line-height:1.75;margin-top:12px}
+  .note b{color:var(--ink)}
+  #status{font-size:13px;color:var(--soft);min-height:1.5em;margin-top:10px}
+  .err{color:var(--bad);font-weight:700}
+  footer{color:var(--soft);font-size:12px;text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>トルマモ 声くらべ</h1>
+    <p>同じ文を、いろいろな声で読ませて比べるための画面です。
+       まず端末に入っている声、次にクラウドの声。最後に、ここでは鳴らせない候補の試聴先を並べています。</p>
+  </header>
+
+  <div class="panel">
+    <label for="text">読ませる文</label>
+    <textarea id="text">お父さんの運転免許の期限が、あと3日です。更新期間は誕生日の前後1か月です。運転免許センターか警察署で手続きをしてください。</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button id="btn-short">短い文にする</button>
+      <button id="btn-copy">文をコピー</button>
+    </div>
+    <div class="note">
+      実際にトルマモが読み上げる長さの文にしてあります。
+      <b>短い一言より、この長さで比べたほうが差が出ます。</b>抑揚や間の取り方は長い文で分かれます。
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>1. この端末に入っている声 <span class="tag dev">0円・電波なしでも鳴る</span></h2>
+    <p class="sub">いま実際にトルマモが使っている声です。これが比べるときの基準になります。</p>
+    <div class="voices" id="device-voices"></div>
+    <div class="note" id="device-note"></div>
+  </div>
+
+  <div class="panel">
+    <h2>2. OpenAI の声 <span class="tag net">通信あり・1回0.3円ほど</span></h2>
+    <p class="sub">すでに写真の読み取りで使っているキーで鳴らせます。新しい契約は要りません。
+       日本語専用ではないので、固有名詞の読みは弱めです。</p>
+    <label for="model" style="margin-top:4px">品質</label>
+    <select id="model">
+      <option value="tts-1">tts-1（速い・安い）</option>
+      <option value="tts-1-hd">tts-1-hd（高音質）</option>
+      <option value="gpt-4o-mini-tts">gpt-4o-mini-tts（新しい）</option>
+    </select>
+    <div class="voices" id="cloud-voices"></div>
+    <div id="status"></div>
+  </div>
+
+  <div class="panel">
+    <h2>3. ここでは鳴らせない候補</h2>
+    <p class="sub">契約やキーが要るので、公式の試聴ページで聴いてください。
+       上の「文をコピー」を押してから開くと、同じ文で比べられます。</p>
+    <div class="rows">
+      <div class="row">
+        <div class="name">ElevenLabs</div>
+        <div class="body"><b>日本語の自然さは最上位クラス</b>という評価。抑揚が人に近い。有料。
+          <a href="https://elevenlabs.io/text-to-speech" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">Azure AI Speech</div>
+        <div class="body">日本語の <b>Nanami / Keita</b> など。落ち着いた読み上げ。制御しやすい。
+          <a href="https://speech.microsoft.com/portal/voicegallery" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">Google Cloud</div>
+        <div class="body">標準は<b>月400万字まで無料</b>。トルマモの規模なら実質0円。Chirp 3 HD は高品質。
+          <a href="https://cloud.google.com/text-to-speech" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">にじボイス</div>
+        <div class="body">国産。約100種の声。<b>月500円から</b>。日本語の読みは国産が強い。
+          <a href="https://nijivoice.com/" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">AivisSpeech</div>
+        <div class="body">国産。無料から。自分の端末でも動かせる。
+          <a href="https://aivis-project.com/" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">VOICEVOX</div>
+        <div class="body">国産・完全無料のオープンソース。<b>キャラクター寄りの声</b>なので、
+          見守りアプリの落ち着いた読み上げには向かないかもしれません。
+          <a href="https://voicevox.hiroshiba.jp/" target="_blank" rel="noopener">試聴する</a></div>
+      </div>
+      <div class="row">
+        <div class="name">Qwen3-TTS</div>
+        <div class="body">オープンソース（Apache 2.0）なので<b>サービス終了で消える心配がない</b>。
+          ただし動かすGPUサーバーが別に要る。</div>
+      </div>
+    </div>
+    <div class="note">
+      <b>聴き比べるときのコツ。</b>「うまい」より「<b>何度聞いても嫌にならないか</b>」で選んでください。
+      トルマモの声は、忙しい朝に不意に流れます。上手すぎる声は、繰り返すと重く感じます。
+    </div>
+  </div>
+
+  <footer>トルマモ 声くらべ ／ 読ませた文も、できた音声も保存していません</footer>
+</div>
+
+<script>
+const API_BASE = "https://torumamo.jp/api";
+const APP_KEY  = "tm-app-2d999b41dbbed3456c9fcf08c9473ede";
+
+const 長い文 = document.getElementById("text").value;
+const 短い文 = "お父さんの運転免許の期限が、あと3日です。";
+
+document.getElementById("btn-short").addEventListener("click", () => {
+  const t = document.getElementById("text");
+  t.value = (t.value === 短い文) ? 長い文 : 短い文;
+});
+document.getElementById("btn-copy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(document.getElementById("text").value);
+    知らせる("文をコピーしました。試聴ページに貼り付けてください。");
+  } catch(e) {
+    知らせる("コピーできませんでした。長押しで選んでください。", true);
+  }
+});
+
+function 知らせる(文, 悪い){
+  const el = document.getElementById("status");
+  el.textContent = 文;
+  el.className = 悪い ? "err" : "";
+}
+
+// ---- 1. 端末に入っている声 ----
+function 日本語の声(){
+  return speechSynthesis.getVoices().filter(v => (v.lang || "").toLowerCase().startsWith("ja"));
+}
+
+function 端末の声を並べる(){
+  const 枠 = document.getElementById("device-voices");
+  const 一覧 = 日本語の声();
+  const 説明 = document.getElementById("device-note");
+
+  if(一覧.length === 0){
+    枠.innerHTML = '<div class="voice"><div class="who"><div class="nm">まだ読み込まれていません</div>' +
+      '<div class="mt">画面を一度下に引いて更新するか、少し待ってください</div></div></div>';
+    return;
+  }
+
+  枠.innerHTML = 一覧.map((v, i) => {
+    const 質 = v.voiceURI.includes("premium") ? "プレミアム"
+             : v.voiceURI.includes("enhanced") ? "拡張"
+             : v.voiceURI.includes("compact") ? "compact（いちばん低い品質）" : "";
+    return '<div class="voice"><div class="who">' +
+      '<div class="nm">' + 逃がす(v.name) + '</div>' +
+      '<div class="mt">' + 逃がす([質, v.lang, v.localService ? "端末内" : "通信あり"].filter(Boolean).join(" ・ ")) + '</div>' +
+      '</div><button data-i="' + i + '">聴く</button></div>';
+  }).join("");
+
+  枠.querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      const v = 日本語の声()[Number(b.dataset.i)];
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(document.getElementById("text").value);
+      u.voice = v; u.lang = v.lang; u.rate = 0.95; u.pitch = 1;
+      speechSynthesis.speak(u);
+    });
+  });
+
+  const 低品質 = 一覧.some(v => v.voiceURI.includes("compact"));
+  const 良い品質 = 一覧.some(v => v.voiceURI.includes("premium") || v.voiceURI.includes("enhanced"));
+  説明.innerHTML = 良い品質
+    ? "<b>拡張またはプレミアムの声が入っています。</b>これが端末で出せる最高の品質です。"
+    : 低品質
+      ? "<b>compact（最も低い品質）しか入っていません。</b>設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 日本語 から、拡張かプレミアムを落としてください。0円で良くなります。"
+      : "";
+}
+
+function 逃がす(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+speechSynthesis.onvoiceschanged = 端末の声を並べる;
+端末の声を並べる();
+setTimeout(端末の声を並べる, 900);
+
+// ---- 2. クラウドの声 ----
+const クラウドの声 = [
+  { id:"nova",    説明:"落ち着いた女性。見守りに向く" },
+  { id:"shimmer",説明:"やわらかい女性" },
+  { id:"coral",   説明:"明るい女性" },
+  { id:"sage",    説明:"静かな女性" },
+  { id:"alloy",   説明:"中性的" },
+  { id:"echo",    説明:"低めの男性" },
+  { id:"onyx",    説明:"太い男性" },
+  { id:"ballad",  説明:"感情のある男性" },
+];
+
+document.getElementById("cloud-voices").innerHTML = クラウドの声.map(v =>
+  '<div class="voice"><div class="who">' +
+  '<div class="nm">' + v.id + '</div>' +
+  '<div class="mt">' + v.説明 + '</div>' +
+  '</div><button data-voice="' + v.id + '">聴く</button></div>'
+).join("");
+
+let 再生中 = null;
+
+document.getElementById("cloud-voices").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-voice]");
+  if(!b) return;
+  const 声 = b.dataset.voice;
+  const 型 = document.getElementById("model").value;
+
+  document.querySelectorAll("#cloud-voices button").forEach(x => x.disabled = true);
+  b.textContent = "…";
+  知らせる(声 + " を作っています。数秒かかります。");
+
+  try {
+    const res = await fetch(API_BASE + "/tts.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Torumamo-Key": APP_KEY },
+      body: JSON.stringify({ text: document.getElementById("text").value, voice: 声, model: 型 }),
+    });
+    if(!res.ok){
+      let 訳 = "うまく作れませんでした。";
+      try { const j = await res.json(); 訳 = j.message || j.detail || j.error || 訳; } catch(_) {}
+      throw new Error(訳);
+    }
+    const blob = await res.blob();
+    if(再生中){ 再生中.pause(); URL.revokeObjectURL(再生中.src); }
+    再生中 = new Audio(URL.createObjectURL(blob));
+    await 再生中.play();
+    知らせる(声 + "（" + 型 + "）を再生しています。");
+  } catch(err) {
+    知らせる(String(err && err.message ? err.message : err), true);
+  } finally {
+    document.querySelectorAll("#cloud-voices button").forEach(x => x.disabled = false);
+    b.textContent = "聴く";
+  }
+});
+</script>
+</body>
+</html>
