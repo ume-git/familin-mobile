@@ -392,7 +392,7 @@
   .today-card{width:100%;display:flex;align-items:center;gap:13px;text-align:left;
     border-radius:var(--r-md);padding:13px 15px 13px 17px;margin-bottom:8px;
     background:var(--grad-card);border:1px solid var(--line);box-shadow:var(--shadow-sm);
-    position:relative;overflow:hidden;font-family:inherit;color:var(--ink);cursor:pointer}
+    position:relative;overflow:hidden;font-family:inherit;color:var(--ink)}
   .today-card:hover{border-color:var(--soft)}
   .today-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
   .today-group.urgent .today-card::before{background:var(--bad)}
@@ -411,6 +411,33 @@
     background:var(--bg);padding:2px 8px;border-radius:var(--r-full)}
   .today-todo{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
     overflow:hidden;font-size:13px;color:var(--soft);line-height:1.55;margin-top:3px}
+  /* カード全体ではなく、左側の本文だけを押して開く。右端は「完了」に譲る。 */
+  .today-open{flex:1;min-width:0;display:flex;align-items:center;gap:13px;text-align:left;
+    background:none;border:none;box-shadow:none;padding:0;border-radius:0;
+    font-family:inherit;font-size:inherit;font-weight:inherit;color:var(--ink);cursor:pointer}
+  .today-done{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:9px 13px;border-radius:var(--r-sm);background:var(--bg);
+    border:1px solid var(--line);color:var(--soft);font-size:15px;line-height:1}
+  .today-done small{font-size:9.5px;font-weight:700;letter-spacing:.02em}
+  .today-done:hover{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+
+  /* 「終わった」を祝う画面 */
+  .done-box{text-align:center}
+  .done-mark{font-size:44px;line-height:1;margin-bottom:10px}
+  .done-box h3{margin:0 0 6px;font-size:20px;font-weight:800;color:var(--ink)}
+  .modal-box .done-what{margin:0 0 18px;font-size:14.5px;color:var(--soft)}
+  .done-next{background:var(--grad-soft);border-radius:var(--r-md);
+    padding:15px 14px;margin-bottom:18px}
+  .done-next-label{font-size:11.5px;font-weight:700;color:var(--soft);letter-spacing:.04em}
+  .done-next-date{font-size:21px;font-weight:800;color:var(--ink);
+    margin:5px 0 6px;letter-spacing:-.02em}
+  .done-next-note{font-size:12px;color:var(--soft);line-height:1.6}
+  .done-cancel{background:none;border:none;box-shadow:none;color:var(--soft);
+    font-size:13px;font-weight:600;padding:14px 0 2px;width:100%}
+  .row-btns .done-btn{color:var(--good);
+    border-color:color-mix(in srgb, var(--good) 42%, transparent)}
+  .row-btns .done-btn:hover{background:var(--good-soft);color:var(--good)}
+
   .today-calm{color:var(--soft);border:1px dashed var(--line);border-radius:var(--r-md);
     padding:26px 18px;text-align:center;font-size:14.5px;margin-bottom:0}
 
@@ -810,6 +837,25 @@
       <button class="ghost" id="modal-confirm-cancel">やめる</button>
       <button class="danger" id="modal-confirm-ok">はい</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-done">
+  <div class="modal-box done-box">
+    <div class="done-mark">🎉</div>
+    <h3>更新できました！</h3>
+    <p class="done-what" id="done-what"></p>
+    <div class="done-next" id="done-next" hidden>
+      <div class="done-next-label">次回の期限（目安）</div>
+      <div class="done-next-date" id="done-next-date"></div>
+      <div class="done-next-note" id="done-next-note"></div>
+    </div>
+    <button class="primary" id="done-keep">次回もトルマモが見守る</button>
+    <div class="btnrow">
+      <button class="ghost" id="done-pick">日付を選ぶ</button>
+      <button class="ghost" id="done-finish">見守りを終える</button>
+    </div>
+    <button class="done-cancel" id="done-cancel">やめる</button>
   </div>
 </div>
 
@@ -1479,6 +1525,7 @@ function 項目カードHTML(i){
       ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
       ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
       <div class="row-btns">
+        <button class="ghost done-btn" onclick="完了する('${i.id}')">✅ 完了</button>
         <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
         <button class="ghost" onclick="カレンダーに登録('${i.id}')">📅 カレンダー</button>
         <button class="ghost" onclick="項目を読み上げる('${i.id}')">🔊 読み上げ</button>
@@ -1572,13 +1619,17 @@ function 今日やることを描画する(items){
   const カードHTML = (i) => {
     const 人物情報 = 項目の人物情報(i);
     return `
-    <button type="button" class="today-card" onclick="編集開始('${i.id}')">
-      <span class="today-days">${期限のHTML(i.残り日数)}</span>
-      <span class="today-body">
-        <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.icon || "🙂"} ${エスケープ(人物情報.name)}</span></span>
-        <span class="today-todo">${エスケープ(i.今やること || i.残り日数文 || "")}</span>
-      </span>
-    </button>`;
+    <div class="today-card">
+      <button type="button" class="today-open" onclick="編集開始('${i.id}')">
+        <span class="today-days">${期限のHTML(i.残り日数)}</span>
+        <span class="today-body">
+          <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.icon || "🙂"} ${エスケープ(人物情報.name)}</span></span>
+          <span class="today-todo">${エスケープ(i.今やること || i.残り日数文 || "")}</span>
+        </span>
+      </button>
+      <button type="button" class="today-done" onclick="完了する('${i.id}')"
+        aria-label="${エスケープ(i.name)}を完了にする" title="終わったら押す">✓<small>完了</small></button>
+    </div>`;
   };
 
   let html = "";
@@ -2169,6 +2220,137 @@ async function 削除する(id){
   描画する();
 }
 
+// ============================================================
+// 「終わった」を受け止める
+//
+// これまでこのアプリには「完了」という考えが無く、更新し終えても
+// 自分でゴミ箱を押すしかなかった。見守るアプリなのに、
+// 見守り切ったことを祝えていなかった。
+//
+// 次回の期限はAIに聞かない。更新の周期はだいたい決まっているので、
+// 端末の中の計算だけで出せる（通信も費用もかからない）。
+// ただし制度には例外があるので、必ず「目安」として見せ、直せるようにする。
+// ============================================================
+
+const 更新の周期 = {
+  "パスポート":         { 年: 10, 但し書き: "10年旅券の場合です。5年旅券や18歳未満のお子さんは5年です。" },
+  "運転免許":           { 年: 5,  但し書き: "色や違反歴によって3年になることがあります。" },
+  "車検":               { 年: 2,  但し書き: "新車の初回だけ3年です。" },
+  "保険":               { 年: 1,  但し書き: "1年契約の場合です。" },
+  "サブスクリプション": { 年: 1,  但し書き: "年払いの場合です。月払いなら日付を選び直してください。" },
+  "ドメイン":           { 年: 1,  但し書き: "1年更新の場合です。" },
+  "資格・免許更新":     { 年: 5,  但し書き: "資格によって1年から5年までばらつきます。必ず確かめてください。" },
+};
+
+// 運転免許は色で期間が変わるので、こちらを優先する。
+const 免許の周期 = {
+  "グリーン": { 年: 3, 但し書き: "初回更新のあとはブルーになり、有効期間は3年です。" },
+  "ブルー":   { 年: 5, 但し書き: "違反があると3年になります。新しい免許証で確かめてください。" },
+  "ゴールド": { 年: 5, 但し書き: "優良運転者の有効期間は5年です。" },
+};
+
+/** うるう日など、その日が無い月にはみ出したときは月末に寄せる。 */
+function 年を足した日付(iso, 年数){
+  const 数 = iso.split("-").map(Number);
+  const 先 = new Date(数[0] + 年数, 数[1] - 1, 数[2]);
+  if(先.getMonth() !== 数[1] - 1) 先.setDate(0);
+  const 月 = String(先.getMonth() + 1).padStart(2, "0");
+  const 日 = String(先.getDate()).padStart(2, "0");
+  return 先.getFullYear() + "-" + 月 + "-" + 日;
+}
+
+function 見やすい日付(iso){
+  const 数 = iso.split("-").map(Number);
+  const 曜日名 = ["日", "月", "火", "水", "木", "金", "土"];
+  const 曜日 = 曜日名[new Date(数[0], 数[1] - 1, 数[2]).getDay()];
+  return 数[0] + "年" + 数[1] + "月" + 数[2] + "日（" + 曜日 + "）";
+}
+
+function 次回の期限を見積もる(item){
+  if(!item || !item.expire_date) return null;
+  let 周期 = 更新の周期[item.category];
+  if(item.category === "運転免許"){
+    if(item.is_senior){
+      周期 = { 年: 3, 但し書き: "70歳以上の方は3〜4年に短くなります。新しい免許証で確かめてください。" };
+    } else if(免許の周期[item.sub_type]){
+      周期 = 免許の周期[item.sub_type];
+    }
+  }
+  if(!周期) return null;
+  return { 日付: 年を足した日付(item.expire_date, 周期.年), 年: 周期.年, 但し書き: 周期.但し書き };
+}
+
+let 完了しようとしている項目 = null;
+
+function 完了する(id){
+  const item = 項目一覧を読む().find(i => i.id === id);
+  if(!item) return;
+  完了しようとしている項目 = item;
+
+  const 人物情報 = 項目の人物情報(item);
+  const 誰の = (人物情報 && 人物情報.name && 人物情報.name !== "未設定") ? 人物情報.name + "の" : "";
+  document.getElementById("done-what").textContent = 誰の + item.name;
+
+  const 見積もり = 次回の期限を見積もる(item);
+  const 枠 = document.getElementById("done-next");
+  const 続ける = document.getElementById("done-keep");
+  if(見積もり){
+    document.getElementById("done-next-date").textContent = 見やすい日付(見積もり.日付);
+    document.getElementById("done-next-note").textContent =
+      "前の期限から" + 見積もり.年 + "年後の目安です。" + (見積もり.但し書き || "");
+    枠.hidden = false;
+    続ける.hidden = false;
+  } else {
+    // 周期が決まっていないものは、勝手に日付を決めない。
+    枠.hidden = true;
+    続ける.hidden = true;
+  }
+  document.getElementById("modal-done").classList.add("show");
+}
+
+function 祝う画面を閉じる(){
+  document.getElementById("modal-done").classList.remove("show");
+  完了しようとしている項目 = null;
+}
+
+document.getElementById("done-cancel").addEventListener("click", 祝う画面を閉じる);
+
+document.getElementById("done-keep").addEventListener("click", async () => {
+  const 元 = 完了しようとしている項目;
+  if(!元) return;
+  const 見積もり = 次回の期限を見積もる(元);
+  if(!見積もり) return;
+  const items = 項目一覧を読む();
+  const 場所 = items.findIndex(i => i.id === 元.id);
+  if(場所 < 0) return;
+  items[場所] = Object.assign({}, items[場所], { expire_date: 見積もり.日付 });
+  await 項目一覧を保存する(items);
+  祝う画面を閉じる();
+  描画する();
+  お知らせ("次は " + 見やすい日付(見積もり.日付) + " まで見守ります。", true);
+});
+
+document.getElementById("done-pick").addEventListener("click", () => {
+  const 元 = 完了しようとしている項目;
+  if(!元) return;
+  const 見積もり = 次回の期限を見積もる(元);
+  祝う画面を閉じる();
+  編集開始(元.id);
+  if(見積もり) 期限日を設定する(見積もり.日付);
+});
+
+document.getElementById("done-finish").addEventListener("click", async () => {
+  const 元 = 完了しようとしている項目;
+  if(!元) return;
+  祝う画面を閉じる();
+  const ok = await カスタム確認("「" + 元.name + "」の見守りを終えて、一覧から消して大丈夫ですか？");
+  if(!ok) return;
+  const items = 項目一覧を読む().filter(i => i.id !== 元.id);
+  await 項目一覧を保存する(items);
+  描画する();
+  お知らせ("おつかれさまでした。", true);
+});
+
 function お知らせ(文章, 長め){
   const el = document.getElementById("toast");
   el.textContent = 文章;
@@ -2439,7 +2621,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-10a";
+const アプリの版 = "2026-09-10b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
