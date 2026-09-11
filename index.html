@@ -181,6 +181,9 @@
   }
 
   *{box-sizing:border-box}
+  /* display:flex を持つ要素に hidden を付けても消えなかった（flex が勝っていた）。
+     読み取りカードで、空の「だれの」枠と空の「持ちもの」行が出ていた原因。 */
+  [hidden]{display:none !important}
   /* 画面いっぱいに、上ほど濃いパステルの膜を敷く。position:fixed なので
      どれだけ下にスクロールしても色が繰り返さず、上だけがふわっと色づく。 */
   body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -326,12 +329,20 @@
   .cal-day.selected{background:var(--accent);color:#fff;font-weight:700}
   .cal-day.empty{visibility:hidden;cursor:default}
 
+  /* 中身が画面より長いときは、覆いの中でスクロールできるようにする。
+     以前は align-items:center だったため、長い設定画面で上端の「閉じる」が
+     画面の外に出て押せなくなっていた。margin:auto なら、収まるときは中央、
+     収まらないときは上から並ぶ。 */
   .modal-back{position:fixed;inset:0;background:rgba(12,18,24,.55);display:none;
-    align-items:center;justify-content:center;z-index:80;padding:20px;
+    align-items:flex-start;justify-content:center;z-index:80;padding:20px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
     backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
   .modal-back.show{display:flex}
   .modal-box{background:var(--surface);border-radius:var(--r-lg);padding:26px 24px;
-    max-width:380px;width:100%;box-shadow:var(--shadow-lg)}
+    max-width:380px;width:100%;box-shadow:var(--shadow-lg);margin:auto}
+  /* 設定の「閉じる」は、どこまでスクロールしても上に貼り付く */
+  #modal-settings .guide-head{position:sticky;top:-26px;background:var(--surface);z-index:1;
+    padding-top:6px !important}
   .modal-box p{font-size:15.5px;margin:0 0 20px;color:var(--ink);line-height:1.75}
   .guide-box{max-width:520px;max-height:84vh;display:flex;flex-direction:column;padding:0}
   .guide-head{display:flex;justify-content:space-between;align-items:center;
@@ -541,6 +552,14 @@
     border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;
     font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.6}
   .read-guess-icon{font-size:22px;flex:none;line-height:1}
+  .read-who{margin-bottom:14px}
+  .read-who-label{font-size:12px;font-weight:800;color:var(--soft);letter-spacing:.03em;margin-bottom:7px}
+  .read-who-pills{display:flex;flex-wrap:wrap;gap:7px}
+  .read-who-pills button{padding:8px 12px;font-size:13.5px;border-radius:var(--r-full);
+    background:var(--grad-card);color:var(--soft);border:1.5px solid var(--line);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
+  .read-who-pills button.active{background:var(--grad-accent);color:var(--on-accent);
+    border-color:transparent}
   .read-rows{background:var(--surface-2);border-radius:var(--r-md);
     box-shadow:var(--sunken);padding:4px 14px;margin-bottom:18px}
   .read-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -566,6 +585,18 @@
   .done-next-note{font-size:12px;color:var(--soft);line-height:1.6}
   .done-cancel{background:none;border:none;box-shadow:none;color:var(--soft);
     font-size:13px;font-weight:600;padding:14px 0 2px;width:100%}
+  .row-btns .advice-btn{color:var(--accent);
+    border-color:color-mix(in srgb, var(--accent) 45%, transparent)}
+  .advice{margin-top:10px;background:var(--accent-soft);border-radius:var(--r-md);
+    padding:13px 14px;line-height:1.7}
+  .advice-head{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:6px}
+  .advice ol{margin:0;padding-left:1.3em;font-size:14px;color:var(--ink)}
+  .advice ol li{margin-bottom:5px}
+  .advice .caution{margin-top:9px;font-size:12.5px;color:var(--soft);line-height:1.6}
+  .advice .bring{margin-top:7px;font-size:13px;color:var(--ink)}
+  .advice .official{margin-top:9px;font-size:13px}
+  .advice .official a{color:var(--accent);font-weight:700}
+  .advice .stamp{margin-top:8px;font-size:11px;color:var(--soft)}
   .row-btns .done-btn{color:var(--good);
     border-color:color-mix(in srgb, var(--good) 42%, transparent)}
   .row-btns .done-btn:hover{background:var(--good-soft);color:var(--good)}
@@ -987,6 +1018,10 @@
       <span class="read-guess-icon" id="read-guess-icon">🙂</span>
       <span id="read-guess-text"></span>
     </div>
+    <div class="read-who">
+      <div class="read-who-label">だれの</div>
+      <div class="read-who-pills" id="read-who-pills"></div>
+    </div>
 
     <div class="read-rows">
       <div class="read-row" id="read-row-when" hidden>
@@ -1133,7 +1168,7 @@
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
 // ============================================================
 const 種類一覧 = ["パスポート","ビザ・在留資格","運転免許","車検","保険",
-                   "サブスクリプション","資格・免許更新","ドメイン","学校","その他の契約書類"];
+                   "税金・納付","サブスクリプション","資格・免許更新","ドメイン","学校","その他の契約書類"];
 
 const 種類の既定値 = {
   "パスポート": { 警告開始日数: 180, 行動: {
@@ -1166,6 +1201,12 @@ const 種類の既定値 = {
     "注意": "更新の時期です。補償内容や保険料を見直す良い機会でもあります。",
     "様子見": "まだ余裕があります。更新案内が届くのを待ってください。",
   }},
+  "税金・納付": { 警告開始日数: 14, 行動: {
+    "切れ": "納期限を過ぎています。延滞金が付くことがあります。納付書はしばらく使えることが多いので、金融機関の窓口やスマホ決済で早めに納めてください。",
+    "危険": "納期限が目前です。コンビニ・スマホ決済（納付書のバーコードやQR）・銀行のどれかで、今日中に納めてください。",
+    "注意": "納期限が近づいています。納付書を手元に用意し、支払う方法を決めてください。",
+    "様子見": "まだ余裕があります。納付書をなくさない場所に置いておいてください。",
+  }},
   "サブスクリプション": { 警告開始日数: 7, 行動: {
     "切れ": "既に自動更新され、請求が発生している可能性があります。明細を確認してください。",
     "危険": "もうすぐ自動更新されます。継続するか解約するか、今日中に決めてください。",
@@ -1196,6 +1237,18 @@ const 種類の既定値 = {
     "注意": "契約の更新時期です。内容を確認してください。",
     "様子見": "まだ余裕があります。",
   }},
+};
+
+// 「細かい条件はここで確かめてください」と案内する公式ページ。
+// 2026-09-11 に実際に開けることを確認したものだけを載せている。
+// 住民税など自治体ごとのものは、リンクではなく言葉で案内する。
+const 公式の案内先 = {
+  "運転免許":     { 名: "警察庁 運転免許の更新", url: "https://www.npa.go.jp/policies/application/license_renewal/" },
+  "パスポート":   { 名: "外務省 パスポート",       url: "https://www.mofa.go.jp/mofaj/toko/passport/index.html" },
+  "ビザ・在留資格": { 名: "出入国在留管理庁",     url: "https://www.moj.go.jp/isa/" },
+  "車検":         { 名: "国土交通省 自動車",       url: "https://www.mlit.go.jp/jidosha/" },
+  "税金・納付":   { 名: "国税庁（国税の場合）",     url: "https://www.nta.go.jp/",
+                    言葉: "住民税・固定資産税・自動車税は、納付書に書かれた市区町村・都道府県の窓口へ。" },
 };
 
 const 段階の表示 = {
@@ -1727,7 +1780,9 @@ function 項目カードHTML(i){
         </div>` : ""}
       ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
       ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
+      ${対応策のHTML(i)}
       <div class="row-btns">
+        <button class="ghost advice-btn" onclick="対応策を聞く('${i.id}')">💡 どうすればいい？</button>
         <button class="ghost done-btn" onclick="完了する('${i.id}')">✅ 完了</button>
         <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
         <button class="ghost" onclick="カレンダーに登録('${i.id}')">📅 カレンダー</button>
@@ -1736,6 +1791,24 @@ function 項目カードHTML(i){
       </div>
     </div>
   </div>`;
+}
+
+// 今日のカードから、一覧のその項目を開いて見せる。
+// 以前は編集画面に飛んでいたが、知りたいのは「何をすればいいか」なので詳細のほうが合う。
+function 項目へ移動する(id){
+  // 絞り込みで隠れていたら、いったん全員に戻す。
+  if(選択中の人物ID && !(window.__items || []).some(i => i.id === id)){
+    選択中の人物ID = "";
+    描画する();
+  }
+  const 中身 = document.getElementById("detail-" + id);
+  if(!中身) return;
+  if(中身.hidden) 項目を開閉する(id);
+  const 枠 = 中身.parentElement;
+  枠.scrollIntoView({ behavior: "smooth", block: "center" });
+  枠.style.transition = "box-shadow .3s";
+  枠.style.boxShadow = "0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent)";
+  setTimeout(() => { 枠.style.boxShadow = ""; }, 1400);
 }
 
 function 項目を開閉する(id){
@@ -1823,7 +1896,7 @@ function 今日やることを描画する(items){
     const 人物情報 = 項目の人物情報(i);
     return `
     <div class="today-card">
-      <button type="button" class="today-open" onclick="編集開始('${i.id}')">
+      <button type="button" class="today-open" onclick="項目へ移動する('${i.id}')">
         <span class="today-days">${期限のHTML(i.残り日数)}</span>
         <span class="today-body">
           <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.icon || "🙂"} ${エスケープ(人物情報.name)}</span></span>
@@ -2254,6 +2327,9 @@ function 読み取り結果を見せる(結果){
   // 「お子さんに関連したものですね。」の先読み。
   const 人物ID = 名前に近い人物を探す(結果.person_hint);
   const 人物 = 人物ID ? 人物一覧を読む().find(p => p.id === 人物ID) : null;
+  // 先読みが外れていても、ここで選び直せる。AIの推測は初期値にすぎない。
+  読み取った内容.選んだ人物ID = 人物ID || "";
+  だれのピルを描く();
   if(人物){
     document.getElementById("read-guess-icon").textContent = 人物.icon || "🙂";
     出す("read-guess-text", 結果.person_reason || (人物.name + "のものですね。"));
@@ -2292,6 +2368,22 @@ function 読み取り結果を見せる(結果){
   document.getElementById("modal-read").classList.add("show");
 }
 
+function だれのピルを描く(){
+  const 枠 = document.getElementById("read-who-pills");
+  const 今 = (読み取った内容 && 読み取った内容.選んだ人物ID) || "";
+  const 一覧 = 人物一覧を読む();
+  枠.innerHTML = 一覧.map(p =>
+    `<button type="button" data-id="${エスケープ(p.id)}" class="${p.id === 今 ? "active" : ""}">` +
+    `${エスケープ(p.icon || "🙂")} ${エスケープ(p.name)}</button>`
+  ).join("") + `<button type="button" data-id="" class="${今 ? "" : "active"}">あとで</button>`;
+}
+document.getElementById("read-who-pills").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-id]");
+  if(!b || !読み取った内容) return;
+  読み取った内容.選んだ人物ID = b.dataset.id;
+  だれのピルを描く();
+});
+
 /** 読み取った内容を、登録フォームの各欄に入れる。 */
 function 読み取り結果を欄に入れる(){
   const 結果 = 読み取った内容 || {};
@@ -2300,8 +2392,9 @@ function 読み取り結果を欄に入れる(){
   if(結果.category && 種類一覧.includes(結果.category)) document.getElementById("f-category").value = 結果.category;
   if(結果.due_date) 期限日を設定する(結果.due_date);
   if(結果.amount) document.getElementById("f-cost").value = String(結果.amount).replace(/[^0-9]/g, "");
-  const 人物ID = 名前に近い人物を探す(結果.person_hint);
-  if(人物ID) document.getElementById("f-person").value = 人物ID;
+  // カードで選び直した人を最優先。無ければAIの推測。
+  const 人物ID = (結果.選んだ人物ID !== undefined) ? 結果.選んだ人物ID : 名前に近い人物を探す(結果.person_hint);
+  document.getElementById("f-person").value = 人物ID || "";
   // 免許の色まで読めたときは、そこも先に選んでおく（自信がないときAIはnullを返す）
   if(結果.license_color && 免許色の説明[結果.license_color]){
     document.getElementById("f-license-color").value = 結果.license_color;
@@ -2538,6 +2631,65 @@ async function 削除する(id){
   const items = 項目一覧を読む().filter(i => i.id !== id);
   await 項目一覧を保存する(items);
   描画する();
+}
+
+// ============================================================
+// 「どうすればいい？」— 期限が過ぎた・目前のとき、次の動き方を示す
+//
+// ChatGPTに「期限が過ぎた、どうしたらいい」と聞きに行かなくて済むようにする。
+// 答えは項目に控えておき、状況（段階）が変わらない限り聞き直さない（費用0.1円/回）。
+// 必ず「目安」と明示し、公式の案内先を添える。
+// ============================================================
+
+function 対応策のHTML(i){
+  const a = i.対応策;
+  if(!a || !Array.isArray(a.steps) || a.steps.length === 0) return "";
+  const 案内 = 公式の案内先[i.category];
+  return `
+    <div class="advice">
+      <div class="advice-head">💡 ${エスケープ(a.headline || "いまやること")}</div>
+      <ol>${a.steps.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ol>
+      ${(Array.isArray(a.bring) && a.bring.length) ? `<div class="bring">持っていくもの：${エスケープ(a.bring.join("・"))}</div>` : ""}
+      ${a.caution ? `<div class="caution">⚠ ${エスケープ(a.caution)}</div>` : ""}
+      ${案内 ? `<div class="official">細かい条件は公式で：<a href="${エスケープ(案内.url)}" target="_blank" rel="noopener">${エスケープ(案内.名)} ↗</a>${案内.言葉 ? `<br><span style="color:var(--soft);font-size:12.5px">${エスケープ(案内.言葉)}</span>` : ""}</div>` : ""}
+      <div class="stamp">AIによる一般的な目安です（${エスケープ(a.日 || "")}）。制度や条件は変わることがあります。</div>
+    </div>`;
+}
+
+async function 対応策を聞く(id){
+  const 表示中 = (window.__items || []).find(i => i.id === id);
+  if(!表示中) return;
+  const ボタン = document.querySelector(`#detail-${CSS.escape(id)} .advice-btn`);
+  if(ボタン){ ボタン.disabled = true; ボタン.textContent = "考えています…"; }
+  try {
+    const res = await fetch(API_BASE + "/advice.php", {
+      method: "POST",
+      headers: AIの見出し,
+      body: JSON.stringify({ item: {
+        name: 表示中.name, category: 表示中.category, expire_date: 表示中.expire_date,
+        days: 表示中.残り日数, summary: 表示中.読み取り要約 || "",
+        todo: 表示中.読み取りやること || [], memo: 表示中.memo || "",
+      }}),
+    });
+    if(!res.ok) throw new Error(await 断られた理由(res, "いまは答えられませんでした。少し時間をおいてお試しください。"));
+    const 答え = await res.json();
+    if(答え.error || !Array.isArray(答え.steps)) throw new Error("いまは答えられませんでした。少し時間をおいてお試しください。");
+    const items = 項目一覧を読む();
+    const 場所 = items.findIndex(i => i.id === id);
+    if(場所 < 0) return;
+    const 今 = new Date();
+    items[場所] = Object.assign({}, items[場所], { 対応策: {
+      headline: 答え.headline || "", steps: 答え.steps.filter(Boolean).map(String).slice(0, 5),
+      caution: 答え.caution || "", bring: Array.isArray(答え.bring) ? 答え.bring.filter(Boolean).map(String).slice(0, 5) : [],
+      段階: 表示中.段階, 日: `${今.getFullYear()}年${今.getMonth()+1}月${今.getDate()}日`,
+    }});
+    await 項目一覧を保存する(items);
+    描画する();
+    項目へ移動する(id);
+  } catch(err) {
+    お知らせ((err && err.message) ? err.message : "いまは答えられませんでした。", true);
+    if(ボタン){ ボタン.disabled = false; ボタン.textContent = "💡 どうすればいい？"; }
+  }
 }
 
 // ============================================================
@@ -2941,7 +3093,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-10d";
+const アプリの版 = "2026-09-11a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
