@@ -864,7 +864,6 @@
     <button class="icon-btn" id="btn-open-settings" title="設定" aria-label="設定"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <button class="icon-btn" id="btn-relock" title="ロックする" aria-label="ロックする" hidden></button>
   </div>
-  </div>
 
   <section class="today-section">
     <div class="today-head">
@@ -2980,13 +2979,14 @@ document.getElementById("btn-fb-send").addEventListener("click", async () => {
 document.getElementById("btn-guide-close").addEventListener("click", () => {
   document.getElementById("modal-guide").classList.remove("show");
 });
-document.getElementById("btn-open-settings").addEventListener("click", () => {
-  document.getElementById("modal-settings").classList.add("show");
-});
+// 設定は重ね画面ではなくタブになった。
+// 古い「重ね画面を開く」処理が残っていて、中身が空になった覆いだけが出て
+// 画面が崩れて見えた（2026-09-12 実機で発覚）。覆いそのものも使わない。
 document.getElementById("btn-open-settings").addEventListener("click", () => タブを切り替える("settings"));
-document.getElementById("btn-settings-close") && document.getElementById("btn-settings-close").addEventListener("click", () => {
-  document.getElementById("modal-settings").classList.remove("show");
-});
+(function 古い設定の覆いを片付ける(){
+  const 覆い = document.getElementById("modal-settings");
+  if(覆い) 覆い.remove();
+})();
 
 async function 削除する(id){
   const ok = await カスタム確認("この項目を削除して大丈夫ですか？");
@@ -3456,7 +3456,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12b";
+const アプリの版 = "2026-09-12c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
