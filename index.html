@@ -69,6 +69,7 @@
     --pastel:hsl(var(--hue) 78% 91%);
     --pastel-2:hsl(var(--hue2) 78% 90%);
     --on-accent:#fff;
+    --hero-a:var(--accent); --hero-b:var(--accent-2); --on-hero:#fff;
     --bad:#b13a3a; --bad-soft:#fbe9e9;
     --warn:#a8721f; --warn-soft:#faf1e0;
     --good:#2f7d4f; --good-soft:#e6f3ea;
@@ -100,6 +101,7 @@
       --pastel:hsl(var(--hue) 32% 19%);
       --pastel-2:hsl(var(--hue2) 34% 16%);
       --on-accent:hsl(var(--hue) 42% 10%);
+      --hero-a:hsl(var(--hue) calc(var(--sat) * .95) 33%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .95) 41%); --on-hero:#fff;
       --bad:#e0827c; --bad-soft:#3a2020;
       --warn:#e3b65a; --warn-soft:#3a2f14;
       --good:#6fc492; --good-soft:#173226;
@@ -125,6 +127,7 @@
     --pastel:hsl(var(--hue) 32% 19%);
     --pastel-2:hsl(var(--hue2) 34% 16%);
     --on-accent:hsl(var(--hue) 42% 10%);
+    --hero-a:hsl(var(--hue) calc(var(--sat) * .95) 33%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .95) 41%); --on-hero:#fff;
     --bad:#e0827c; --bad-soft:#3a2020;
     --warn:#e3b65a; --warn-soft:#3a2f14;
     --good:#6fc492; --good-soft:#173226;
@@ -153,6 +156,7 @@
     --pastel:hsl(var(--hue) 20% 28%);
     --pastel-2:hsl(var(--hue2) 22% 25%);
     --on-accent:hsl(var(--hue) 40% 10%);
+    --hero-a:hsl(var(--hue) calc(var(--sat) * .9) 36%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .9) 44%); --on-hero:#fff;
     --bad:#e08c86; --bad-soft:#43292a;
     --warn:#e0bb6c; --warn-soft:#413720;
     --good:#79c79a; --good-soft:#22392e;
@@ -193,13 +197,57 @@
       "Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;
     line-height:1.75;font-size:17px;-webkit-font-smoothing:antialiased;
     font-feature-settings:"palt" 1}
-  .wrap{max-width:600px;margin:0 auto;padding:8px 18px 110px}
+  .wrap{max-width:600px;margin:0 auto;padding:8px 18px calc(96px + env(safe-area-inset-bottom))}
   h1,h2,h3,h4,h5{letter-spacing:.01em}
 
   :focus-visible{outline:none;box-shadow:var(--ring)}
 
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;
-    padding:14px 0 16px;margin-bottom:20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+    padding:10px 0 14px;margin-bottom:18px}
+  .app-title{font-size:30px;font-weight:800;margin:0;letter-spacing:.01em;line-height:1.2}
+  .view{display:block}
+  .view[hidden]{display:none !important}
+
+  /* 大きな一枚の札。押す場所が一目で分かるように */
+  .capture-hero{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;
+    padding:34px 20px 30px;border-radius:var(--r-lg);text-align:center;
+    background:linear-gradient(165deg, color-mix(in srgb, var(--hero-a) 88%, white) 0%, var(--hero-a) 38%, var(--hero-b) 100%);
+    color:var(--on-hero);
+    border:1px solid color-mix(in srgb, var(--hero-a) 70%, black);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.26), 0 2px 4px rgba(16,24,32,.16),
+               0 12px 30px color-mix(in srgb, var(--hero-a) 40%, transparent)}
+  .capture-hero:active{box-shadow:var(--press);transform:translateY(1px)}
+  .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
+  .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
+  .hero-sub{font-size:14.5px;font-weight:600;opacity:.88;line-height:1.5}
+  .capture-links{display:flex;justify-content:center;align-items:center;gap:6px;margin:12px 0 2px}
+  .capture-links .text-link{display:inline;width:auto;margin:0;padding:8px 2px;font-size:15px}
+  .capture-links .text-link.strong{color:var(--accent);text-decoration:none;font-weight:800}
+  .capture-links .dot{color:var(--soft);font-size:13px}
+  .upcoming-section{margin-top:28px}
+  .section-title.plain{font-size:22px;font-weight:800;margin:0 0 12px;letter-spacing:.01em}
+  .upcoming-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .upcoming-row:first-child{border-top:none}
+  .upcoming-name{flex:1;min-width:0;font-weight:700;font-size:15px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .upcoming-name small{display:block;font-size:12px;color:var(--soft);font-weight:600;margin-top:1px}
+  .upcoming-days{flex:none;font-size:14px;font-weight:800;color:var(--soft);font-variant-numeric:tabular-nums}
+  .upcoming-days.warn{color:var(--warn)}
+  .upcoming-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+    padding:2px 16px;box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
+
+  /* 下のタブ */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;
+    background:color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:none;border:none;box-shadow:none;padding:6px 4px;border-radius:0;
+    color:var(--soft);font-size:11.5px;font-weight:700;letter-spacing:.02em}
+  .tabbar button .ic{width:24px;height:24px}
+  .tabbar button.active{color:var(--accent)}
+  .tabbar button:active{transform:none;opacity:.7}
   .topbar > div{display:flex;gap:6px;align-items:center}
   .brand{display:flex;align-items:center;gap:9px}
   .brand .logo{display:flex;align-items:center}
@@ -234,8 +282,9 @@
   .capture-safe .ic{margin-top:.2em;opacity:.8}
   /* 短い説明文は行の長さをそろえて、1文字だけ次の行に落ちるのを防ぐ */
   .settings-hint,.sub,.today-calm,.privacy-note,.empty,.guide-body p{text-wrap:balance}
-  .capture-safe{color:var(--soft);font-size:12px;line-height:1.6;margin:14px 0 0;
-    padding-top:14px;border-top:1px solid var(--line)}
+  .capture-safe{color:var(--soft);font-size:12.5px;line-height:1.7;margin:10px 0 0;
+    padding:0;border:none;text-align:center;justify-content:center}
+  .capture-safe span{text-wrap:balance}
   #photo-analyzing{margin-top:14px;font-size:14px;color:var(--accent);font-weight:700}
 
   .version-note{color:var(--soft);font-size:12px;margin:14px 0 0;text-align:center;
@@ -648,9 +697,12 @@
     border-color:color-mix(in srgb, var(--good) 42%, transparent)}
   .row-btns .done-btn:hover{background:var(--good-soft);color:var(--good)}
 
-  .today-calm{color:var(--soft);background:var(--grad-card);border:1px solid var(--line);
-    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);border-radius:var(--r-md);
-    padding:26px 18px;text-align:center;font-size:14.5px;margin-bottom:0}
+  .calm-head{display:flex;align-items:center;gap:9px;color:var(--good);font-weight:800;font-size:17px}
+  .calm-head .ic{width:22px;height:22px;stroke-width:2.4}
+  .calm-body{color:var(--soft);font-size:16px;line-height:1.75;margin:8px 0 0 31px;text-align:left}
+  .today-calm{color:var(--soft);text-align:left;padding:16px 0 20px;border:none;
+    border-bottom:1px solid var(--line);border-radius:0;background:none;box-shadow:none;
+    font-size:14.5px;margin-bottom:0}
 
   .budget-yen{flex:none;width:44px;height:44px;border-radius:var(--r-sm);display:flex;
     align-items:center;justify-content:center;font-size:22px;font-weight:800;
@@ -659,7 +711,9 @@
   .budget-label{font-size:12.5px;font-weight:700;color:var(--soft);letter-spacing:.02em}
   .budget-amount{font-size:21px;font-weight:800;color:var(--ink);letter-spacing:-.01em;
     font-variant-numeric:tabular-nums}
-  .budget-amount small{font-size:13px;font-weight:600;color:var(--soft);margin-left:4px}
+  .budget-amount{font-size:30px}
+  .budget-count{margin-left:auto;font-size:26px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .budget-count small{font-size:14px;font-weight:600;color:var(--soft);margin-left:2px}
   .budget-note{display:flex;align-items:center;gap:13px;
     background:var(--surface);border:1px solid var(--line);color:var(--soft);
     border-radius:var(--r-md);padding:14px 18px;margin-bottom:24px;font-size:13.5px;
@@ -804,35 +858,47 @@
   </div>
 
   <div class="step" id="screen-app">
+  <div class="view" id="view-home">
   <div class="topbar">
-    <div class="brand"><span class="logo" id="brand-mark"></span><h1>トルマモ</h1></div>
-    <div>
-      <button class="icon-btn" id="btn-relock" title="ロックする" aria-label="ロックする"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></button>
-      <button class="icon-btn" id="btn-open-settings" title="設定" aria-label="設定"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-    </div>
+    <h1 class="app-title">トルマモ</h1>
+    <button class="icon-btn" id="btn-open-settings" title="設定" aria-label="設定"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="icon-btn" id="btn-relock" title="ロックする" aria-label="ロックする" hidden></button>
+  </div>
   </div>
 
   <section class="today-section">
     <div class="today-head">
-      <span class="mascot-slot" id="mascot-slot"></span>
       <h2 class="today-title">今日の確認</h2>
       <span class="today-date" id="today-date"></span>
+      <span id="mascot-slot" hidden></span>
     </div>
     <div id="today-summary"></div>
   </section>
 
-  <div class="capture-card">
-    <button type="button" class="primary" id="btn-photo-capture"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg><span>カメラで撮って登録する</span></button>
-    <button type="button" class="ghost capture-sub" id="btn-photo-album"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="5" width="17.6" height="14" rx="2.2"/><circle cx="8.6" cy="10" r="1.5"/><path d="M20.5 16.2l-4.8-4.8-6.8 6.8"/></svg><span>アルバムの写真から登録する</span></button>
-    <p class="photo-capture-hint">郵便物や学校のプリントを撮るだけで、期限・対象者・やることを読み取ります</p>
-    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
-    <input type="file" id="photo-input-album" accept="image/*" style="display:none">
-    <div id="photo-analyzing" style="display:none"></div>
-    <p class="capture-safe"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.8"/><path d="M12 11v5.2M12 7.9h.01"/></svg><span>写真は読み取りのあと、その場で消えます。<br>保存も共有もされません。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">詳しく</button></span></p>
-    <button type="button" class="text-link" id="btn-open-form">手で入力して登録する</button>
+  <button type="button" class="capture-hero" id="btn-photo-capture">
+    <svg class="hero-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="17.6" cy="10.2" r=".9" fill="currentColor" stroke="none"/></svg>
+    <span class="hero-title">撮って登録する</span>
+    <span class="hero-sub">郵便物・プリントなどを撮影するだけ</span>
+  </button>
+  <div class="capture-links">
+    <button type="button" class="text-link strong" id="btn-photo-album">写真から登録する</button>
+    <span class="dot">・</span>
+    <button type="button" class="text-link" id="btn-open-form">手で入力する</button>
   </div>
+  <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="photo-input-album" accept="image/*" style="display:none">
+  <div id="photo-analyzing" style="display:none"></div>
+  <p class="capture-safe"><span>写真は読み取りのあと、その場で消えます。<br>保存も共有もされません。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">詳しく</button></span></p>
 
-  <div id="budget-forecast"></div>
+  <section class="upcoming-section">
+    <h2 class="section-title plain">今後の予定</h2>
+    <div id="budget-forecast"></div>
+    <div id="upcoming-list"></div>
+  </section>
+  </div><!-- /view-home -->
+
+  <div class="view" id="view-list" hidden>
+  <div class="topbar"><h1 class="app-title">一覧</h1></div>
 
   <div class="ask-row">
     <input type="text" id="ask-input" placeholder="例: 今月やることは？">
@@ -927,6 +993,18 @@
   </div>
 
   <footer>登録した情報はこの端末の中だけに暗号化されて保存され、外部には送信されません。</footer>
+  </div><!-- /view-list -->
+
+  <div class="view" id="view-settings" hidden>
+  <div class="topbar"><h1 class="app-title">設定</h1></div>
+  <div id="settings-host"></div>
+  </div><!-- /view-settings -->
+
+  <nav class="tabbar" aria-label="画面の切り替え">
+    <button type="button" data-view="home" class="active"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg><span>ホーム</span></button>
+    <button type="button" data-view="list"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01" stroke-width="2.6"/></svg><span>一覧</span></button>
+    <button type="button" data-view="settings"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>設定</span></button>
+  </nav>
   </div>
 </div>
 
@@ -1876,6 +1954,7 @@ function 項目カードHTML(i){
 // 今日のカードから、一覧のその項目を開いて見せる。
 // 以前は編集画面に飛んでいたが、知りたいのは「何をすればいいか」なので詳細のほうが合う。
 function 項目へ移動する(id){
+  タブを切り替える("list");
   // 絞り込みで隠れていたら、いったん全員に戻す。
   if(選択中の人物ID && !(window.__items || []).some(i => i.id === id)){
     選択中の人物ID = "";
@@ -1970,9 +2049,8 @@ function 今日やることを描画する(items){
 
   if(緊急.length === 0 && 注意.length === 0){
     el.innerHTML = `<div class="today-calm">
-      <div class="mascot-big">${マスコットSVG("にっこり")}
-        <div>今日やることはありません。<br>ゆっくり過ごしてください。</div>
-      </div>
+      <div class="calm-head"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>すべて確認済み</div>
+      <div class="calm-body">今日やることはありません。<br>ゆっくりお過ごしください。</div>
     </div>`;
     マスコットを更新する();
     return;
@@ -2030,12 +2108,30 @@ function 出費予告を描画する(items){
   if(対象.length === 0){ el.innerHTML = ""; return; }
   const 合計 = 対象.reduce((sum, i) => sum + i.cost, 0);
   el.innerHTML = `<div class="budget-note">
-    <span class="budget-yen">¥</span>
     <span class="budget-body">
-      <span class="budget-label">今後30日の更新費用</span>
-      <span class="budget-amount">¥${合計.toLocaleString()}<small>（${対象.length}件）</small></span>
+      <span class="budget-label">30日以内の更新</span>
+      <span class="budget-amount">¥${合計.toLocaleString()}</span>
     </span>
+    <span class="budget-count">${対象.length}<small>件</small></span>
   </div>`;
+}
+
+// ホームの「今後の予定」。今日のカードに出ていない、次に来るものを3件だけ。
+function 今後の予定を描画する(items){
+  const el = document.getElementById("upcoming-list");
+  if(!el) return;
+  const 候補 = items
+    .filter(i => i.残り日数 !== null && i.残り日数 !== undefined && i.残り日数 > 0 && i.段階 === "様子見")
+    .sort((a, b) => a.残り日数 - b.残り日数)
+    .slice(0, 3);
+  if(候補.length === 0){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="upcoming-wrap">` + 候補.map(i => {
+    const 人 = 項目の人物情報(i);
+    return `<div class="upcoming-row" onclick="項目へ移動する('${i.id}')">
+      <span class="upcoming-name">${エスケープ(i.name)}<small>${人.name !== "未設定" ? エスケープ(人.name) + " ・ " : ""}${エスケープ(i.category)}</small></span>
+      <span class="upcoming-days${i.残り日数 <= 30 ? " warn" : ""}">あと${i.残り日数}日</span>
+    </div>`;
+  }).join("") + `</div>`;
 }
 
 function カテゴリー別に描画する(items){
@@ -2086,6 +2182,7 @@ function 描画する(){
   // 誰かに絞ったせいで急ぎの用事が隠れてしまうのを防ぐため。
   今日やることを描画する(items);
   出費予告を描画する(items);
+  今後の予定を描画する(items);
 
   if(選択中の人物ID){
     const 人 = 人物一覧を読む().find(p => p.id === 選択中の人物ID);
@@ -2281,6 +2378,7 @@ function 編集終了(){
   document.getElementById("btnrow-cancel").style.display = "none";
 }
 function 入力フォームを開く(){
+  タブを切り替える("list");
   document.getElementById("form-panel").style.display = "block";
   document.querySelector(".panel").scrollIntoView({behavior:"instant", block:"start"});
 }
@@ -2291,6 +2389,41 @@ document.getElementById("btn-open-form").addEventListener("click", () => {
   編集終了();
   入力フォームを開く();
 });
+
+// ============================================================
+// 画面の切り替え（ホーム／一覧／設定）
+// 1画面に全部を積んでいたのをやめ、下のタブで分けた。
+// ホームは「今日・撮る・今後の予定」だけにして、迷わないようにする。
+// ============================================================
+let 今の画面 = "home";
+function タブを切り替える(名){
+  今の画面 = 名;
+  document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + 名; });
+  document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("active", b.dataset.view === 名));
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+document.querySelectorAll(".tabbar button").forEach(b => {
+  b.addEventListener("click", () => タブを切り替える(b.dataset.view));
+});
+
+// 設定は、これまでの重ね画面の中身をそのまま「設定」タブへ引っ越す。
+// 見出しの「閉じる」は要らなくなるので消す。
+(function 設定を引っ越す(){
+  const 元 = document.querySelector("#modal-settings .modal-box");
+  const 先 = document.getElementById("settings-host");
+  if(!元 || !先) return;
+  const 頭 = 元.querySelector(".guide-head");
+  if(頭) 頭.remove();
+  while(元.firstChild) 先.appendChild(元.firstChild);
+  // ロックは、見出しから設定の中の一覧へ
+  const 錠 = document.getElementById("btn-relock");
+  const 一覧 = 先.querySelector(".settings-menu");
+  if(錠 && 一覧){
+    錠.hidden = false; 錠.className = ""; 錠.removeAttribute("title");
+    錠.innerHTML = "<span>🔒</span> 今すぐロックする";
+    一覧.appendChild(錠);
+  }
+})();
 document.getElementById("btn-cancel").addEventListener("click", () => {
   編集終了();
   入力フォームを閉じる();
@@ -2850,7 +2983,8 @@ document.getElementById("btn-guide-close").addEventListener("click", () => {
 document.getElementById("btn-open-settings").addEventListener("click", () => {
   document.getElementById("modal-settings").classList.add("show");
 });
-document.getElementById("btn-settings-close").addEventListener("click", () => {
+document.getElementById("btn-open-settings").addEventListener("click", () => タブを切り替える("settings"));
+document.getElementById("btn-settings-close") && document.getElementById("btn-settings-close").addEventListener("click", () => {
   document.getElementById("modal-settings").classList.remove("show");
 });
 
@@ -3322,7 +3456,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12a";
+const アプリの版 = "2026-09-12b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
