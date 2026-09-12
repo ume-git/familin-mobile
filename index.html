@@ -4003,7 +4003,7 @@ async function マスごとに読む(マス, 一回目){
     // 名前は「時刻と括弧を外した本文」から。名前を除いた残り（場所など）だけをメモに残す
     const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
     const 題 = 名.slice(0, 14);
-    const 残り = 文.replace(題, "").replace(/\s+/g, " ").trim();
+    const 残り = 文.replace(題, "").replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?/, "").replace(/\s+/g, " ").trim();
     items.push({ title: 題, due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
       due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, 開始, memo: (残り && 残り !== 題) ? 残り : null, category: 一回目.category || null });
   });
