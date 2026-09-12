@@ -191,6 +191,87 @@ async function データを読み込む(dek){
   return JSON.parse(new TextDecoder().decode(バイト列));
 }
 
+// ============================================================
+// Face ID・指紋で開く（パスキーの PRF 拡張）
+//
+// 暗証番号と同じ「本物の暗号」にするための作り：
+//   1. 端末にパスキーを1つ作る（Face IDで守られる）
+//   2. Face IDに成功したときだけ端末が返す秘密値（PRF）を鍵の材料にして、DEK を包んで保存する
+//   3. 開くときは Face ID → 同じ秘密値 → 包みを解いて DEK を得る
+// 秘密値はどこにも保存されない。包んだ DEK だけが端末の中にある。
+// PRF が使えない機種（iOS 17 以前など）では、この機能は「対応していません」と出す。
+// ============================================================
+const 生体の合図 = new TextEncoder().encode("torumamo-unlock-v1");
+
+function 生体認証が使えそうか(){
+  return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
+}
+async function 生体認証を登録する(dek){
+  const userId = crypto.getRandomValues(new Uint8Array(16));
+  const 作成 = await navigator.credentials.create({ publicKey: {
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    rp: { name: "トルマモ" },
+    user: { id: userId, name: "torumamo", displayName: "トルマモ" },
+    pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+    authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "required", userVerification: "required" },
+    timeout: 60000,
+    extensions: { prf: {} },
+  }});
+  const 拡張 = 作成.getClientExtensionResults ? 作成.getClientExtensionResults() : {};
+  if(!(拡張.prf && 拡張.prf.enabled)) throw new Error("PRF未対応");
+  const credId = new Uint8Array(作成.rawId);
+  // 作った直後に一度 Face ID を通し、秘密値を得て DEK を包む
+  const 秘密 = await 生体の秘密値を取る(credId);
+  const 鍵 = await 秘密から鍵を作る(秘密);
+  const 封 = await 暗号化する(鍵, dek);
+  const auth = await レコードを読む("auth");
+  await レコードを書く("auth", Object.assign({}, auth, {
+    生体_credId: base64化(credId), 生体_iv: 封.iv, 生体_data: 封.data,
+  }));
+}
+async function 生体の秘密値を取る(credId){
+  const 応答 = await navigator.credentials.get({ publicKey: {
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    allowCredentials: [{ type: "public-key", id: credId, transports: ["internal"] }],
+    userVerification: "required",
+    timeout: 60000,
+    extensions: { prf: { eval: { first: 生体の合図 } } },
+  }});
+  const 拡張 = 応答.getClientExtensionResults ? 応答.getClientExtensionResults() : {};
+  const 秘密 = 拡張.prf && 拡張.prf.results && 拡張.prf.results.first;
+  if(!秘密) throw new Error("PRF未対応");
+  return new Uint8Array(秘密);
+}
+async function 秘密から鍵を作る(秘密){
+  const 素材 = await crypto.subtle.importKey("raw", 秘密, "HKDF", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "HKDF", hash: "SHA-256", salt: new TextEncoder().encode("torumamo-biometric"), info: new Uint8Array(0) },
+    素材, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+  );
+}
+async function 生体認証が登録済みか(){
+  const auth = await レコードを読む("auth");
+  return !!(auth && auth.生体_credId);
+}
+// Face ID で開く。成功すれば DEK、キャンセルや失敗なら null。
+async function 生体認証で開く(){
+  const auth = await レコードを読む("auth");
+  if(!auth || !auth.生体_credId) return null;
+  try {
+    const 秘密 = await 生体の秘密値を取る(base64を戻す(auth.生体_credId));
+    const 鍵 = await 秘密から鍵を作る(秘密);
+    const dek = await 復号する(鍵, auth.生体_iv, auth.生体_data);
+    return new Uint8Array(dek);
+  } catch(e) { return null; }
+}
+async function 生体認証を解除する(){
+  const auth = await レコードを読む("auth");
+  if(!auth) return;
+  const 残り = Object.assign({}, auth);
+  delete 残り.生体_credId; delete 残り.生体_iv; delete 残り.生体_data;
+  await レコードを書く("auth", 残り);
+}
+
 // 完全初期化（暗証番号・回復キー・登録データすべてを消す）
 async function 金庫を初期化する(){
   await レコードを削除する("auth");

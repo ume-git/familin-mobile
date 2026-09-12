@@ -306,6 +306,21 @@
   .version-note .text-link{width:auto;padding:0;font-size:12px;display:inline}
 
   .settings-block{margin-bottom:26px}
+  /* Face ID */
+  .bio-btn{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px}
+  .bio-btn .ic{width:22px;height:22px}
+  .bio-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-sm)}
+  .bio-row{display:flex;align-items:center;gap:14px}
+  .bio-text{flex:1;min-width:0}
+  .bio-text b{display:block;font-size:14.5px;line-height:1.45}
+  .bio-text small{display:block;font-size:12.5px;color:var(--soft);line-height:1.6;margin-top:3px}
+  .bio-switch{flex:none;width:52px;height:32px;border-radius:999px;padding:0;border:none;background:var(--line);
+    position:relative;box-shadow:var(--sunken);transition:background .2s}
+  .bio-switch span{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+  .bio-switch[aria-checked="true"]{background:var(--good)}
+  .bio-switch[aria-checked="true"] span{transform:translateX(20px)}
+  .bio-switch:disabled{opacity:.5}
   .settings-label{font-size:13px;font-weight:700;color:var(--soft);
     letter-spacing:.06em;margin-bottom:10px}
   .settings-hint{font-size:12px;color:var(--soft);margin:9px 0 0;line-height:1.65}
@@ -1015,6 +1030,7 @@
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></div>
       <h2>トルマモ はロックされています</h2>
       <div class="error" id="error-lock"></div>
+      <button type="button" class="primary wide-btn bio-btn" id="btn-bio-unlock" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9.5v1M15 9.5v1M12 9v4h-1.2"/><path d="M9 15.2a4.2 4.2 0 0 0 6 0"/></svg><span>Face ID・指紋で開く</span></button>
       <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" placeholder="暗証番号">
       <button class="primary wide-btn" id="btn-unlock">開く</button>
       <button class="link-btn" id="btn-goto-recovery">暗証番号を忘れた場合はこちら</button>
@@ -1243,6 +1259,17 @@
     <div class="settings-row">
       <label></label>
       <button class="ghost" id="btn-voice-test">試しに聞く</button>
+    </div>
+
+    <div class="settings-block" id="bio-block" hidden>
+      <div class="settings-label">Face ID・指紋で開く</div>
+      <div class="bio-card">
+        <div class="bio-row">
+          <div class="bio-text"><b id="bio-title">暗証番号の代わりに、顔や指で開く</b>
+            <small id="bio-desc">暗証番号は残ります（Face IDが使えないときの入口）。鍵は端末の中だけで作られ、どこにも送られません。</small></div>
+          <button type="button" class="bio-switch" id="bio-switch" role="switch" aria-checked="false"><span></span></button>
+        </div>
+      </div>
     </div>
 
     <div class="settings-block">
@@ -1638,7 +1665,7 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">6</div><h5>ロックする</h5></div>
-        <p>ホーム右上の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> か、設定の <b>今すぐロックする</b> で閉じられます。次に開くときは暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
+        <p>ホーム右上の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> か、設定の <b>今すぐロックする</b> で閉じられます。次に開くときは暗証番号が必要です。設定で「Face ID・指紋で開く」をオンにすると、顔や指でも開けます（暗証番号も残ります）。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
       </div>
 
       <div class="guide-step">
@@ -1665,7 +1692,7 @@
   </div>
 </div>
 
-<script src="crypto.js"></script>
+<script src="crypto.js?v=2026-09-12y"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4563,6 +4590,7 @@ async function 金庫データを読み込んでから進む(){
   window.__alertShown = false;
   画面を切り替える("screen-app");
   描画する();
+  設定の生体スイッチを整える();
   共有された写真があれば読む();
 }
 
@@ -4585,7 +4613,63 @@ async function 共有された写真があれば読む(){
 async function 起動時の画面を決める(){
   if(!(await 設定済みか())){ 画面を切り替える("screen-setup"); return; }
   画面を切り替える("screen-lock");
+  await ロック画面の生体ボタンを整える();
 }
+
+// ---- Face ID・指紋 ----
+async function ロック画面の生体ボタンを整える(){
+  const b = document.getElementById("btn-bio-unlock");
+  b.hidden = !(生体認証が使えそうか() && await 生体認証が登録済みか());
+}
+async function 生体で開く(){
+  const err = document.getElementById("error-lock");
+  err.style.display = "none";
+  const dek = await 生体認証で開く();
+  if(dek){
+    現在のDEK = dek;
+    await 金庫データを読み込んでから進む();
+  } else {
+    err.textContent = "Face IDで開けませんでした。暗証番号で開いてください。";
+    err.style.display = "block";
+  }
+}
+document.getElementById("btn-bio-unlock").addEventListener("click", 生体で開く);
+
+async function 設定の生体スイッチを整える(){
+  const block = document.getElementById("bio-block");
+  const sw = document.getElementById("bio-switch");
+  if(!生体認証が使えそうか()){ block.hidden = true; return; }
+  let 使える = false;
+  try { 使える = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); } catch(e) {}
+  block.hidden = !使える;
+  sw.setAttribute("aria-checked", (await 生体認証が登録済みか()) ? "true" : "false");
+}
+document.getElementById("bio-switch").addEventListener("click", async () => {
+  const sw = document.getElementById("bio-switch");
+  const 今 = sw.getAttribute("aria-checked") === "true";
+  sw.disabled = true;
+  try {
+    if(今){
+      await 生体認証を解除する();
+      sw.setAttribute("aria-checked", "false");
+      お知らせ("Face IDでの解錠をやめました。暗証番号で開きます。", true);
+    } else {
+      if(!現在のDEK){ お知らせ("先に暗証番号で開いてから設定してください。", true); return; }
+      await 生体認証を登録する(現在のDEK);
+      sw.setAttribute("aria-checked", "true");
+      お知らせ("次からは Face ID・指紋で開けます。暗証番号もそのまま使えます。", true);
+    }
+  } catch(e){
+    const 文 = (e && /PRF/.test(e.message))
+      ? "この機種は、Face IDで鍵を作る仕組み（iOS 18以上・Android の新しめの機種）に対応していません。暗証番号のままお使いください。"
+      : (e && e.name === "NotAllowedError")
+        ? "Face IDの登録が途中で止まりました。もう一度お試しください。"
+        : "Face IDの登録ができませんでした。暗証番号のままお使いください。";
+    お知らせ(文, true);
+  } finally {
+    sw.disabled = false;
+  }
+});
 
 document.getElementById("btn-setup").addEventListener("click", async () => {
   const p1 = document.getElementById("setup-pin1").value.trim();
@@ -4682,6 +4766,7 @@ function 今すぐロックする(){
   try { speechSynthesis.cancel(); } catch(e) {}
   document.getElementById("lock-pin").value = "";
   画面を切り替える("screen-lock");
+  ロック画面の生体ボタンを整える();
 }
 document.getElementById("btn-relock").addEventListener("click", 今すぐロックする);
 
@@ -4699,7 +4784,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12x";
+const アプリの版 = "2026-09-12y";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
