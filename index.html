@@ -113,6 +113,10 @@
       --press:inset 0 2px 6px rgba(0,0,0,.55);
     }
   }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-mode="light"]):not([data-mode="mid"]){--av-l1:34%;--av-l2:26%;--av-l3:56%;--av-l4:44%}
+  }
+  :root[data-mode="dark"]{--av-l1:34%;--av-l2:26%;--av-l3:56%;--av-l4:44%}
   :root[data-mode="dark"]{
     --bg:hsl(var(--hue) 24% 6.5%);
     --surface:hsl(var(--hue) 18% 13%);
@@ -287,7 +291,9 @@
   .capture-safe{display:flex;align-items:flex-start;gap:7px;justify-content:center;text-align:left}
   .capture-safe .ic{margin-top:.2em;opacity:.8}
   /* 短い説明文は行の長さをそろえて、1文字だけ次の行に落ちるのを防ぐ */
-  .sub,.today-calm,.privacy-note,.empty,.guide-body p{text-wrap:balance}
+  .sub,.today-calm,.privacy-note,.empty{text-wrap:balance}
+  /* ガイドの段落は長いので balance にすると右側が空く。行末の1文字落ちだけ防ぐ pretty に */
+  .guide-body p{text-wrap:pretty}
   /* 設定の説明は <br> で2文に分けているので、balance だと途中で変に折れる */
   .capture-safe{color:var(--soft);font-size:12.5px;line-height:1.7;margin:10px 0 0;
     padding:0;border:none;text-align:center;justify-content:center}
@@ -446,12 +452,41 @@
   .guide-callout.bad{background:var(--bad-soft);color:var(--bad)}
   .guide-callout.good{background:var(--good-soft);color:var(--good)}
 
-  .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-bottom:16px;
-    max-height:212px;overflow-y:auto;padding:4px;background:var(--bg);border-radius:var(--r-sm)}
-  .icon-choice{font-size:22px;padding:9px 0;border-radius:var(--r-sm);border:2px solid transparent;
-    background:var(--surface);cursor:pointer;text-align:center;line-height:1;transition:transform .12s}
-  .icon-choice:hover{transform:scale(1.12)}
-  .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.08)}
+  /* 家族のしるし：色の丸に絵柄か頭文字。どこに出ても同じ形 */
+  .avatar{display:inline-flex;align-items:center;justify-content:center;flex:none;
+    width:var(--av-size,28px);height:var(--av-size,28px);border-radius:50%;
+    font-size:calc(var(--av-size,28px) * .56);line-height:1;
+    background:linear-gradient(135deg, hsl(var(--av-h) 80% var(--av-l1,88%)) 0%, hsl(calc(var(--av-h) + 30) 72% var(--av-l2,74%)) 100%);
+    box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55), 0 1px 3px rgba(16,24,32,.14)}
+  .avatar.letter{font-size:calc(var(--av-size,28px) * .5);font-weight:800;color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.2);
+    background:linear-gradient(135deg, hsl(var(--av-h) 64% var(--av-l3,64%)) 0%, hsl(calc(var(--av-h) + 30) 60% var(--av-l4,52%)) 100%)}
+  .person-pill .avatar{margin-left:-7px}
+  .person-pill.add,.person-pill[data-person=""]{padding-left:15px}
+  .item .who-tag,.today-who{display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 2px;vertical-align:middle}
+  .group-header{display:flex;align-items:center;gap:8px}
+  .read-who-pills button{display:inline-flex;align-items:center;gap:6px}
+  .read-who-pills button .avatar{margin-left:-4px}
+
+  /* 家族を作る画面 */
+  .person-preview{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 14px}
+  .person-preview .avatar{box-shadow:inset 0 0 0 2px rgba(255,255,255,.6), 0 6px 16px rgba(16,24,32,.16)}
+  .person-preview-name{font-size:16px;font-weight:800}
+  .color-row{display:flex;justify-content:center;gap:9px;margin-bottom:12px}
+  .color-dot{width:26px;height:26px;border-radius:50%;padding:0;border:none;box-shadow:none;
+    background:linear-gradient(135deg, hsl(var(--av-h) 80% 78%) 0%, hsl(calc(var(--av-h) + 30) 72% 62%) 100%);
+    transition:transform .12s}
+  .color-dot.selected{box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--ink);transform:scale(1.08)}
+  .icon-tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--r-full);padding:3px;margin-bottom:8px}
+  .icon-tabs button{flex:1;padding:7px 0;border:none;border-radius:var(--r-full);background:transparent;
+    color:var(--soft);font-size:13px;font-weight:700;box-shadow:none}
+  .icon-tabs button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+  .icon-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:16px;
+    max-height:168px;overflow-y:auto;padding:6px 4px;background:var(--bg);border-radius:var(--r-sm)}
+  .icon-choice{padding:4px 0;border-radius:var(--r-sm);border:none;background:transparent;box-shadow:none;
+    display:flex;justify-content:center;transition:transform .12s}
+  .icon-choice.selected{background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
+  .icon-choice:active{transform:scale(.92)}
 
   /* ひとつの札の中に、説明 → 手順1 → 手順2 → 補足。左端はすべて札の内側にそろえる */
   .backup-card{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
@@ -969,7 +1004,7 @@
   <div class="view" id="view-home">
   <div class="topbar">
     <h1 class="app-title">トルマモ</h1>
-    <button class="icon-btn" id="btn-open-settings" title="設定" aria-label="設定"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="icon-btn" id="btn-lock-top" title="ロックする" aria-label="ロックする"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></button>
     <button class="icon-btn" id="btn-relock" title="ロックする" aria-label="ロックする" hidden></button>
   </div>
 
@@ -1402,6 +1437,9 @@
 <div class="modal-back" id="modal-person">
   <div class="modal-box">
     <p id="modal-person-title">家族を追加</p>
+    <div class="person-preview" id="person-preview"></div>
+    <div class="color-row" id="person-colors"></div>
+    <div class="icon-tabs" id="icon-tabs"></div>
     <div class="icon-grid" id="icon-grid"></div>
     <input type="text" id="modal-person-name" placeholder="呼び方（例: おじいさん、たかしさん）" maxlength="20">
     <div class="btnrow">
@@ -1460,7 +1498,7 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">6</div><h5>ロックする</h5></div>
-        <p>設定の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> <b>今すぐロックする</b> で閉じられます。次に開くときは暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
+        <p>ホーム右上の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> か、設定の <b>今すぐロックする</b> で閉じられます。次に開くときは暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
       </div>
 
       <div class="guide-step">
@@ -2015,16 +2053,35 @@ function エスケープ(s){
 // ============================================================
 let 選択中の人物ID = null;
 
-const 人物アイコン候補 = [
-  // 家族
-  "🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","👶","🧔","👱",
-  // いきもの
-  "🐻","🐱","🐶","🐰","🐼","🦊","🐨","🐹","🐯","🦁","🐷","🐸",
-  "🐧","🐥","🦉","🐢","🐳","🦈","🐝","🦋","🐙","🦕",
-  // すきなもの
-  "🌸","🌻","🌈","⭐","🔥","🍀","🍎","🍓","🍰","☕","⚽","🎸",
-  "🚗","✈️","🎣","🎮","📚","🎨","👑","💎","🌙","☀️",
+// 家族のしるし。絵柄 × 色の丸 で、その人らしさを出す。
+// "文字" は特別で、名前の頭文字を丸に載せる（Googleの連絡先と同じ見せ方）。
+const 人物アイコン群 = [
+  { 名: "かぞく",    絵: ["文字","🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","👶","🧔","👱","😎","🥰","🤓","😴"] },
+  { 名: "いきもの",  絵: ["🐻","🐱","🐶","🐰","🐼","🦊","🐨","🐹","🐯","🦁","🐷","🐸","🐧","🐥","🦉","🐢","🐳","🦈","🐝","🦋","🐙","🦕"] },
+  { 名: "すきなもの", 絵: ["🌸","🌻","🌈","⭐","🔥","🍀","🍎","🍓","🍰","☕","⚽","🎸","🚗","✈️","🎣","🎮","📚","🎨","👑","💎","🌙","☀️"] },
 ];
+// 丸の色。色相だけを持ち、明るさはライト・ダークで変える
+const アバターの色相 = [345, 25, 48, 130, 175, 210, 265, 300];
+function 人物の色相(p){
+  if(p && typeof p.color === "number") return p.color;
+  // 最初から入っている4人は、隣どうしが同じ色にならないよう決め打ち
+  const 決め打ち = { p_honnin: 210, p_ojii: 175, p_obaa: 345, p_kodomo: 48 };
+  if(p && 決め打ち[p.id]) return 決め打ち[p.id];
+  // 色を選んでいない人は、id から決める（同じ人はいつも同じ色）
+  let h = 0; for(const ch of String((p && p.id) || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return アバターの色相[h % アバターの色相.length];
+}
+function 人物アバターHTML(p, サイズ){
+  const 名 = (p && p.name) || "";
+  const 絵 = (p && p.icon) || "🙂";
+  const 文字 = 絵 === "文字";
+  const 中身 = 文字 ? エスケープ([...名][0] || "？") : エスケープ(絵);
+  return `<span class="avatar${文字 ? " letter" : ""}" style="--av-h:${人物の色相(p)};--av-size:${サイズ || 28}px" aria-hidden="true">${中身}</span>`;
+}
+function 人物の絵文字(p){
+  const 絵 = (p && p.icon) || "🙂";
+  return 絵 === "文字" ? ([...((p && p.name) || "")][0] || "？") : 絵;
+}
 
 function 人物名を取り出す(name){
   const m = /（([^）]+)）\s*$/.exec(name || "");
@@ -2034,10 +2091,10 @@ function 人物名を取り出す(name){
 function 項目の人物情報(item){
   if(item.person_id){
     const 人 = 人物一覧を読む().find(p => p.id === item.person_id);
-    if(人) return {name: 人.name, icon: 人.icon || "🙂"};
+    if(人) return {name: 人.name, icon: 人.icon || "🙂", 人};
   }
   const 推測 = 人物名を取り出す(item.name);
-  return {name: 推測 || "未設定", icon: null};
+  return {name: 推測 || "未設定", icon: null, 人: null};
 }
 function 項目の人物名(item){ return 項目の人物情報(item).name; }
 
@@ -2045,50 +2102,79 @@ function 人物選択欄を更新する(){
   const select = document.getElementById("f-person");
   const 今の値 = select.value;
   select.innerHTML = '<option value="">（未設定）</option>' +
-    人物一覧を読む().map(p => `<option value="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}</option>`).join("");
+    人物一覧を読む().map(p => `<option value="${エスケープ(p.id)}">${エスケープ(人物の絵文字(p))} ${エスケープ(p.name)}</option>`).join("");
   if([...select.options].some(o => o.value === 今の値)) select.value = 今の値;
   else if(選択中の人物ID) select.value = 選択中の人物ID;
 }
 
-function アイコン欄を描画する(選択中){
-  const el = document.getElementById("icon-grid");
-  el.innerHTML = 人物アイコン候補.map(icon =>
-    `<button type="button" class="icon-choice${icon === 選択中 ? " selected" : ""}" data-icon="${icon}">${icon}</button>`
+// 家族を作る画面。上に大きな見本、色の列、絵柄の棚（3つの引き出し）。
+// 触るたびに見本が変わるので、「作っている」楽しさが出る。
+let 人物編集中 = { icon: "🙂", color: 210, 棚: 0 };
+
+function 人物見本を描く(){
+  const 名 = document.getElementById("modal-person-name").value.trim();
+  document.getElementById("person-preview").innerHTML =
+    人物アバターHTML({ id: "", name: 名 || "なまえ", icon: 人物編集中.icon, color: 人物編集中.color }, 84) +
+    `<span class="person-preview-name">${エスケープ(名 || "なまえ")}</span>`;
+}
+function 色の列を描く(){
+  const el = document.getElementById("person-colors");
+  el.innerHTML = アバターの色相.map(h =>
+    `<button type="button" class="color-dot${h === 人物編集中.color ? " selected" : ""}" data-h="${h}" style="--av-h:${h}" aria-label="色"></button>`
   ).join("");
-  el.querySelectorAll(".icon-choice").forEach(btn => {
-    btn.addEventListener("click", () => {
-      el.querySelectorAll(".icon-choice").forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-    });
-  });
+  el.querySelectorAll(".color-dot").forEach(btn => btn.addEventListener("click", () => {
+    人物編集中.color = Number(btn.dataset.h); 色の列を描く(); アイコン欄を描画する(); 人物見本を描く();
+  }));
+}
+function アイコン欄を描画する(){
+  const tabs = document.getElementById("icon-tabs");
+  tabs.innerHTML = 人物アイコン群.map((g, k) =>
+    `<button type="button" class="${k === 人物編集中.棚 ? "active" : ""}" data-k="${k}">${g.名}</button>`).join("");
+  tabs.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    人物編集中.棚 = Number(b.dataset.k); アイコン欄を描画する();
+  }));
+  const el = document.getElementById("icon-grid");
+  const 名 = document.getElementById("modal-person-name").value.trim();
+  el.innerHTML = 人物アイコン群[人物編集中.棚].絵.map(icon =>
+    `<button type="button" class="icon-choice${icon === 人物編集中.icon ? " selected" : ""}" data-icon="${icon}" aria-label="${icon === "文字" ? "頭文字" : icon}">` +
+    人物アバターHTML({ id: "", name: 名 || "あ", icon, color: 人物編集中.color }, 40) + `</button>`
+  ).join("");
+  el.querySelectorAll(".icon-choice").forEach(btn => btn.addEventListener("click", () => {
+    人物編集中.icon = btn.dataset.icon;
+    el.querySelectorAll(".icon-choice").forEach(b => b.classList.toggle("selected", b === btn));
+    人物見本を描く();
+  }));
 }
 
-function カスタム人物編集(タイトル, 初期アイコン, 初期名前){
+function カスタム人物編集(タイトル, 初期アイコン, 初期名前, 初期色){
   return new Promise(resolve => {
     document.getElementById("modal-person-title").textContent = タイトル;
-    アイコン欄を描画する(初期アイコン || "🙂");
+    const 絵 = 初期アイコン || "🙂";
+    人物編集中 = { icon: 絵, color: (typeof 初期色 === "number") ? 初期色 : アバターの色相[Math.floor(Math.random() * アバターの色相.length)],
+                  棚: Math.max(0, 人物アイコン群.findIndex(g => g.絵.includes(絵))) };
     const nameField = document.getElementById("modal-person-name");
     nameField.value = 初期名前 || "";
+    色の列を描く(); アイコン欄を描画する(); 人物見本を描く();
     document.getElementById("modal-person").classList.add("show");
-    nameField.focus();
     const okBtn = document.getElementById("modal-person-ok");
     const cancelBtn = document.getElementById("modal-person-cancel");
+    function onInput(){ 人物見本を描く(); if(人物編集中.icon === "文字" || 人物編集中.棚 === 0) アイコン欄を描画する(); }
     function 片付ける(結果){
       document.getElementById("modal-person").classList.remove("show");
       okBtn.removeEventListener("click", onOk);
       cancelBtn.removeEventListener("click", onCancel);
+      nameField.removeEventListener("input", onInput);
       resolve(結果);
     }
     function onOk(){
-      const 選択アイコン = document.querySelector("#icon-grid .icon-choice.selected");
-      const icon = 選択アイコン ? 選択アイコン.dataset.icon : "🙂";
       const name = nameField.value.trim();
       if(!name){ nameField.focus(); return; }
-      片付ける({icon, name});
+      片付ける({ icon: 人物編集中.icon, name, color: 人物編集中.color });
     }
     function onCancel(){ 片付ける(null); }
     okBtn.addEventListener("click", onOk);
     cancelBtn.addEventListener("click", onCancel);
+    nameField.addEventListener("input", onInput);
   });
 }
 
@@ -2120,7 +2206,7 @@ function 人物タブを描画する(){
   const 集計 = 人物ごとの件数();
   let html = `<button class="person-pill${選択中の人物ID === null ? " active" : ""}" data-person="">すべて${件数バッジHTML(集計.合計)}</button>`;
   people.forEach(p => {
-    html += `<button class="person-pill${選択中の人物ID === p.id ? " active" : ""}" data-person="${エスケープ(p.id)}">${p.icon || "🙂"} ${エスケープ(p.name)}${件数バッジHTML(集計.人ごと(p.name))}</button>`;
+    html += `<button class="person-pill${選択中の人物ID === p.id ? " active" : ""}" data-person="${エスケープ(p.id)}">${人物アバターHTML(p, 26)}${エスケープ(p.name)}${件数バッジHTML(集計.人ごと(p.name))}</button>`;
   });
   html += `<button class="person-pill add" id="btn-add-person">＋ 追加</button>`;
   el.innerHTML = html;
@@ -2137,7 +2223,7 @@ function 人物タブを描画する(){
     const 結果 = await カスタム人物編集("家族を追加", "🙂", "");
     if(!結果) return;
     const list = 人物一覧を読む();
-    list.push({id: "p_" + Date.now(), name: 結果.name, icon: 結果.icon});
+    list.push({id: "p_" + Date.now(), name: 結果.name, icon: 結果.icon, color: 結果.color});
     await 人物一覧を保存する(list);
     人物タブを描画する();
     人物選択欄を更新する();
@@ -2151,10 +2237,11 @@ document.getElementById("btn-edit-person").addEventListener("click", async () =>
   const list = 人物一覧を読む();
   const target = list.find(p => p.id === 選択中の人物ID);
   if(!target) return;
-  const 結果 = await カスタム人物編集("名前・アイコンを変更", target.icon, target.name);
+  const 結果 = await カスタム人物編集("名前・しるしを変更", target.icon, target.name, 人物の色相(target));
   if(!結果) return;
   target.name = 結果.name;
   target.icon = 結果.icon;
+  target.color = 結果.color;
   await 人物一覧を保存する(list);
   人物タブを描画する();
   人物選択欄を更新する();
@@ -2246,7 +2333,7 @@ function 項目カードHTML(i){
   <div class="item">
     <button type="button" class="item-head" onclick="項目を開閉する('${i.id}')" aria-expanded="false">
       <span class="item-main">
-        <span class="name">${エスケープ(i.name)}${人物情報.name !== "未設定" ? ` <span class="who-tag">${人物情報.icon ? エスケープ(人物情報.icon) : "👤"} ${エスケープ(人物情報.name)}</span>` : ""}</span>
+        <span class="name">${エスケープ(i.name)}${人物情報.name !== "未設定" ? ` <span class="who-tag">${人物情報.人 ? 人物アバターHTML(人物情報.人, 18) : ""}${エスケープ(人物情報.name)}</span>` : ""}</span>
         <span class="cat">${エスケープ(i.category)}${区分部分 ? "（" + エスケープ(区分部分) + "）" : ""} ・ ${i.expire_date}（${i.残り日数文}）</span>
       </span>
       <span class="chip ${i.色}">${i.段階ラベル}</span>
@@ -2415,7 +2502,7 @@ function 今日やることを描画する(items){
       <button type="button" class="today-open" onclick="項目へ移動する('${i.id}')">
         <span class="today-days">${期限のHTML(i.残り日数)}</span>
         <span class="today-body">
-          <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.icon || "🙂"} ${エスケープ(人物情報.name)}</span></span>
+          <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.人 ? 人物アバターHTML(人物情報.人, 18) : ""}${エスケープ(人物情報.name)}</span></span>
           <span class="today-todo">${エスケープ(i.今やること || i.残り日数文 || "")}</span>
         </span>
       </button>
@@ -2554,14 +2641,14 @@ function 人物別に描画する(items){
   const groups = new Map();
   items.forEach(i => {
     const 情報 = 項目の人物情報(i);
-    if(!groups.has(情報.name)) groups.set(情報.name, {icon: 情報.icon, items: []});
+    if(!groups.has(情報.name)) groups.set(情報.name, {icon: 情報.icon, 人: 情報.人, items: []});
     groups.get(情報.name).items.push(i);
   });
   const keys = [...groups.keys()].sort((a, b) => (a === "未設定" ? 1 : 0) - (b === "未設定" ? 1 : 0));
   let html = "";
   keys.forEach(key => {
     const group = groups.get(key);
-    html += `<div class="group-header">${group.icon ? エスケープ(group.icon) : "👤"} ${エスケープ(key)}（${group.items.length}件）</div>`;
+    html += `<div class="group-header">${group.人 ? 人物アバターHTML(group.人, 24) : ""}${エスケープ(key)}（${group.items.length}件）</div>`;
     html += group.items.map(項目カードHTML).join("");
   });
   return html;
@@ -3204,7 +3291,7 @@ function 読み取り結果を見せる(結果){
   読み取った内容.選んだ免許の色 = 免許色の説明[結果.license_color] ? 結果.license_color : "";
   免許の色ピルを描く();
   if(人物){
-    document.getElementById("read-guess-icon").textContent = 人物.icon || "🙂";
+    document.getElementById("read-guess-icon").innerHTML = 人物アバターHTML(人物, 36);
     出す("read-guess-text", 結果.person_reason || (人物.name + "のものですね。"));
     出し入れ("read-guess", true);
   } else {
@@ -3320,7 +3407,7 @@ function だれのピルを描く(){
   const 一覧 = 人物一覧を読む();
   枠.innerHTML = 一覧.map(p =>
     `<button type="button" data-id="${エスケープ(p.id)}" class="${p.id === 今 ? "active" : ""}">` +
-    `${エスケープ(p.icon || "🙂")} ${エスケープ(p.name)}</button>`
+    `${人物アバターHTML(p, 22)}${エスケープ(p.name)}</button>`
   ).join("") + `<button type="button" data-id="" class="${今 ? "" : "active"}">あとで</button>`;
 }
 document.getElementById("read-who-pills").addEventListener("click", (e) => {
@@ -3582,7 +3669,8 @@ document.getElementById("btn-guide-close").addEventListener("click", () => {
 // 設定は重ね画面ではなくタブになった。
 // 古い「重ね画面を開く」処理が残っていて、中身が空になった覆いだけが出て
 // 画面が崩れて見えた（2026-09-12 実機で発覚）。覆いそのものも使わない。
-document.getElementById("btn-open-settings").addEventListener("click", () => タブを切り替える("settings"));
+// 右上は「ロック」。設定は下のタブにあるので、同じものを2か所に置かない。
+document.getElementById("btn-lock-top").addEventListener("click", 今すぐロックする);
 (function 古い設定の覆いを片付ける(){
   const 覆い = document.getElementById("modal-settings");
   if(覆い) 覆い.remove();
@@ -4040,13 +4128,14 @@ document.getElementById("btn-set-newpin").addEventListener("click", async () => 
   await 金庫データを読み込んでから進む();
 });
 
-document.getElementById("btn-relock").addEventListener("click", () => {
+function 今すぐロックする(){
   現在のDEK = null;
   金庫データ = { items: [], people: null };
   try { speechSynthesis.cancel(); } catch(e) {}
   document.getElementById("lock-pin").value = "";
   画面を切り替える("screen-lock");
-});
+}
+document.getElementById("btn-relock").addEventListener("click", 今すぐロックする);
 
 document.getElementById("btn-reset-all").addEventListener("click", async () => {
   const ok = await カスタム確認("暗証番号・登録データ・回復キーをすべて消して、最初からやり直します。よろしいですか？");
@@ -4062,7 +4151,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12i";
+const アプリの版 = "2026-09-12j";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
