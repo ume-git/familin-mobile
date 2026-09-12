@@ -4103,7 +4103,9 @@ async function マスごとに読む(マス, 一回目){
     // 名前は14字まで。言葉の途中で切れないよう、空白の区切りで止める
     let 題 = 名.slice(0, 14);
     if(名.length > 14 && 名.includes(" ")){ const 区 = 名.slice(0, 15).lastIndexOf(" "); if(区 >= 2) 題 = 名.slice(0, 区); }
-    const 残り = 文.replace(題, "").replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?/, "").replace(/\s+/g, " ").trim();
+    // メモは、名前と「due_time に使った最初の時刻（範囲なら範囲ごと）」を除いた残り
+    const 最初の時刻 = 文.match(/\d{1,2}[:：]\d{2}\s*[〜~～-]\s*\d{1,2}[:：]\d{2}/) || 文.match(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?/);
+    const 残り = 文.replace(題, "").replace(最初の時刻 ? 最初の時刻[0] : "", "").replace(/\s+/g, " ").trim();
     items.push({ title: 題, due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
       due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, 開始, memo: (残り && 残り !== 題) ? 残り : null, category: 一回目.category || null });
   });
