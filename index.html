@@ -3532,7 +3532,9 @@ async function 写真を読み取る(e){
       // 予定表は文字が小さい。AIに渡る画像は短い辺が768pxに縮められるので、月間カレンダーの
       // 手書きは読めない。向きを直したうえで4分割の拡大画像を渡し、読み直す（2回目の読み取り）。
       読み取り中を見せる(true, "予定表なので、拡大して読み直しています…");
-      const 回転 = [0, 90, 180, 270].includes(Number(結果.rotate)) ? Number(結果.rotate) : 0;
+      // AIに「何度回すべきか」を答えさせてみたが、当たらないことがあった（逆さに直してしまい全滅）。
+      // AIは横向きのままでも読めるので、向きは触らない。拡大だけする。
+      const 回転 = 0;
       const 画像群 = [画像をbase64にする(元画像, 回転, 1024)].concat(画像を4分割する(元画像, 回転, 1400));
       const res2 = await fetch(API_BASE + "/analyze.php", {
         method: "POST",
@@ -4659,7 +4661,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12v";
+const アプリの版 = "2026-09-12w";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
