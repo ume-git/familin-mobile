@@ -69,7 +69,7 @@
     --pastel:hsl(var(--hue) 78% 91%);
     --pastel-2:hsl(var(--hue2) 78% 90%);
     --on-accent:#fff;
-    --hero-a:var(--accent); --hero-b:var(--accent-2); --on-hero:#fff;
+    --hero-a:var(--grad-a); --hero-b:var(--grad-b); --on-hero:#fff;
     --bad:#b13a3a; --bad-soft:#fbe9e9;
     --warn:#a8721f; --warn-soft:#faf1e0;
     --good:#2f7d4f; --good-soft:#e6f3ea;
@@ -101,7 +101,8 @@
       --pastel:hsl(var(--hue) 32% 19%);
       --pastel-2:hsl(var(--hue2) 34% 16%);
       --on-accent:hsl(var(--hue) 42% 10%);
-      --hero-a:hsl(var(--hue) calc(var(--sat) * .95) 33%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .95) 41%); --on-hero:#fff;
+      --grad-a:hsl(var(--hue) calc(var(--sat) * .9) 70%); --grad-b:hsl(var(--hue2) calc(var(--sat) * .9) 62%);
+      --hero-a:hsl(var(--hue) calc(var(--sat) * .8) 44%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .8) 36%); --on-hero:#fff;
       --bad:#e0827c; --bad-soft:#3a2020;
       --warn:#e3b65a; --warn-soft:#3a2f14;
       --good:#6fc492; --good-soft:#173226;
@@ -127,7 +128,8 @@
     --pastel:hsl(var(--hue) 32% 19%);
     --pastel-2:hsl(var(--hue2) 34% 16%);
     --on-accent:hsl(var(--hue) 42% 10%);
-    --hero-a:hsl(var(--hue) calc(var(--sat) * .95) 33%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .95) 41%); --on-hero:#fff;
+    --grad-a:hsl(var(--hue) calc(var(--sat) * .9) 70%); --grad-b:hsl(var(--hue2) calc(var(--sat) * .9) 62%);
+    --hero-a:hsl(var(--hue) calc(var(--sat) * .8) 44%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .8) 36%); --on-hero:#fff;
     --bad:#e0827c; --bad-soft:#3a2020;
     --warn:#e3b65a; --warn-soft:#3a2f14;
     --good:#6fc492; --good-soft:#173226;
@@ -157,7 +159,7 @@
     --pastel:hsl(var(--hue) 46% 82%);
     --pastel-2:hsl(var(--hue2) 46% 81%);
     --on-accent:#fff;
-    --hero-a:var(--accent); --hero-b:var(--accent-2); --on-hero:#fff;
+    --hero-a:var(--grad-a); --hero-b:var(--grad-b); --on-hero:#fff;
     --bad:#a83636; --bad-soft:#f3dcdc;
     --warn:#9a6818; --warn-soft:#f1e6cf;
     --good:#2b7349; --good-soft:#dbeadf;
@@ -177,10 +179,12 @@
        角にだけ帯が出る不自然さは、これが原因だった。 */
     --grad-soft:linear-gradient(150deg, var(--pastel) 0%, var(--pastel-2) 100%);
     /* 押せるものは、上が明るく下が暗い（光は上から。上が暗いと「押し込まれた」形に見える） */
-    --grad-accent:linear-gradient(175deg,
-      color-mix(in srgb, var(--accent) 84%, white) 0%,
-      var(--accent) 48%,
-      color-mix(in srgb, var(--accent-2) 82%, black) 100%);
+    /* 押せるもののグラデーション。黒や白を混ぜると濁って「別の色に変わる」ように見えた。
+       流行のフラット2.0は、鮮やかな2色をそのまま斜めに流す。左上がわずかに明るい主色、
+       右下が同じ明るさの相方色。それだけ。 */
+    --grad-a:hsl(var(--hue) var(--sat) calc(var(--al) + 6%));
+    --grad-b:hsl(var(--hue2) var(--sat) var(--al));
+    --grad-accent:linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 100%);
     --grad-sheet:radial-gradient(135% 62% at 50% -8%, var(--pastel) 0%, var(--bg) 72%);
     --grad-card:linear-gradient(180deg, var(--card-top) 0%, var(--surface) 62%);
     --r-sm:10px; --r-md:16px; --r-lg:22px; --r-full:999px;
@@ -214,11 +218,10 @@
   /* 大きな一枚の札。押す場所が一目で分かるように */
   .capture-hero{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;
     padding:34px 20px 30px;border-radius:var(--r-lg);text-align:center;
-    background:linear-gradient(175deg, color-mix(in srgb, var(--hero-a) 82%, white) 0%, var(--hero-a) 42%, color-mix(in srgb, var(--hero-b) 78%, black) 100%);
-    color:var(--on-hero);
-    border:1px solid color-mix(in srgb, var(--hero-a) 70%, black);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.26), 0 2px 4px rgba(16,24,32,.16),
-               0 12px 30px color-mix(in srgb, var(--hero-a) 40%, transparent)}
+    background:linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%);
+    color:var(--on-hero);border:none;
+    box-shadow:0 2px 4px rgba(16,24,32,.10),
+               0 14px 32px color-mix(in srgb, var(--hero-b) 38%, transparent)}
   .capture-hero:active{box-shadow:var(--press);transform:translateY(1px)}
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
@@ -332,10 +335,11 @@
     cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;
     transition:transform .15s}
   .color-swatch:active{transform:scale(.9)}
-  .color-swatch i{display:block;width:54px;height:54px;border-radius:var(--r-full);
-    border:2.5px solid transparent;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.12)}
-  .color-swatch.active i{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--ink)}
+  /* 透明な枠線を付けると、その下で背景の絵が繰り返されて上下に別色の帯が出た（実機で発覚）。
+     枠線は使わず、選択中の輪は影で描く */
+  .color-swatch i{display:block;width:54px;height:54px;border-radius:var(--r-full);border:none;
+    box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .color-swatch.active i{box-shadow:0 0 0 2.5px var(--surface), 0 0 0 5px var(--ink)}
   .color-swatch.active::after{content:"✓";position:absolute;top:22px;color:#fff;
     font-size:16px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.4)}
   .color-swatch span{font-size:11.5px;color:var(--soft);white-space:nowrap;font-weight:700;letter-spacing:.02em}
@@ -495,10 +499,9 @@
   button:active{transform:translateY(1px)}
   button:disabled{opacity:.5;cursor:default}
   .primary{background:var(--grad-accent);color:var(--on-accent);width:100%;
-    border:1px solid color-mix(in srgb, var(--accent) 72%, black);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.3),
-               0 1px 2px rgba(16,24,32,.14),
-               0 6px 16px color-mix(in srgb, var(--accent) 34%, transparent)}
+    border:none;
+    box-shadow:0 1px 2px rgba(16,24,32,.10),
+               0 6px 16px color-mix(in srgb, var(--grad-b) 34%, transparent)}
   .primary:active{box-shadow:var(--press);transform:translateY(1px)}
   /* 押せるものは、カードと同じ「上が明るい」作りにそろえる */
   .ghost{background:var(--grad-card);color:var(--soft);border:1px solid var(--line);
@@ -3505,12 +3508,12 @@ function カスタム入力(ラベル, 初期値){
   });
 }
 
+// 設定の覆いは無くなった（タブになった）ので、それを閉じる処理は書かない。
+// 書いたままにしていて null で止まり、押しても開かなくなっていた（2026-09-12 実機で発覚）。
 document.getElementById("btn-open-guide").addEventListener("click", () => {
-  document.getElementById("modal-settings").classList.remove("show");
   document.getElementById("modal-guide").classList.add("show");
 });
 document.getElementById("btn-open-feedback").addEventListener("click", () => {
-  document.getElementById("modal-settings").classList.remove("show");
   document.getElementById("modal-feedback").classList.add("show");
 });
 document.getElementById("btn-feedback-close").addEventListener("click", () => {
@@ -3831,7 +3834,7 @@ function 色の画面を描く(){
   枠.innerHTML = テーマカラー一覧.map(c => `
     <button type="button" class="color-swatch${c.id === 今.色 ? " active" : ""}"
       data-color="${c.id}" title="${c.名}" aria-label="${c.名}">
-      <i style="background:linear-gradient(170deg, color-mix(in srgb, ${c.色[0]} 78%, white) 0%, ${c.色[0]} 42%, color-mix(in srgb, ${c.色[1]} 82%, black) 100%)"></i><span>${c.名}</span>
+      <i style="background:linear-gradient(135deg, ${c.色[0]} 0%, ${c.色[1]} 100%)"></i><span>${c.名}</span>
     </button>`).join("");
 
   枠.querySelectorAll(".color-swatch").forEach(btn => {
@@ -4039,7 +4042,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12g";
+const アプリの版 = "2026-09-12h";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
