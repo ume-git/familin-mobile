@@ -867,7 +867,7 @@
     font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);display:none;z-index:50;
     max-width:90%;text-align:center}
 
-  #btn-stop-speech{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  #btn-stop-speech{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:var(--bad);color:#fff;border:none;border-radius:999px;padding:15px 26px;
     font-size:15px;font-weight:700;z-index:60;box-shadow:0 6px 18px rgba(0,0,0,.35);
     cursor:pointer;font-family:inherit}
@@ -1285,12 +1285,12 @@
     <p style="font-weight:700;margin:0 0 20px" id="cal-choice-name"></p>
     <div class="settings-menu" style="margin-top:0;padding-top:0;border-top:none">
       <button type="button" id="btn-cal-google"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg><span>Googleカレンダーに追加</span></button>
-      <button type="button" id="btn-cal-ics"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span>iPhone・スマホのカレンダーに追加</span></button>
+      <button type="button" id="btn-cal-ics"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span>iPhoneのカレンダーに追加</span></button>
     </div>
     <p style="font-size:12.5px;color:var(--soft);margin:16px 0 0;line-height:1.6">
-      iPhoneでは共有の画面が出るので「カレンダー」を選んでください。
       追加すると、7日前・前日・当日にカレンダー側からお知らせが届きます。
     </p>
+    <button type="button" class="text-link" id="btn-cal-share" style="margin-top:6px">ファイルとして受け取る（AirDrop・ファイルに保存）›</button>
   </div>
 </div>
 
@@ -2414,18 +2414,35 @@ function カレンダーファイルの中身(item){
   ].join("\r\n");
 }
 
+// URLの # の後ろに載せる形（サーバーには送られない）
+function カレンダー用の札(item){
+  const json = JSON.stringify({ t: "【トルマモ】" + item.name + "の期限", d: item.expire_date, n: "今やること: " + (item.今やること || "") });
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function iPhoneのカレンダーに追加する(){
+  const item = カレンダー対象の項目;
+  if(!item) return;
+  document.getElementById("modal-calendar").classList.remove("show");
+  // ホーム画面に置いたアプリの中からは、カレンダーファイルをカレンダーに渡せない（iOSの制約）。
+  // 外のページへのリンクは Safari の画面で開くので、そこで .ics を受け取ってもらう。
+  const a = document.createElement("a");
+  a.href = API_BASE + "/ics.php#" + カレンダー用の札(item);
+  a.target = "_blank"; a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+}
 async function カレンダーファイルで追加する(){
   const item = カレンダー対象の項目;
   if(!item) return;
   document.getElementById("modal-calendar").classList.remove("show");
-  // 1) 共有シート。ホーム画面に置いたアプリの中でも確実に出て、「カレンダー」を選べば追加できる。
-  //    ファイルは端末の中で作るので、予定名はどこにも送られない。
+  // 共有シートでファイルとして渡す（AirDrop・ファイルに保存・メールなど）。
+  // ファイルは端末の中で作るので、予定名はどこにも送られない。
   const 中身 = カレンダーファイルの中身(item);
   const file = new File([new Blob([中身], { type: "text/calendar" })], "トルマモ-" + item.expire_date + ".ics", { type: "text/calendar" });
   if(navigator.canShare && navigator.canShare({ files: [file] })){
     try {
       await navigator.share({ files: [file], title: item.name + "の期限" });
-      お知らせ("出てきた画面で「カレンダー」を選ぶと追加されます。7日前・前日・当日にお知らせが届きます。", true);
+      お知らせ("「ファイルに保存」したあと、ファイルアプリで開くとカレンダーに追加できます。", true);
     } catch(e){ /* やめた */ }
     return;
   }
@@ -3762,7 +3779,8 @@ document.getElementById("btn-security-close").addEventListener("click", () => {
   document.getElementById("modal-security").classList.remove("show");
 });
 document.getElementById("btn-cal-google").addEventListener("click", グーグルカレンダーに追加する);
-document.getElementById("btn-cal-ics").addEventListener("click", カレンダーファイルで追加する);
+document.getElementById("btn-cal-ics").addEventListener("click", iPhoneのカレンダーに追加する);
+document.getElementById("btn-cal-share").addEventListener("click", カレンダーファイルで追加する);
 
 document.getElementById("btn-fb-send").addEventListener("click", async () => {
   const 本文 = document.getElementById("fb-text").value.trim();
@@ -4281,7 +4299,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12l";
+const アプリの版 = "2026-09-12m";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
