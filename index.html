@@ -409,7 +409,7 @@
   .guide-head{display:flex;justify-content:space-between;align-items:center;
     padding:22px 24px 16px;border-bottom:1px solid var(--line)}
   .guide-head h3{margin:0;font-size:17px;font-weight:700}
-  .guide-head button{font-size:13px;padding:8px 14px}
+  .guide-head button{font-size:13px;padding:8px 14px;white-space:nowrap;flex:none}
   .guide-body{padding:20px 22px 26px;overflow-y:auto}
 
   .guide-cover{background:var(--accent);color:#fff;border-radius:var(--r-md);padding:28px 22px;
@@ -603,6 +603,24 @@
   .today-done small{font-size:9.5px;font-weight:700;letter-spacing:.02em}
   .today-done:hover{background:var(--good-soft);border-color:var(--good);color:var(--good)}
 
+  /* 更新の手引き */
+  .gb-name{font-size:19px;font-weight:800;margin:0 0 6px;line-height:1.4}
+  .gb-name small{display:block;font-size:12.5px;color:var(--soft);font-weight:700;margin-top:2px}
+  .gb-lead{font-size:14.5px;color:var(--soft);line-height:1.75;margin:0 0 16px}
+  .gb-sec{margin-bottom:18px}
+  .gb-sec h4{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:var(--soft);margin:0 0 8px}
+  .gb-sec ul,.gb-sec ol{margin:0;padding-left:1.3em;font-size:15px;line-height:1.7}
+  .gb-sec li{margin-bottom:5px}
+  .gb-sec li:last-child{margin-bottom:0}
+  .gb-kv{display:flex;gap:12px;font-size:14.5px;line-height:1.7;padding:10px 0;border-top:1px solid var(--line)}
+  .gb-kv b{flex:none;width:70px;color:var(--soft);font-weight:800;font-size:12.5px;padding-top:2px}
+  .gb-warn{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 var(--r-sm) var(--r-sm) 0;
+    padding:11px 13px;font-size:13.5px;line-height:1.7;margin:14px 0}
+  .gb-official{margin-top:16px;padding:13px 14px;background:var(--accent-soft);border-radius:var(--r-md);font-size:14px;line-height:1.7}
+  .gb-official a{color:var(--accent);font-weight:800}
+  .gb-stamp{margin-top:14px;font-size:11.5px;color:var(--soft);line-height:1.6}
+  .row-btns .guide-btn{color:var(--ink)}
+
   /* 読み取り中の覆い */
   .analyzing{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;
     padding:24px;background:color-mix(in srgb, var(--bg) 86%, transparent);
@@ -719,6 +737,16 @@
     border-radius:var(--r-md);padding:14px 18px;margin-bottom:24px;font-size:13.5px;
     text-align:center;box-shadow:var(--shadow-sm)}
 
+  .search-row{display:flex;align-items:center;gap:8px;margin:14px 0 12px;padding:0 12px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-full);
+    box-shadow:var(--sunken)}
+  .search-row .ic{width:18px;height:18px;color:var(--soft)}
+  .search-row input{flex:1;border:none;background:none;box-shadow:none;padding:11px 0;
+    font-size:15.5px;min-width:0}
+  .search-row input:focus{box-shadow:none;border:none;outline:none}
+  .search-row input::-webkit-search-cancel-button{display:none}
+  .search-row button{flex:none;width:28px;height:28px;padding:0;border-radius:50%;
+    background:var(--line);color:var(--ink);border:none;box-shadow:none;font-size:16px;line-height:1}
   .ask-row{display:flex;gap:8px;margin-bottom:24px}
   .ask-row input{flex:1;font-size:15px}
   .ask-row button{flex:none;font-size:13.5px;padding:0 16px;white-space:nowrap}
@@ -905,6 +933,12 @@
   </div>
   <div id="ask-answer" class="ask-answer" style="display:none"></div>
 
+  <div class="search-row">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+    <input type="search" id="search-input" placeholder="名前・種類・メモで探す" autocomplete="off">
+    <button type="button" id="search-clear" aria-label="消す" hidden>×</button>
+  </div>
+
   <!-- 家族での絞り込みは「登録一覧」だけにかかる補助機能なので、一覧の直前に置く。
        「今日の確認」は絞り込みに関わらず、いつも家族全員分を見せる。 -->
   <div class="people-row" id="people-row"></div>
@@ -1050,6 +1084,16 @@
 
     <p class="privacy-note" style="margin-top:18px">🔒 登録内容は暗号化されて、この端末の中だけに保存されます。写真は読み取りの直後に破棄され、サーバーには残りません。</p>
     <p class="version-note">版 <span id="app-version">-</span><button type="button" class="text-link" id="btn-force-update">最新に更新する</button></p>
+  </div>
+</div>
+
+<div class="modal-back" id="modal-guidebook">
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3 id="gb-title">更新に必要なもの</h3>
+      <button class="ghost" id="btn-guidebook-close">閉じる</button>
+    </div>
+    <div class="guide-body" id="gb-body"></div>
   </div>
 </div>
 
@@ -1407,6 +1451,142 @@ const 公式の案内先 = {
   "税金・納付":   { 名: "国税庁（国税の場合）",     url: "https://www.nta.go.jp/",
                     言葉: "住民税・固定資産税・自動車税は、納付書に書かれた市区町村・都道府県の窓口へ。" },
 };
+
+// ============================================================
+// 更新の手引き
+//
+// 「更新に何が要るか」は、期限が来てから調べると間に合わない。
+// 種類ごとに、持ち物・手順・かかる時間・費用の目安を持たせておく。
+// AIには聞かない（0円・電波なしでも見られる・毎回同じ答え）。
+// 制度は変わるので、必ず「目安」と書き、公式の案内先を添える。
+// 運転免許だけは、色と年齢で講習が変わるので、項目に合わせて組み立てる。
+// ============================================================
+const 更新の手引き = {
+  "運転免許": {
+    要約: "更新期間は、誕生日の前後1か月です。運転免許センターか警察署で手続きします。",
+    持ち物: ["運転免許証", "更新のお知らせはがき（無くても手続きできます）", "手数料（更新2,500円＋講習料500〜1,350円ほど）", "眼鏡・補聴器（免許の条件がある人）", "在留カード（外国籍の人）"],
+    手順: ["更新期間に入ったら、運転免許センターか警察署へ", "申請書に記入し、視力などの適性検査", "写真撮影", "講習を受ける", "新しい免許証を受け取る（センターは即日、警察署は後日のことも）"],
+    所要: "優良なら1時間ほど。一般・違反・初回は2〜3時間",
+    費用: "2,500円＋講習料（優良500円／一般800円／違反・初回1,350円）",
+    注意: "期限を過ぎると失効します。失効後6か月以内なら、試験免除で再取得できる場合があります。",
+  },
+  "パスポート": {
+    要約: "住民登録のある都道府県のパスポートセンターで申請し、約1週間後に本人が受け取ります。",
+    持ち物: ["一般旅券発給申請書（窓口にあります）", "戸籍謄本（本籍・氏名に変更がない切替なら不要なことも）", "写真（縦45mm×横35mm・6か月以内）", "本人確認書類（マイナンバーカード、免許証など）", "今のパスポート", "手数料（10年16,000円／5年11,000円）"],
+    手順: ["パスポートセンターで申請（マイナポータルからのオンライン申請も可）", "約1週間後、本人が受け取りに行く（手数料はこのとき）"],
+    所要: "申請に30分ほど。受け取りまで約1週間",
+    費用: "10年用16,000円／5年用11,000円",
+    注意: "残りの有効期間が半年未満だと入国できない国があります。海外旅行の前は残りの期間を確かめてください。",
+  },
+  "車検": {
+    要約: "満了日の1か月前から受けられ、前倒ししても次の満了日は変わりません。",
+    持ち物: ["自動車検査証（車検証）", "自賠責保険証明書", "自動車税の納税証明書（電子確認できれば不要なことも）", "費用（法定費用＋整備代）"],
+    手順: ["満了日の1か月前を目安に、ディーラー・整備工場・車検専門店に予約", "車を預ける（または持ち込む）", "整備と検査", "新しい車検証とステッカーを受け取る"],
+    所要: "預けて数時間〜1日。混む時期は数日",
+    費用: "軽で5〜7万円、普通車で7〜12万円ほど（法定費用＋整備代の目安）",
+    注意: "車検切れで公道を走るのは違法です。切れてしまったら、仮ナンバーか引き取りを頼んでください。",
+  },
+  "保険": {
+    要約: "満了前に保険会社から更新の案内が届きます。内容を見直す良い機会です。",
+    持ち物: ["更新の案内（または保険証券）", "支払い方法（口座・カード）", "自動車保険なら車検証と免許証"],
+    手順: ["案内を確認し、補償内容と保険料を見直す", "継続するなら手続き（ネット・電話・代理店）", "支払い", "新しい証券を保管"],
+    所要: "30分ほど",
+    費用: "保険料は契約による",
+    注意: "自動継続の契約でも、補償内容が古いままになりがちです。家族構成や車が変わったときは見直してください。",
+  },
+  "税金・納付": {
+    要約: "納付書を使って、コンビニ・スマホ決済・金融機関・口座振替で納めます。",
+    持ち物: ["納付書", "現金、またはスマホ決済（納付書のバーコード・QR）"],
+    手順: ["納付書の納期限を確かめる", "コンビニ・スマホ決済・銀行のどれかで納める", "領収書（または決済の記録）を残す"],
+    所要: "10分ほど",
+    費用: "納付書に記載",
+    注意: "期限を過ぎると延滞金が付くことがあります。期限切れの納付書は、コンビニでは読めないことが多いので、金融機関の窓口やスマホ決済を試してください。",
+  },
+  "ビザ・在留資格": {
+    要約: "在留期間の満了3か月前から、出入国在留管理庁で更新を申請できます。",
+    持ち物: ["在留期間更新許可申請書", "在留カード", "パスポート", "写真（縦4cm×横3cm）", "所属先の書類（在職証明・課税証明・納税証明など、資格による）"],
+    手順: ["満了3か月前になったら必要書類を集める", "出入国在留管理庁（または出張所）で申請", "審査（2週間〜1か月以上）", "結果の通知を受け、新しい在留カードを受け取る"],
+    所要: "申請に半日。審査に数週間〜数か月",
+    費用: "許可時に4,000円（収入印紙）",
+    注意: "満了日までに申請していれば、審査中も引き続き在留できます（特例期間）。満了を過ぎるとオーバーステイになります。",
+  },
+  "資格・免許更新": {
+    要約: "資格ごとに更新の周期と方法が違います。所轄の団体・機関の案内で確かめてください。",
+    持ち物: ["免状・資格証", "更新講習の申込書（必要な資格）", "手数料", "写真（必要な資格）"],
+    手順: ["所轄団体の案内で、更新期間と方法を確かめる", "講習が必要なら申し込む", "申請書と手数料を出す", "新しい免状を受け取る"],
+    所要: "資格による",
+    費用: "資格による",
+    注意: "更新を忘れると失効し、再取得に試験が必要な資格もあります。",
+  },
+  "ドメイン": {
+    要約: "登録業者の管理画面で更新します。自動更新の設定と、支払い方法の有効期限を確かめてください。",
+    持ち物: ["登録業者のログイン情報", "支払い方法（カードの有効期限を確認）"],
+    手順: ["管理画面で有効期限を確認", "自動更新なら支払い方法が有効か確認", "手動なら更新手続きと支払い"],
+    所要: "10分ほど",
+    費用: "年1,000〜数千円",
+    注意: "失効するとサイトもメールも止まり、第三者に取得されることがあります。",
+  },
+  "サブスクリプション": {
+    要約: "自動更新される前に、続けるか解約するかを決めます。",
+    持ち物: ["サービスのログイン情報"],
+    手順: ["更新日を確認", "続けるなら何もしなくてよい", "やめるなら更新日の前に解約手続き"],
+    所要: "5分ほど",
+    費用: "契約による",
+    注意: "解約は「更新日の前日まで」など締め切りがあることが多いです。",
+  },
+  "学校": {
+    要約: "提出物は、期限の前日までに用意しておくと安心です。",
+    持ち物: ["提出するプリント・書類そのもの", "記入に必要な印鑑や身分証（求められる場合）"],
+    手順: ["プリントの提出期限と提出先（担任など）を確認", "記入・準備", "子どもに持たせるか、直接提出"],
+    所要: "内容による",
+    費用: "内容による",
+    注意: "",
+  },
+  "その他の契約書類": {
+    要約: "契約書に書かれた更新の条件と連絡先を確かめてください。",
+    持ち物: ["契約書", "契約先の連絡先"],
+    手順: ["更新の条件（自動更新か、申し出が必要か）を確認", "必要なら契約先に連絡", "新しい契約書を保管"],
+    所要: "内容による",
+    費用: "内容による",
+    注意: "",
+  },
+};
+
+function 手引きを開く(id){
+  const i = (window.__items || []).find(x => x.id === id);
+  if(!i) return;
+  const 手 = 更新の手引き[i.category];
+  if(!手) return;
+  const 案内 = 公式の案内先[i.category];
+
+  // 運転免許は、色と年齢で講習が変わる
+  let 講習の補足 = "";
+  if(i.category === "運転免許"){
+    const 色 = i.sub_type;
+    講習の補足 = 色 === "ゴールド" ? "あなたはゴールドなので、講習は「優良運転者講習」（約30分）です。"
+      : 色 === "グリーン" ? "初めての更新なので、講習は「初回更新者講習」（約2時間）です。更新後はブルーになります。"
+      : 色 === "ブルー" ? "ブルーは「一般運転者講習」（約1時間）か「違反運転者講習」（約2時間）です。届いたはがきで確かめてください。" : "";
+    if(i.is_senior) 講習の補足 += " 70歳以上の方は、更新の前に「高齢者講習」の予約が必要です（75歳以上は認知機能検査も）。混むので早めに。";
+  }
+
+  document.getElementById("gb-title").textContent = "更新に必要なもの";
+  document.getElementById("gb-body").innerHTML = `
+    <div class="gb-name">${エスケープ(i.name)}<small>${エスケープ(i.category)}</small></div>
+    <p class="gb-lead">${エスケープ(手.要約)}</p>
+    ${講習の補足 ? `<div class="gb-warn">${エスケープ(講習の補足)}</div>` : ""}
+    <div class="gb-sec"><h4>持っていくもの</h4><ul>${手.持ち物.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ul></div>
+    <div class="gb-sec"><h4>手順</h4><ol>${手.手順.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ol></div>
+    <div class="gb-kv"><b>かかる時間</b><span>${エスケープ(手.所要)}</span></div>
+    <div class="gb-kv"><b>費用の目安</b><span>${エスケープ(手.費用)}</span></div>
+    ${手.注意 ? `<div class="gb-warn">⚠ ${エスケープ(手.注意)}</div>` : ""}
+    ${案内 ? `<div class="gb-official">細かい条件はこちらで：<a href="${エスケープ(案内.url)}" target="_blank" rel="noopener">${エスケープ(案内.名)} ↗</a>${案内.言葉 ? `<br><span style="color:var(--soft);font-size:13px">${エスケープ(案内.言葉)}</span>` : ""}</div>`
+      : `<div class="gb-official">細かい条件は、契約先・所属先の案内で確かめてください。</div>`}
+    <div class="gb-stamp">一般的な目安です（2026年9月時点）。手数料や必要書類は変わることがあります。</div>`;
+  document.getElementById("modal-guidebook").classList.add("show");
+}
+document.getElementById("btn-guidebook-close").addEventListener("click", () => {
+  document.getElementById("modal-guidebook").classList.remove("show");
+});
 
 const 段階の表示 = {
   "切れ":   { ラベル: "超重要", 色: "bad" },
@@ -1939,6 +2119,7 @@ function 項目カードHTML(i){
       ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
       ${対応策のHTML(i)}
       <div class="row-btns">
+        ${更新の手引き[i.category] ? `<button class="ghost guide-btn" onclick="手引きを開く('${i.id}')">📋 更新に必要なもの</button>` : ""}
         <button class="ghost advice-btn" onclick="対応策を聞く('${i.id}')">💡 どうすればいい？</button>
         <button class="ghost done-btn" onclick="完了する('${i.id}')">✅ 完了</button>
         <button class="ghost" onclick="編集開始('${i.id}')">編集</button>
@@ -2187,10 +2368,18 @@ function 描画する(){
     const 人 = 人物一覧を読む().find(p => p.id === 選択中の人物ID);
     if(人) items = items.filter(i => 項目の人物名(i) === 人.name);
   }
+  // 検索。名前・種類・メモ・家族の名前・読み取った要約のどれかに含まれていれば残す。
+  const 検索語 = (document.getElementById("search-input") || {}).value || "";
+  const 語 = 検索語.trim().toLowerCase();
+  if(語){
+    items = items.filter(i => [i.name, i.category, i.memo, 項目の人物名(i), i.読み取り要約, i.sub_type]
+      .filter(Boolean).some(t => String(t).toLowerCase().includes(語)));
+  }
 
   const list = document.getElementById("list");
   document.getElementById("list-title").textContent =
-    items.length ? `すべての登録（${items.length}件）` : "すべての登録";
+    語 ? `「${検索語.trim()}」の検索（${items.length}件）`
+      : items.length ? `すべての登録（${items.length}件）` : "すべての登録";
 
   if(items.length === 0){
     list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
@@ -2388,6 +2577,20 @@ document.getElementById("btn-open-form").addEventListener("click", () => {
   編集終了();
   入力フォームを開く();
 });
+
+// 検索欄。打つたびに一覧を描き直す。
+(function 検索を配線する(){
+  const 欄 = document.getElementById("search-input");
+  const 消す = document.getElementById("search-clear");
+  if(!欄) return;
+  let 待ち = null;
+  欄.addEventListener("input", () => {
+    消す.hidden = !欄.value;
+    clearTimeout(待ち);
+    待ち = setTimeout(描画する, 120);
+  });
+  消す.addEventListener("click", () => { 欄.value = ""; 消す.hidden = true; 描画する(); 欄.focus(); });
+})();
 
 // ============================================================
 // 画面の切り替え（ホーム／一覧／設定）
@@ -3456,7 +3659,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12c";
+const アプリの版 = "2026-09-12d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
