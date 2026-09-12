@@ -860,6 +860,11 @@
   .multi-row.past .m-date{color:var(--bad)}
   .multi-row.past .m-sub::before{content:"過ぎています ・ ";color:var(--bad);font-weight:700}
   .multi-hint{font-size:12.5px;color:var(--soft);line-height:1.6;margin:0 0 12px}
+  .multi-month{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+  .multi-month button{width:36px;height:36px;padding:0;border-radius:50%;font-size:22px;line-height:1;
+    background:var(--surface-2);border:1px solid var(--line);box-shadow:var(--sunken);color:var(--ink)}
+  .multi-month span{font-size:16px;font-weight:800;min-width:110px;text-align:center}
+  .multi-month small{flex-basis:100%;font-size:12px;color:var(--soft)}
   .read-rows{background:var(--surface-2);border-radius:var(--r-md);
     box-shadow:var(--sunken);padding:4px 14px;margin-bottom:18px}
   .read-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -1583,8 +1588,15 @@
       <div class="read-who-label">だれの（まとめて）</div>
       <div class="read-who-pills" id="multi-who-pills"></div>
     </div>
+    <div class="multi-month" id="multi-month">
+      <button type="button" id="multi-month-prev" aria-label="前の月">‹</button>
+      <span id="multi-month-label"></span>
+      <button type="button" id="multi-month-next" aria-label="次の月">›</button>
+      <small>月がちがうときは、ここで全部まとめて直せます</small>
+    </div>
     <div class="multi-list" id="multi-list"></div>
     <p class="multi-hint">チェックを外したものは登録しません。過ぎた日付は最初から外してあります。日付や名前は登録後に「編集」で直せます。</p>
+    <p class="multi-hint" id="multi-retake" hidden>読み取りが合わないときは、<b>スマホを横にして、予定表の文字が読める向きで全体が入るように</b>、明るい場所で撮り直してください。</p>
     <button class="primary" id="multi-ok">選んだものを登録する</button>
     <div class="btnrow">
       <button class="ghost" id="multi-all">すべて選ぶ</button>
@@ -1752,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13a"></script>
+<script src="crypto.js?v=2026-09-13b"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3721,19 +3733,26 @@ async function 写真を読み取る(e){
       // 予定表は文字が小さい。AIに渡る画像は短い辺が768pxに縮められるので、月間カレンダーの
       // 手書きは読めない。向きを直したうえで4分割の拡大画像を渡し、読み直す（2回目の読み取り）。
       読み取り中を見せる(true, "予定表なので、拡大して読み直しています…");
-      // AIに「何度回すべきか」を答えさせてみたが、当たらないことがあった（逆さに直してしまい全滅）。
-      // AIは横向きのままでも読めるので、向きは触らない。拡大だけする。
-      const 回転 = 0;
-      const 画像群 = [画像をbase64にする(元画像, 回転, 1024)].concat(画像を4分割する(元画像, 回転, 1400));
-      const res2 = await fetch(API_BASE + "/analyze.php", {
-        method: "POST",
-        headers: AIの見出し,
-        body: JSON.stringify({ images: 画像群, mediaType: "image/jpeg", mode: "multi_detail" }),
-      });
-      if(res2.ok){
-        const 結果2 = await res2.json();
-        if(!結果2.error && Array.isArray(結果2.items) && 結果2.items.length) 結果 = Object.assign({}, 結果, 結果2, { kind: "multi" });
+      // 横向きの写真は、4分割するとマスの並びが崩れて読めない。1回目が答えた向きに直してから拡大する。
+      // 向きの答えが外れることもあるので、2回目に「正しい向きか」を聞き、違えば180度回してもう一度。
+      let 回転 = [0, 90, 180, 270].includes(Number(結果.rotate)) ? Number(結果.rotate) : 0;
+      const 読み直す = async (角) => {
+        const 画像群 = [画像をbase64にする(元画像, 角, 1024)].concat(画像を4分割する(元画像, 角, 1400));
+        const r = await fetch(API_BASE + "/analyze.php", {
+          method: "POST", headers: AIの見出し,
+          body: JSON.stringify({ images: 画像群, mediaType: "image/jpeg", mode: "multi_detail" }),
+        });
+        if(!r.ok) return null;
+        const j = await r.json();
+        return (!j.error && Array.isArray(j.items)) ? j : null;
+      };
+      let 結果2 = await 読み直す(回転);
+      if(結果2 && 結果2.upright === false){
+        回転 = (回転 + 180) % 360;
+        const やり直し = await 読み直す(回転);
+        if(やり直し && やり直し.items.length) 結果2 = やり直し;
       }
+      if(結果2 && 結果2.items.length) 結果 = Object.assign({}, 結果, 結果2, { kind: "multi", 横向きだった: 回転 !== 0 });
     }
     if(元画像.close) 元画像.close();
 
@@ -3880,14 +3899,37 @@ function まとめて登録の画面を見せる(結果){
   if(行.length < 2){ 読み取り結果を見せる(Object.assign({}, 結果, 結果.items[0] || {})); return; }
 
   const 人物ID = 名前に近い人物を探す(結果.person_hint || (行.find(r => r.person_hint) || {}).person_hint);
-  まとめて登録の内容 = { 元: 結果, 行, 選んだ人物ID: 人物ID || "" };
+  まとめて登録の内容 = { 元: 結果, 行, 選んだ人物ID: 人物ID || "", 月ずらし: 0 };
 
   document.getElementById("multi-title").textContent = 結果.title || "予定表";
   document.getElementById("multi-summary").textContent = (結果.summary || "") + "　" + 行.length + "件の予定が見つかりました。";
+  document.getElementById("multi-retake").hidden = false;
   まとめてのだれのピルを描く();
   まとめての一覧を描く();
   document.getElementById("modal-multi").classList.add("show");
 }
+// 月をまとめてずらす（見出しの年月を読み違えたときの逃げ道）
+function 月をずらして日付を作る(iso, 月){
+  const [y, m, d] = iso.split("-").map(Number);
+  const 基 = new Date(y, m - 1 + 月, 1);
+  const 末 = new Date(基.getFullYear(), 基.getMonth() + 1, 0).getDate();
+  const 日 = Math.min(d, 末);
+  return 基.getFullYear() + "-" + String(基.getMonth() + 1).padStart(2, "0") + "-" + String(日).padStart(2, "0");
+}
+function 月をずらす(差){
+  if(!まとめて登録の内容) return;
+  const 今日 = 日付の札();
+  まとめて登録の内容.月ずらし += 差;
+  まとめて登録の内容.行.forEach(r => {
+    r.due_date = 月をずらして日付を作る(r.due_date, 差);
+    r.過去 = r.due_date < 今日;
+    r.選ぶ = !r.過去;
+  });
+  まとめて登録の内容.行.sort((a, b) => a.due_date.localeCompare(b.due_date));
+  まとめての一覧を描く();
+}
+document.getElementById("multi-month-prev").addEventListener("click", () => 月をずらす(-1));
+document.getElementById("multi-month-next").addEventListener("click", () => 月をずらす(1));
 function まとめてのだれのピルを描く(){
   const 枠 = document.getElementById("multi-who-pills");
   const 今 = まとめて登録の内容.選んだ人物ID;
@@ -3897,6 +3939,8 @@ function まとめてのだれのピルを描く(){
 }
 function まとめての一覧を描く(){
   const 枠 = document.getElementById("multi-list");
+  const 先頭 = まとめて登録の内容.行[0];
+  document.getElementById("multi-month-label").textContent = 先頭 ? 先頭.due_date.slice(0, 4) + "年" + Number(先頭.due_date.slice(5, 7)) + "月" : "";
   枠.innerHTML = まとめて登録の内容.行.map(r => `
     <label class="multi-row${r.過去 ? " past" : ""}">
       <input type="checkbox" data-k="${r.番号}" ${r.選ぶ ? "checked" : ""}>
@@ -4938,7 +4982,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13a";
+const アプリの版 = "2026-09-13b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
