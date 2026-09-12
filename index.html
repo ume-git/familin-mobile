@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13e"></script>
+<script src="crypto.js?v=2026-09-13f"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3743,29 +3743,39 @@ function マス目を切り出す(元画像, 回転){
     const 日列 = 列.filter(r => r[1] - r[0] >= 列幅 * 0.55);
     if(日列.length !== 7 || 日行.length < 4 || 日行.length > 6) return null;
 
-    // 番号札つきのタイルを、7列×2段ずつの画像にまとめる
-    const タイル幅 = 230, 札 = 28, 隙 = 8;
-    const タイル高 = Math.round(タイル幅 * (日行[0][1] - 日行[0][0]) / (日列[0][1] - 日列[0][0]));
+    // 番号札つきのタイルを並べた画像にまとめる。
+    // 手書きはマスの端（下や右）にはみ出して書かれることが多いので、マスの周りに少し余白を付けて切り出し、
+    // 本当のマスの範囲を赤い枠で描く。AIには「赤い枠の中に大部分がある文字だけ」を読ませる。
+    const タイル幅 = 300, 札 = 28, 隙 = 8, 列数 = 5;
+    const マス幅 = 日列[0][1] - 日列[0][0], マス高 = 日行[0][1] - 日行[0][0];
+    const 余白x = Math.round(マス幅 * 0.18), 余白y = Math.round(マス高 * 0.22);
+    const 倍 = タイル幅 / (マス幅 + 余白x * 2);
+    const タイル高 = Math.round((マス高 + 余白y * 2) * 倍);
     const 画像群 = [];
     let n = 0; const 札一覧 = [];
-    for(let r0 = 0; r0 < 日行.length; r0 += 2){
-      const 段数 = Math.min(2, 日行.length - r0);
+    const 全部 = [];
+    日行.forEach((r, ri) => 日列.forEach((cl, ci) => 全部.push({ r, cl, ri, ci })));
+    const 一枚あたり = 列数 * 2;
+    for(let k0 = 0; k0 < 全部.length; k0 += 一枚あたり){
+      const 束 = 全部.slice(k0, k0 + 一枚あたり);
+      const 段数 = Math.ceil(束.length / 列数);
       const m = document.createElement("canvas");
-      m.width = 7 * タイル幅 + 8 * 隙; m.height = 段数 * (タイル高 + 札 + 隙) + 隙;
+      m.width = 列数 * タイル幅 + (列数 + 1) * 隙; m.height = 段数 * (タイル高 + 札 + 隙) + 隙;
       const g = m.getContext("2d");
       g.fillStyle = "#fff"; g.fillRect(0, 0, m.width, m.height);
-      for(let dr = 0; dr < 段数; dr++){
-        const r = 日行[r0 + dr];
-        for(let ci = 0; ci < 7; ci++){
-          const cl = 日列[ci];
-          const x = 隙 + ci * (タイル幅 + 隙), y = 隙 + dr * (タイル高 + 札 + 隙);
-          g.fillStyle = "#000"; g.font = "bold 22px sans-serif"; g.textBaseline = "top";
-          g.fillText("#" + n, x + 4, y + 2);
-          g.drawImage(c, cl[0] + 3, r[0] + 3, cl[1] - cl[0] - 6, r[1] - r[0] - 6, x, y + 札, タイル幅, タイル高);
-          g.strokeStyle = "#999"; g.lineWidth = 1; g.strokeRect(x + .5, y + 札 + .5, タイル幅 - 1, タイル高 - 1);
-          札一覧.push({ n, 行: r0 + dr, 列: ci }); n++;
-        }
-      }
+      束.forEach((t, k) => {
+        const x = 隙 + (k % 列数) * (タイル幅 + 隙), y = 隙 + Math.floor(k / 列数) * (タイル高 + 札 + 隙);
+        g.fillStyle = "#000"; g.font = "bold 22px sans-serif"; g.textBaseline = "top";
+        g.fillText("#" + n, x + 4, y + 2);
+        const sx = t.cl[0] - 余白x, sy = t.r[0] - 余白y, sw = マス幅 + 余白x * 2, sh = マス高 + 余白y * 2;
+        g.drawImage(c, sx, sy, sw, sh, x, y + 札, タイル幅, タイル高);
+        // 本当のマス（赤い枠）
+        g.strokeStyle = "#e0242a"; g.lineWidth = 3;
+        g.strokeRect(x + 余白x * 倍, y + 札 + 余白y * 倍, マス幅 * 倍, マス高 * 倍);
+        // タイルの外周は薄い灰色
+        g.strokeStyle = "#bbb"; g.lineWidth = 1; g.strokeRect(x + .5, y + 札 + .5, タイル幅 - 1, タイル高 - 1);
+        札一覧.push({ n, 行: t.ri, 列: t.ci }); n++;
+      });
       画像群.push(m.toDataURL("image/jpeg", 0.85).split(",")[1]);
     }
     return { 画像群, 札一覧, 全体: キャンバスに描く(元画像, 回転, 1024, 最良.角).toDataURL("image/jpeg", 0.8).split(",")[1] };
@@ -5228,7 +5238,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13e";
+const アプリの版 = "2026-09-13f";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
