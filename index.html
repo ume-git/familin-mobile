@@ -237,6 +237,40 @@
   .capture-links .dot{color:var(--soft);font-size:13px}
   .upcoming-section{margin-top:28px}
   .section-title.plain{font-size:22px;font-weight:800;margin:0 0 12px;letter-spacing:.01em}
+  /* 旅行前チェックの入口 */
+  .trip-entry{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:18px 0 26px;
+    padding:14px 14px 14px 16px;background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);color:var(--ink)}
+  .trip-entry > .ic{width:26px;height:26px;color:var(--accent);flex:none}
+  .trip-entry-text{flex:1;min-width:0}
+  .trip-entry-text b{display:block;font-size:15.5px;line-height:1.4}
+  .trip-entry-text small{display:block;font-size:12.5px;color:var(--soft);line-height:1.55;margin-top:2px}
+  .trip-entry-arrow{flex:none;font-size:22px;color:var(--soft)}
+  .trip-dates{display:flex;gap:10px;margin-bottom:12px}
+  .trip-dates .field{flex:1;min-width:0}
+  .trip-dates label{font-size:12.5px;font-weight:700;color:var(--soft);display:block;margin-bottom:4px}
+  .trip-dates input{width:100%;min-width:0;font-size:16px;box-sizing:border-box}
+  .trip-who{margin-bottom:6px}
+  .trip-sec{margin-top:16px}
+  .trip-sec h4{font-size:14px;font-weight:800;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .trip-sec h4 .n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;
+    border-radius:999px;font-size:12px;background:var(--bg);color:var(--soft)}
+  .trip-sec.bad h4{color:var(--bad)} .trip-sec.bad h4 .n{background:var(--bad);color:#fff}
+  .trip-sec.warn h4{color:var(--warn)} .trip-sec.warn h4 .n{background:var(--warn);color:#fff}
+  .trip-sec.good h4{color:var(--good)}
+  .trip-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);
+    background:var(--surface-2);box-shadow:var(--sunken);margin-bottom:6px;font-size:14px;line-height:1.5}
+  .trip-row .t{flex:1;min-width:0}
+  .trip-row .t b{display:block;font-size:14.5px}
+  .trip-row .t small{display:block;font-size:12px;color:var(--soft)}
+  .trip-row .d{flex:none;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .trip-sec.bad .trip-row .d{color:var(--bad)} .trip-sec.warn .trip-row .d{color:var(--warn)}
+  .trip-ok{padding:18px 12px;text-align:center;color:var(--good);font-weight:800;font-size:15px}
+  .trip-ok small{display:block;color:var(--soft);font-weight:500;font-size:12.5px;margin-top:4px;line-height:1.6}
+  .trip-note{font-size:12.5px;color:var(--soft);line-height:1.6;margin:14px 0 0}
+  .trip-pass{margin-top:10px;padding:12px 14px;border-radius:var(--r-sm);font-size:13.5px;line-height:1.65}
+  .trip-pass.bad{background:var(--bad-soft);color:var(--bad)} .trip-pass.warn{background:var(--warn-soft);color:var(--warn)} .trip-pass.good{background:var(--good-soft);color:var(--good)}
+  .trip-pass b{font-weight:800}
   .upcoming-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
   .upcoming-row:first-child{border-top:none}
   .upcoming-name{flex:1;min-width:0;font-weight:700;font-size:15px;
@@ -1101,6 +1135,12 @@
   <div id="photo-analyzing" style="display:none"></div>
   <p class="capture-safe"><span>写真は読み取りのあと、その場で消えます。<br>保存も共有もされません。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">詳しく</button></span></p>
 
+  <button type="button" class="trip-entry" id="btn-open-trip">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg>
+    <span class="trip-entry-text"><b>旅行・出発前チェック</b><small>出発日を入れると、切れているもの・旅行中に切れるもの・パスポートの残りを一度に確認</small></span>
+    <span class="trip-entry-arrow">›</span>
+  </button>
+
   <section class="upcoming-section">
     <h2 class="section-title plain">今後の予定</h2>
     <div id="budget-forecast"></div>
@@ -1553,6 +1593,23 @@
   </div>
 </div>
 
+<div class="modal-back" id="modal-trip">
+  <div class="modal-box guide-box">
+    <div class="guide-head">
+      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg> 旅行・出発前チェック</h3>
+      <button class="ghost" id="btn-trip-close">閉じる</button>
+    </div>
+    <div class="guide-body">
+      <div class="trip-dates">
+        <div class="field"><label>出発日</label><input type="date" id="trip-start"></div>
+        <div class="field"><label>帰る日</label><input type="date" id="trip-end"></div>
+      </div>
+      <div class="trip-who"><div class="read-who-label">だれの分を見る</div><div class="read-who-pills" id="trip-who-pills"></div></div>
+      <div id="trip-result"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="modal-done">
   <div class="modal-box done-box">
     <div class="done-mark"><svg class="ic ic-done" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg></div>
@@ -1656,7 +1713,8 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">4</div><h5>見逃さないための工夫</h5></div>
-        <p>今すぐ対応が必要なものがあると、開いた瞬間に全画面の知らせが出ます。ホームの「期限切れ・今日まで・7日以内」の数と、アプリの右上の数字（対応機種）でも分かります。</p>
+        <p>ホームの <b>旅行・出発前チェック</b> に出発日と帰る日を入れると、切れているもの・旅行中に切れるもの・パスポートの残り（6か月ルール）を一度に確かめられます。</p>
+        <p style="margin-top:8px">今すぐ対応が必要なものがあると、開いた瞬間に全画面の知らせが出ます。ホームの「期限切れ・今日まで・7日以内」の数と、アプリの右上の数字（対応機種）でも分かります。</p>
       </div>
 
       <div class="guide-step">
@@ -1694,7 +1752,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-12z"></script>
+<script src="crypto.js?v=2026-09-13a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -2882,6 +2940,94 @@ function 出費予告を描画する(items){
     <span class="budget-count">${対象.length}<small>件</small></span>
   </div>`;
 }
+
+// ============================================================
+// 旅行・出発前チェック
+// 出発日と帰る日を入れると、家族の登録から
+//   ・もう切れているもの（出発までに更新が要る）
+//   ・旅行中に切れるもの
+//   ・帰ってすぐ切れるもの（帰国後30日以内）
+//   ・パスポートの残り（多くの国は入国時に6か月以上が必要）
+// を一度に見せる。競合にはない、「登録した情報が旅の前に働く」場面。
+// ============================================================
+let 旅行の人物ID = "";
+
+function 日付を足す(iso, 日){ const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + 日); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function 月を足す(iso, 月){ const d = new Date(iso + "T00:00:00"); d.setMonth(d.getMonth() + 月); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function 日数差(a, b){ return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000); }
+
+function 旅行チェックを開く(){
+  const 開始 = document.getElementById("trip-start"), 終了 = document.getElementById("trip-end");
+  let 保存 = null; try { 保存 = JSON.parse(localStorage.getItem("torumamo_trip") || "null"); } catch(e) {}
+  const 今日 = 日付の札();
+  開始.value = (保存 && 保存.start >= 今日) ? 保存.start : 日付を足す(今日, 7);
+  終了.value = (保存 && 保存.end >= 開始.value) ? 保存.end : 日付を足す(開始.value, 4);
+  開始.min = 今日;
+  旅行の人物ID = "";
+  旅行の人物ピルを描く();
+  旅行チェックを描く();
+  document.getElementById("modal-trip").classList.add("show");
+}
+function 旅行の人物ピルを描く(){
+  const 枠 = document.getElementById("trip-who-pills");
+  枠.innerHTML = `<button type="button" data-id="" class="${旅行の人物ID ? "" : "active"}">家族みんな</button>` +
+    人物一覧を読む().map(p => `<button type="button" data-id="${エスケープ(p.id)}" class="${p.id === 旅行の人物ID ? "active" : ""}">${人物アバターHTML(p, 22)}${エスケープ(p.name)}</button>`).join("");
+}
+function 旅行チェックを描く(){
+  const 開始 = document.getElementById("trip-start").value, 終了 = document.getElementById("trip-end").value;
+  const 出 = document.getElementById("trip-result");
+  if(!開始 || !終了){ 出.innerHTML = ""; return; }
+  if(終了 < 開始){ document.getElementById("trip-end").value = 開始; return 旅行チェックを描く(); }
+  try { localStorage.setItem("torumamo_trip", JSON.stringify({ start: 開始, end: 終了 })); } catch(e) {}
+
+  let items = 項目一覧を読む().filter(i => i.expire_date);
+  if(旅行の人物ID) items = items.filter(i => i.person_id === 旅行の人物ID);
+  const 名 = i => { const 人 = 項目の人物情報(i); return 人.name !== "未設定" ? 人.name : ""; };
+  const 行 = (i, 右) => `<div class="trip-row">${項目の人物情報(i).人 ? 人物アバターHTML(項目の人物情報(i).人, 26) : ""}
+      <span class="t"><b>${エスケープ(i.name)}</b><small>${エスケープ(i.category)}${名(i) ? " ・ " + エスケープ(名(i)) : ""}</small></span>
+      <span class="d">${エスケープ(右)}</span></div>`;
+
+  const 切れ = items.filter(i => i.expire_date < 開始).sort((a, b) => a.expire_date.localeCompare(b.expire_date));
+  const 旅行中 = items.filter(i => i.expire_date >= 開始 && i.expire_date <= 終了).sort((a, b) => a.expire_date.localeCompare(b.expire_date));
+  const 帰国後 = items.filter(i => i.expire_date > 終了 && i.expire_date <= 日付を足す(終了, 30)).sort((a, b) => a.expire_date.localeCompare(b.expire_date));
+
+  let html = "";
+  if(切れ.length) html += `<div class="trip-sec bad"><h4><span class="n">${切れ.length}</span>出発前に更新が要る（期限が過ぎています）</h4>` +
+    切れ.map(i => 行(i, 見やすい日付(i.expire_date).replace(/^\d{4}年/, "") + " 切れ")).join("") + "</div>";
+  if(旅行中.length) html += `<div class="trip-sec bad"><h4><span class="n">${旅行中.length}</span>旅行中に切れる</h4>` +
+    旅行中.map(i => 行(i, 見やすい日付(i.expire_date).replace(/^\d{4}年/, ""))).join("") + "</div>";
+  if(帰国後.length) html += `<div class="trip-sec warn"><h4><span class="n">${帰国後.length}</span>帰ってすぐ切れる（30日以内）</h4>` +
+    帰国後.map(i => 行(i, "帰宅後" + 日数差(終了, i.expire_date) + "日")).join("") + "</div>";
+  if(!切れ.length && !旅行中.length && !帰国後.length){
+    html += `<div class="trip-ok">この期間に切れるものはありません<small>登録してあるものは、出発から帰宅後30日まで大丈夫です。</small></div>`;
+  }
+
+  // パスポートの残り期間（家族ごと）
+  const パス = items.filter(i => i.category === "パスポート");
+  if(パス.length){
+    html += パス.map(i => {
+      const 残り月 = (() => { let m = 0; while(月を足す(開始, m + 1) <= i.expire_date) m++; return m; })();
+      const 級 = i.expire_date < 終了 ? "bad" : 残り月 < 6 ? "warn" : "good";
+      const 文 = i.expire_date < 終了
+        ? `<b>${エスケープ(i.name)}${名(i) ? "（" + エスケープ(名(i)) + "）" : ""}</b>は旅行中に切れます。出発前に更新が必要です。`
+        : 残り月 < 6
+          ? `<b>${エスケープ(i.name)}${名(i) ? "（" + エスケープ(名(i)) + "）" : ""}</b>は出発日の時点で残り<b>約${残り月}か月</b>。多くの国は入国時に<b>6か月以上</b>（国によっては3か月）の残りを求めます。行き先の条件を確認し、足りなければ切り替え発給を。`
+          : `<b>${エスケープ(i.name)}${名(i) ? "（" + エスケープ(名(i)) + "）" : ""}</b>は出発日の時点で残り約${残り月}か月。多くの国の「6か月以上」の条件を満たしています。`;
+      return `<div class="trip-pass ${級}">${文}</div>`;
+    }).join("");
+  } else if(!旅行の人物ID || true){
+    html += `<p class="trip-note">パスポートを登録しておくと、行き先の「残り6か月ルール」を出発日基準で確かめます。</p>`;
+  }
+  出.innerHTML = html;
+}
+document.getElementById("btn-open-trip").addEventListener("click", 旅行チェックを開く);
+document.getElementById("btn-trip-close").addEventListener("click", () => document.getElementById("modal-trip").classList.remove("show"));
+document.getElementById("trip-start").addEventListener("change", 旅行チェックを描く);
+document.getElementById("trip-end").addEventListener("change", 旅行チェックを描く);
+document.getElementById("trip-who-pills").addEventListener("click", e => {
+  const b = e.target.closest("button[data-id]"); if(!b) return;
+  旅行の人物ID = b.dataset.id || ""; 旅行の人物ピルを描く(); 旅行チェックを描く();
+});
 
 // ホームの「今後の予定」。今日のカードに出ていない、次に来るものを3件だけ。
 function 今後の予定を描画する(items){
@@ -4792,7 +4938,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12z";
+const アプリの版 = "2026-09-13a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
