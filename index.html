@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13b"></script>
+<script src="crypto.js?v=2026-09-13c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3683,6 +3683,189 @@ function 画像を4分割する(元画像, 回転, 各最大辺){
     return c.toDataURL("image/jpeg", 0.82).split(",")[1];
   });
 }
+// ============================================================
+// 予定表のマス目を見つけて、1マスずつ切り出す
+//
+// AIは「どの手書きがどのマスにあるか」の位置関係を間違える（13日の下に書いた字を20日にする）。
+// そこで、罫線をこちらで見つけてマスを切り出し、番号札を付けて並べた画像を渡す。
+// AIの仕事は「この札のマスの数字と手書き文字は何か」だけになり、日付の取り違えが消える。
+// ============================================================
+function マス目を切り出す(元画像, 回転){
+  try {
+    const 幅 = 1400;
+    const 素 = キャンバスに描く(元画像, 回転, 幅, 0);
+    // 傾きを直す：-3°〜3° で罫線がいちばん「くっきり」する角度を探す
+    let 最良 = { 角: 0, 得点: -1 };
+    for(let 角 = -3; 角 <= 3; 角 += 0.5){
+      const c = キャンバスに描く(元画像, 回転, 900, 角);
+      const 暗 = 暗い画素(c);
+      const 得点 = 尖り(行の合計(暗)) + 尖り(列の合計(暗));
+      if(得点 > 最良.得点) 最良 = { 角, 得点 };
+    }
+    const c = キャンバスに描く(元画像, 回転, 幅, 最良.角);
+    const 暗 = 暗い画素(c);
+    const 行和 = 行の合計(暗);
+    const 横線 = 線を見つける(行和, Math.max(...行和) * 0.35, 6);
+    if(横線.length < 4) return null;
+    const 上 = 横線[0], 下 = 横線[横線.length - 1];
+    const 列和 = 列の合計(暗, 上, 下);
+    let 縦線 = 線を見つける(列和, Math.max(...列和) * 0.35, 6);
+    // 外枠が薄くて拾えないことがある。内側の線が等間隔なら、両端を1本ずつ補う
+    縦線 = 端を補う(縦線, 暗.w, 列和);
+    if(縦線.length < 6) return null;
+    // マス：隣り合う線の間。細い行（曜日の見出し）や細い列（枠の外）は捨てる
+    const 行 = 区間(横線), 列 = 区間(縦線);
+    const 行高 = Math.max(...行.map(r => r[1] - r[0])), 列幅 = Math.max(...列.map(r => r[1] - r[0]));
+    const 日行 = 行.filter(r => r[1] - r[0] >= 行高 * 0.55);
+    const 日列 = 列.filter(r => r[1] - r[0] >= 列幅 * 0.55);
+    if(日列.length !== 7 || 日行.length < 4 || 日行.length > 6) return null;
+
+    // 番号札つきのタイルを、7列×2段ずつの画像にまとめる
+    const タイル幅 = 230, 札 = 28, 隙 = 8;
+    const タイル高 = Math.round(タイル幅 * (日行[0][1] - 日行[0][0]) / (日列[0][1] - 日列[0][0]));
+    const 画像群 = [];
+    let n = 0; const 札一覧 = [];
+    for(let r0 = 0; r0 < 日行.length; r0 += 2){
+      const 段数 = Math.min(2, 日行.length - r0);
+      const m = document.createElement("canvas");
+      m.width = 7 * タイル幅 + 8 * 隙; m.height = 段数 * (タイル高 + 札 + 隙) + 隙;
+      const g = m.getContext("2d");
+      g.fillStyle = "#fff"; g.fillRect(0, 0, m.width, m.height);
+      for(let dr = 0; dr < 段数; dr++){
+        const r = 日行[r0 + dr];
+        for(let ci = 0; ci < 7; ci++){
+          const cl = 日列[ci];
+          const x = 隙 + ci * (タイル幅 + 隙), y = 隙 + dr * (タイル高 + 札 + 隙);
+          g.fillStyle = "#000"; g.font = "bold 22px sans-serif"; g.textBaseline = "top";
+          g.fillText("#" + n, x + 4, y + 2);
+          g.drawImage(c, cl[0] + 3, r[0] + 3, cl[1] - cl[0] - 6, r[1] - r[0] - 6, x, y + 札, タイル幅, タイル高);
+          g.strokeStyle = "#999"; g.lineWidth = 1; g.strokeRect(x + .5, y + 札 + .5, タイル幅 - 1, タイル高 - 1);
+          札一覧.push({ n, 行: r0 + dr, 列: ci }); n++;
+        }
+      }
+      画像群.push(m.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    }
+    return { 画像群, 札一覧, 全体: キャンバスに描く(元画像, 回転, 1024, 最良.角).toDataURL("image/jpeg", 0.8).split(",")[1] };
+  } catch(e){ return null; }
+}
+function キャンバスに描く(元画像, 回転, 最大辺, 角){
+  const 横向き = 回転 === 90 || 回転 === 270;
+  let w = 元画像.width, h = 元画像.height;
+  const 比 = Math.min(1, 最大辺 / Math.max(w, h)); w = Math.round(w * 比); h = Math.round(h * 比);
+  const c = document.createElement("canvas");
+  c.width = 横向き ? h : w; c.height = 横向き ? w : h;
+  const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  g.translate(c.width / 2, c.height / 2); g.rotate((回転 + 角) * Math.PI / 180);
+  g.drawImage(元画像, -w / 2, -h / 2, w, h);
+  return c;
+}
+function 暗い画素(c){
+  const g = c.getContext("2d"), w = c.width, h = c.height;
+  const d = g.getImageData(0, 0, w, h).data;
+  const 明 = new Uint8Array(w * h);
+  const 標本 = [];
+  for(let i = 0, p = 0; i < d.length; i += 4, p++){
+    const v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000;
+    明[p] = v; if((p & 63) === 0) 標本.push(v);
+  }
+  標本.sort((a, b) => a - b);
+  const 紙 = 標本[Math.floor(標本.length * 0.6)];
+  // 「どれだけ紙より暗いか」を 0〜1 で持つ。細い線は写真で薄い灰色になるので、白黒で切ると消えてしまう
+  const 暗 = new Float32Array(w * h);
+  const 薄い = 紙 * 0.88, 明るい = 紙 * 0.8;
+  // 紙の範囲（明るい画素が半分以上ある行・列）だけを見る。机や畳が写り込んでも引きずられない
+  const 行明 = new Int32Array(h), 列明 = new Int32Array(w);
+  for(let p = 0; p < 明.length; p++){
+    const v = 明[p];
+    暗[p] = v >= 薄い ? 0 : Math.min(1, (薄い - v) / (薄い * 0.5));
+    if(v >= 明るい){ 行明[(p / w) | 0]++; 列明[p % w]++; }
+  }
+  let 上 = 0, 下 = h - 1, 左 = 0, 右 = w - 1;
+  while(上 < h && 行明[上] < w * 0.5) 上++;
+  while(下 > 上 && 行明[下] < w * 0.5) 下--;
+  while(左 < w && 列明[左] < h * 0.5) 左++;
+  while(右 > 左 && 列明[右] < h * 0.5) 右--;
+  // 紙の外は数えない
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) if(y < 上 || y > 下 || x < 左 || x > 右) 暗[y * w + x] = 0;
+  return { w, h, 暗, 紙: { 上, 下, 左, 右 } };
+}
+function 行の合計(a){ const s = new Float64Array(a.h); for(let y = 0; y < a.h; y++){ let t = 0; const o = y * a.w; for(let x = 0; x < a.w; x++) t += a.暗[o + x]; s[y] = t; } return s; }
+function 列の合計(a, 上, 下){ 上 = 上 || 0; 下 = 下 || a.h; const s = new Float64Array(a.w); for(let x = 0; x < a.w; x++){ let t = 0; for(let y = 上; y < 下; y++) t += a.暗[y * a.w + x]; s[x] = t; } return s; }
+// 罫線がぴったり水平・垂直になると、その行（列）だけ合計が跳ね上がる。最大値÷平均が大きいほど「くっきり」
+function 尖り(s){ let 合計 = 0, 最大 = 0; for(const v of s){ 合計 += v; if(v > 最大) 最大 = v; } return 合計 ? 最大 / (合計 / s.length) : 0; }
+// 合計がしきい値を超える並びを1本の線にまとめ、その中心を返す
+function 線を見つける(s, しきい, 間){
+  const 線 = []; let 始 = -1;
+  for(let i = 0; i <= s.length; i++){
+    const 濃い = i < s.length && s[i] >= しきい;
+    if(濃い && 始 < 0) 始 = i;
+    if(!濃い && 始 >= 0){ 線.push(Math.round((始 + i - 1) / 2)); 始 = -1; }
+  }
+  // 近すぎる線（二重線・太い線）は1本に
+  const 整 = [];
+  for(const x of 線){ if(整.length && x - 整[整.length - 1] <= 間) 整[整.length - 1] = Math.round((整[整.length - 1] + x) / 2); else 整.push(x); }
+  return 整;
+}
+function 端を補う(線, 幅, 列和){
+  if(線.length < 3 || 線.length >= 8) return 線;
+  const 差 = []; for(let i = 1; i < 線.length; i++) 差.push(線[i] - 線[i - 1]);
+  差.sort((a, b) => a - b); const d = 差[Math.floor(差.length / 2)];
+  if(差.some(x => Math.abs(x - d) > d * 0.15)) return 線;   // 等間隔でなければ触らない
+  const 濃さ = x => { let t = 0; for(let k = Math.max(0, x - 3); k <= Math.min(列和.length - 1, x + 3); k++) t = Math.max(t, 列和[k]); return t; };
+  const 出 = 線.slice();
+  let 守 = 0;
+  while(出.length < 8 && 守++ < 4){
+    const 右 = 出[出.length - 1] + d, 左 = 出[0] - d;
+    const 右可 = 右 <= 幅 - 2, 左可 = 左 >= 2;
+    if(!右可 && !左可) break;
+    // 薄くても線の気配があるほうを先に足す
+    if(右可 && (!左可 || 濃さ(右) >= 濃さ(左))) 出.push(右); else 出.unshift(左);
+  }
+  return 出;
+}
+function 区間(線){ const r = []; for(let i = 1; i < 線.length; i++) if(線[i] - 線[i - 1] > 24) r.push([線[i - 1], 線[i]]); return r; }
+
+// マスの画像をAIに渡し、「札ごとの日付の数字と手書き文字」を受け取って、予定の一覧にする
+async function マスごとに読む(マス, 一回目){
+  const r = await fetch(API_BASE + "/analyze.php", {
+    method: "POST", headers: AIの見出し,
+    body: JSON.stringify({ images: [マス.全体].concat(マス.画像群), mediaType: "image/jpeg", mode: "multi_cells" }),
+  });
+  if(!r.ok) return null;
+  const j = await r.json();
+  if(j.error || !Array.isArray(j.cells)) return null;
+  const 年 = Number(j.year) || Number((一回目.due_date || "").slice(0, 4)) || new Date().getFullYear();
+  const 月 = Number(j.month) || Number((一回目.due_date || "").slice(5, 7)) || (new Date().getMonth() + 1);
+  const 札 = new Map(j.cells.map(c => [Number(c.n), c]));
+  // 「1」の札を見つけ、そこからの並びで各札の日付を決める（数字の読み違いに引きずられない）
+  let 一の札 = -1;
+  for(const [n, c] of 札) if(Number(c.day) === 1 && (一の札 < 0 || n < 一の札) && n <= 7) 一の札 = n;
+  const 日数 = new Date(年, 月, 0).getDate();
+  const items = [];
+  マス.札一覧.forEach(t => {
+    const c = 札.get(t.n); if(!c) return;
+    const 文 = String(c.text || "").replace(/\s+/g, " ").trim();
+    if(!文) return;
+    let 日 = null, y = 年, m = 月;
+    if(一の札 >= 0){
+      const 差 = t.n - 一の札;
+      if(差 < 0){ m = 月 - 1; if(m < 1){ m = 12; y--; } 日 = new Date(y, m, 0).getDate() + 差 + 1; }
+      else if(差 >= 日数){ m = 月 + 1; if(m > 12){ m = 1; y++; } 日 = 差 - 日数 + 1; }
+      else 日 = 差 + 1;
+    } else {
+      日 = Number(c.day); if(!日 || 日 < 1 || 日 > 31) return;
+    }
+    const iso = y + "-" + String(m).padStart(2, "0") + "-" + String(日).padStart(2, "0");
+    const 時 = (文.match(/(\d{1,2})[:：](\d{2})/) || [])[0] || null;
+    const 行 = 文.split(/[\n／\/]/).map(x => x.trim()).filter(Boolean);
+    items.push({ title: (行[0] || 文).slice(0, 14), due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
+      due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, memo: 行.slice(1).join(" ") || null, category: 一回目.category || null });
+  });
+  if(!items.length) return null;
+  return { items, year: 年, month: 月, upright: true };
+}
+
 async function 画像を圧縮してbase64にする(file){
   const 元画像 = await 画像を読み込む(file);
   const 出来 = 画像をbase64にする(元画像, 0, 1600);
@@ -3746,11 +3929,21 @@ async function 写真を読み取る(e){
         const j = await r.json();
         return (!j.error && Array.isArray(j.items)) ? j : null;
       };
-      let 結果2 = await 読み直す(回転);
-      if(結果2 && 結果2.upright === false){
-        回転 = (回転 + 180) % 360;
-        const やり直し = await 読み直す(回転);
-        if(やり直し && やり直し.items.length) 結果2 = やり直し;
+      // まず「マスを1つずつ切り出して読む」方法を試す。AIに位置関係を考えさせないので、日付の取り違えが起きない。
+      // 罫線が見つからない写真（傾き・歪みが大きい）のときだけ、4分割の読み直しに戻る。
+      let 結果2 = null;
+      const マス = マス目を切り出す(元画像, 回転);
+      if(マス){
+        読み取り中を見せる(true, "マスを1つずつ読んでいます…");
+        結果2 = await マスごとに読む(マス, 結果);
+      }
+      if(!結果2){
+        結果2 = await 読み直す(回転);
+        if(結果2 && 結果2.upright === false){
+          回転 = (回転 + 180) % 360;
+          const やり直し = await 読み直す(回転);
+          if(やり直し && やり直し.items.length) 結果2 = やり直し;
+        }
       }
       if(結果2 && 結果2.items.length) 結果 = Object.assign({}, 結果, 結果2, { kind: "multi", 横向きだった: 回転 !== 0 });
     }
@@ -4982,7 +5175,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13b";
+const アプリの版 = "2026-09-13c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
