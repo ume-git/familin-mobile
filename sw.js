@@ -11,7 +11,7 @@
 // 版を上げるときは、必ず下の 版 を書き換えること。
 // 中身が1文字でも変われば、端末が新しいサービスワーカーとして認識して入れ替える。
 
-const 版 = "2026-09-13m";
+const 版 = "2026-09-13n";
 const キャッシュ名 = `torumamo-shell-${版}`;
 
 const キャッシュ対象 = [
@@ -22,6 +22,24 @@ const キャッシュ対象 = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
 ];
+
+// 通知（Web Push）。サーバーから届くのは「期限が近い登録が〇件」という短い文だけ。
+self.addEventListener("push", (event) => {
+  let 中身 = { title: "トルマモ", body: "期限が近い登録があります。開いて確かめてください。", url: "./" };
+  try { if(event.data) 中身 = Object.assign(中身, event.data.json()); } catch(e) {}
+  event.waitUntil(self.registration.showNotification(中身.title, {
+    body: 中身.body, icon: "./icons/icon-192.png", badge: "./icons/icon-192.png", tag: "torumamo-due", data: { url: 中身.url },
+  }));
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const 先 = new URL((event.notification.data && event.notification.data.url) || "./", self.registration.scope).href;
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((一覧) => {
+    const 開いている = 一覧.find(c => c.url.startsWith(self.registration.scope));
+    if(開いている) return 開いている.focus();
+    return self.clients.openWindow(先);
+  }));
+});
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -1319,6 +1319,18 @@
       </div>
     </div>
 
+    <div class="settings-block" id="push-block" hidden>
+      <div class="settings-label">期限が近づいたら知らせる</div>
+      <div class="bio-card">
+        <div class="bio-row">
+          <div class="bio-text"><b>朝9時ごろ、スマホに通知が届く</b>
+            <small id="push-desc">届くのは「期限が近い登録が〇件あります」だけ。名前・種類・だれのかは送られません。サーバーに預けるのは、この端末の通知先と「知らせる日と件数」だけです。</small></div>
+          <button type="button" class="bio-switch" id="push-switch" role="switch" aria-checked="false"><span></span></button>
+        </div>
+        <p class="bio-hint" id="push-hint" hidden></p>
+      </div>
+    </div>
+
     <div class="settings-block">
       <div class="settings-label">文字の大きさ</div>
       <div class="seg" id="text-seg">
@@ -1454,6 +1466,7 @@
           <li>「保存」または「インポート」を押します。</li>
         </ol>
         <p>通知は <b>当日の朝9時</b> と <b>前日</b> に届きます（1つの予定に通知2つまでの機種があります）。</p>
+        <p>カレンダーに入れなくても、<b>設定 →「期限が近づいたら知らせる」</b> をオンにすると、警告が始まる日・前日・当日の朝に、トルマモから通知が届きます（iPhoneはホーム画面に追加したアプリで）。</p>
       </details>
       <details>
         <summary>パソコンのカレンダーに入れたい</summary>
@@ -1772,7 +1785,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13m"></script>
+<script src="crypto.js?v=2026-09-13n"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -2093,6 +2106,7 @@ function 項目一覧を読む(){
 async function 項目一覧を保存する(items){
   金庫データ.items = items;
   await データを保存する(現在のDEK, 金庫データ);
+  通知の予定を送り直す(true);
 }
 function 人物一覧を読む(){
   return 金庫データ.people || 既定人物一覧();
@@ -5262,6 +5276,8 @@ async function 金庫データを読み込んでから進む(){
   画面を切り替える("screen-app");
   描画する();
   設定の生体スイッチを整える();
+  設定の通知スイッチを整える();
+  通知の予定を送り直す();
   共有された写真があれば読む();
 }
 
@@ -5311,6 +5327,113 @@ async function 生体で開く(静かに){
   }
 }
 document.getElementById("btn-bio-unlock").addEventListener("click", 生体で開く);
+
+// ---- 期限の通知（Web Push） ----
+// サーバーに預けるのは「通知先」と「知らせる日 → 件数」だけ。登録の中身は送らない。
+// 知らせる日＝各登録の「警告が始まる日」「前日」「当日」。毎朝9時に、その日に当たる件数だけ届く。
+function 通知が使えそうか(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+function 通知の日々を作る(){
+  const 今日 = 日付の札();
+  const 日々 = {};
+  (項目一覧を読む() || []).forEach(i => {
+    if(!i.expire_date || !/^\d{4}-\d{2}-\d{2}$/.test(i.expire_date)) return;
+    const 既定 = 種類の既定値[i.category];
+    const 前 = 既定 && 既定.警告開始日数 ? 既定.警告開始日数 : 30;
+    const 期限 = new Date(i.expire_date + "T00:00:00");
+    [前, 1, 0].forEach(n => {
+      const d = new Date(期限); d.setDate(d.getDate() - n);
+      const 札 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      if(札 >= 今日) 日々[札] = (日々[札] || 0) + 1;
+    });
+  });
+  return 日々;
+}
+function 鍵をバイト列に(b64url){
+  const s = atob(b64url.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - b64url.length % 4) % 4));
+  return Uint8Array.from(s, c => c.charCodeAt(0));
+}
+async function 通知APIを呼ぶ(中身){
+  const r = await fetch(API_BASE + "/push.php", { method: "POST", headers: AIの見出し, body: JSON.stringify(中身) });
+  if(!r.ok) throw new Error("通知の窓口に届きませんでした（" + r.status + "）");
+  return await r.json();
+}
+async function 今の購読(){
+  try { const reg = await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); } catch(e){ return null; }
+}
+async function 通知を登録する(){
+  const 許可 = await Notification.requestPermission();
+  if(許可 !== "granted") throw new Error("通知が許可されませんでした。iPhoneは「設定 → 通知 → トルマモ」で許可できます。");
+  const { key } = await 通知APIを呼ぶ({ action: "key" });
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: 鍵をバイト列に(key) });
+  await 通知APIを呼ぶ({ action: "subscribe", sub: sub.toJSON(), days: 通知の日々を作る() });
+  localStorage.setItem("torumamo_push", "1");
+  // 動いていることが分かるように、その場で1通
+  await 通知APIを呼ぶ({ action: "test", sub: sub.toJSON() });
+}
+async function 通知を解除する(){
+  const sub = await 今の購読();
+  if(sub){
+    try { await 通知APIを呼ぶ({ action: "unsubscribe", endpoint: sub.endpoint }); } catch(e) {}
+    try { await sub.unsubscribe(); } catch(e) {}
+  }
+  localStorage.removeItem("torumamo_push");
+}
+let 通知送り直しの予約 = null;
+// 登録が変わったら、知らせる日を送り直す。連続して呼ばれたら最後の1回だけ送る
+function 通知の予定を送り直す(少し待つ){
+  if(localStorage.getItem("torumamo_push") !== "1" || !通知が使えそうか()) return;
+  clearTimeout(通知送り直しの予約);
+  通知送り直しの予約 = setTimeout(async () => {
+    try {
+      const sub = await 今の購読();
+      if(!sub){ localStorage.removeItem("torumamo_push"); 設定の通知スイッチを整える(); return; }
+      await 通知APIを呼ぶ({ action: "subscribe", sub: sub.toJSON(), days: 通知の日々を作る() });
+    } catch(e) {}
+  }, 少し待つ ? 3000 : 500);
+}
+async function 設定の通知スイッチを整える(){
+  const block = document.getElementById("push-block");
+  const sw = document.getElementById("push-switch");
+  const hint = document.getElementById("push-hint");
+  if(!通知が使えそうか()){
+    // iPhoneは、ホーム画面に追加したアプリでだけ通知が使える（Safariで開いている間は出せない）
+    const iPhone = /iPhone|iPad/.test(navigator.userAgent);
+    block.hidden = !iPhone;
+    if(iPhone){ sw.disabled = true; hint.hidden = false; hint.textContent = "通知は、ホーム画面に追加したトルマモでだけ使えます（Safariの共有ボタン →「ホーム画面に追加」）。"; }
+    return;
+  }
+  block.hidden = false; sw.disabled = false;
+  const sub = await 今の購読();
+  const オン = !!sub && localStorage.getItem("torumamo_push") === "1" && Notification.permission === "granted";
+  sw.setAttribute("aria-checked", オン ? "true" : "false");
+  hint.hidden = !(Notification.permission === "denied");
+  if(Notification.permission === "denied") hint.textContent = "通知が「許可しない」になっています。スマホの設定 → 通知 → トルマモ で許可すると使えます。";
+}
+document.getElementById("push-switch").addEventListener("click", async () => {
+  const sw = document.getElementById("push-switch");
+  const 今 = sw.getAttribute("aria-checked") === "true";
+  sw.disabled = true;
+  try {
+    if(今){
+      await 通知を解除する();
+      sw.setAttribute("aria-checked", "false");
+      お知らせ("通知をやめました。", true);
+    } else {
+      await 通知を登録する();
+      sw.setAttribute("aria-checked", "true");
+      お知らせ("通知をオンにしました。ためしの通知を1通送りました。", true);
+    }
+  } catch(e){
+    お知らせ((e && e.message) ? e.message : "通知の設定ができませんでした。", true);
+  } finally {
+    sw.disabled = false;
+    設定の通知スイッチを整える();
+  }
+});
 
 async function 設定の生体スイッチを整える(){
   const block = document.getElementById("bio-block");
@@ -5461,7 +5584,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13m";
+const アプリの版 = "2026-09-13n";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
