@@ -1069,7 +1069,7 @@
     <span class="hero-sub">郵便物・プリントなどを撮影するだけ</span>
   </button>
   <div class="capture-links">
-    <button type="button" class="text-link strong" id="btn-photo-album">写真から登録する</button>
+    <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
     <span class="dot">・</span>
     <button type="button" class="text-link" id="btn-open-form">手で入力する</button>
   </div>
@@ -3448,19 +3448,45 @@ async function 画像を読み込む(file){
   });
 }
 
+// 画像を（必要なら時計回りに回してから）縮めて base64 にする
+function 画像をbase64にする(元画像, 回転, 最大辺){
+  const 横向き = 回転 === 90 || 回転 === 270;
+  let w = 元画像.width, h = 元画像.height;
+  const 比率 = Math.min(1, 最大辺 / Math.max(w, h));
+  w = Math.round(w * 比率); h = Math.round(h * 比率);
+  const canvas = document.createElement("canvas");
+  canvas.width = 横向き ? h : w; canvas.height = 横向き ? w : h;
+  const ctx = canvas.getContext("2d");
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(回転 * Math.PI / 180);
+  ctx.drawImage(元画像, -w / 2, -h / 2, w, h);
+  return canvas.toDataURL("image/jpeg", 0.82).split(",")[1];
+}
+// 向きを直した画像を、少し重なりを持たせて4つ（左上・右上・左下・右下）に切る
+function 画像を4分割する(元画像, 回転, 各最大辺){
+  const 横向き = 回転 === 90 || 回転 === 270;
+  const W = 横向き ? 元画像.height : 元画像.width, H = 横向き ? 元画像.width : 元画像.height;
+  const 全体 = document.createElement("canvas");
+  全体.width = W; 全体.height = H;
+  const g = 全体.getContext("2d");
+  g.translate(W / 2, H / 2); g.rotate(回転 * Math.PI / 180);
+  g.drawImage(元画像, -元画像.width / 2, -元画像.height / 2);
+  const 重なり = 0.08;
+  const 幅 = Math.round(W * (0.5 + 重なり)), 高 = Math.round(H * (0.5 + 重なり));
+  const 位置 = [[0, 0], [W - 幅, 0], [0, H - 高], [W - 幅, H - 高]];
+  return 位置.map(([x, y]) => {
+    const 比率 = Math.min(1, 各最大辺 / Math.max(幅, 高));
+    const c = document.createElement("canvas");
+    c.width = Math.round(幅 * 比率); c.height = Math.round(高 * 比率);
+    c.getContext("2d").drawImage(全体, x, y, 幅, 高, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.82).split(",")[1];
+  });
+}
 async function 画像を圧縮してbase64にする(file){
   const 元画像 = await 画像を読み込む(file);
-  const 最大辺 = 1600;
-  let width = 元画像.width, height = 元画像.height;
-  if(width > 最大辺 || height > 最大辺){
-    const 比率 = Math.min(最大辺 / width, 最大辺 / height);
-    width = Math.round(width * 比率); height = Math.round(height * 比率);
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = width; canvas.height = height;
-  canvas.getContext("2d").drawImage(元画像, 0, 0, width, height);
+  const 出来 = 画像をbase64にする(元画像, 0, 1600);
   if(元画像.close) 元画像.close();
-  return canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
+  return 出来;
 }
 
 function 名前に近い人物を探す(person_hint){
@@ -3491,15 +3517,34 @@ async function 写真を読み取る(e){
   読み取り中を見せる(true);
 
   try {
-    const base64 = await 画像を圧縮してbase64にする(file);
+    const 元画像 = await 画像を読み込む(file);
+    const base64 = 画像をbase64にする(元画像, 0, 1600);
     const res = await fetch(API_BASE + "/analyze.php", {
       method: "POST",
       headers: AIの見出し,
       body: JSON.stringify({ image: base64, mediaType: "image/jpeg" }),
     });
     if(!res.ok) throw new Error(await 断られた理由(res, 読み取り失敗の文));
-    const 結果 = await res.json();
+    let 結果 = await res.json();
     if(結果.error) throw new Error(読み取り失敗の文);
+
+    if(結果.kind === "multi"){
+      // 予定表は文字が小さい。AIに渡る画像は短い辺が768pxに縮められるので、月間カレンダーの
+      // 手書きは読めない。向きを直したうえで4分割の拡大画像を渡し、読み直す（2回目の読み取り）。
+      読み取り中を見せる(true, "予定表なので、拡大して読み直しています…");
+      const 回転 = [0, 90, 180, 270].includes(Number(結果.rotate)) ? Number(結果.rotate) : 0;
+      const 画像群 = [画像をbase64にする(元画像, 回転, 1024)].concat(画像を4分割する(元画像, 回転, 1400));
+      const res2 = await fetch(API_BASE + "/analyze.php", {
+        method: "POST",
+        headers: AIの見出し,
+        body: JSON.stringify({ images: 画像群, mediaType: "image/jpeg", mode: "multi_detail" }),
+      });
+      if(res2.ok){
+        const 結果2 = await res2.json();
+        if(!結果2.error && Array.isArray(結果2.items) && 結果2.items.length) 結果 = Object.assign({}, 結果, 結果2, { kind: "multi" });
+      }
+    }
+    if(元画像.close) 元画像.close();
 
     if(結果.kind === "multi" && Array.isArray(結果.items) && 結果.items.length >= 2) まとめて登録の画面を見せる(結果);
     else 読み取り結果を見せる(結果);
@@ -3513,12 +3558,14 @@ async function 写真を読み取る(e){
 
 // 読み取り中の覆い。進み具合は本当には分からないので、時間で段階を進める。
 let 読み取り中の時計 = null;
-function 読み取り中を見せる(見せる){
+function 読み取り中を見せる(見せる, 最初の文){
   const 枠 = document.getElementById("analyzing");
   const 段 = document.getElementById("analyzing-step");
   if(読み取り中の時計){ clearInterval(読み取り中の時計); 読み取り中の時計 = null; }
   if(!見せる){ 枠.hidden = true; return; }
-  const 文言 = ["写真を送っています…", "文字を読んでいます…", "誰の・いつまで・何をするかを整理しています…", "もう少しです…"];
+  const 文言 = 最初の文
+    ? [最初の文, "手書きの文字を1マスずつ読んでいます…", "日付と予定をそろえています…", "もう少しです…"]
+    : ["写真を送っています…", "文字を読んでいます…", "誰の・いつまで・何をするかを整理しています…", "もう少しです…"];
   let i = 0;
   段.textContent = 文言[0];
   枠.hidden = false;
@@ -4476,6 +4523,23 @@ async function 金庫データを読み込んでから進む(){
   window.__alertShown = false;
   画面を切り替える("screen-app");
   描画する();
+  共有された写真があれば読む();
+}
+
+// Androidの「共有」からスクショや写真を受け取ったとき（manifest の share_target）。
+// サービスワーカーが一時的にしまった画像を取り出して、撮ったときと同じ流れで読む。
+async function 共有された写真があれば読む(){
+  if(!/[?&]shared=1/.test(location.search)) return;
+  history.replaceState(null, "", location.pathname);
+  try {
+    const cache = await caches.open("torumamo-shared");
+    const 応答 = await cache.match("./shared-image");
+    if(!応答) return;
+    await cache.delete("./shared-image");
+    const blob = await 応答.blob();
+    const file = new File([blob], "shared.jpg", { type: blob.type || "image/jpeg" });
+    写真を読み取る({ target: { files: [file], value: "" } });
+  } catch(e){ /* 何もしない */ }
 }
 
 async function 起動時の画面を決める(){
@@ -4595,7 +4659,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12u";
+const アプリの版 = "2026-09-12v";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {

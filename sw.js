@@ -11,7 +11,7 @@
 // 版を上げるときは、必ず下の 版 を書き換えること。
 // 中身が1文字でも変われば、端末が新しいサービスワーカーとして認識して入れ替える。
 
-const 版 = "2026-09-12u";
+const 版 = "2026-09-12v";
 const キャッシュ名 = `torumamo-shell-${版}`;
 
 const キャッシュ対象 = [
@@ -75,6 +75,21 @@ async function キャッシュを優先する(request){
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
+  // Androidの「共有」→トルマモ。画像を一時的にしまって、アプリ本体へ送る。
+  if(request.method === "POST" && new URL(request.url).pathname.endsWith("/share")){
+    event.respondWith((async () => {
+      try {
+        const form = await request.formData();
+        const file = form.get("image");
+        if(file){
+          const cache = await caches.open("torumamo-shared");
+          await cache.put("./shared-image", new Response(file, { headers: { "Content-Type": file.type || "image/jpeg" } }));
+        }
+      } catch(e) {}
+      return Response.redirect("./index.html?shared=1", 303);
+    })());
+    return;
+  }
   if(request.method !== "GET") return;
 
   const url = new URL(request.url);
