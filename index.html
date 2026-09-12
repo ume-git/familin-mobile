@@ -1580,7 +1580,7 @@
 <div class="modal-back" id="modal-multi">
   <div class="modal-box read-box">
     <div class="read-head">
-      <span class="read-badge">予定表を読み取りました</span>
+      <span class="read-badge">予定表を読み取りました（試験的）</span>
       <h3 id="multi-title"></h3>
       <p class="read-summary" id="multi-summary"></p>
     </div>
@@ -1595,8 +1595,8 @@
       <small>月がちがうときは、ここで全部まとめて直せます</small>
     </div>
     <div class="multi-list" id="multi-list"></div>
-    <p class="multi-hint">チェックを外したものは登録しません。過ぎた日付は最初から外してあります。日付や名前は登録後に「編集」で直せます。</p>
-    <p class="multi-hint" id="multi-retake" hidden>読み取りが合わないときは、<b>スマホを横にして、予定表の文字が読める向きで全体が入るように</b>、明るい場所で撮り直してください。</p>
+    <p class="multi-hint"><b>印刷された予定表向けの試験的な機能です。</b>手書きの予定は読めなかったり、読み違えたりします。<b>日付と名前を確かめてから</b>登録してください。チェックを外したものは登録しません。過ぎた日付は最初から外してあります。日付や名前は登録後に「編集」で直せます。</p>
+    <p class="multi-hint" id="multi-retake" hidden>読み取りが合わないときは、<b>真上から、予定表の全体が入るように</b>、明るい場所で撮り直してください。</p>
     <button class="primary" id="multi-ok">選んだものを登録する</button>
     <div class="btnrow">
       <button class="ghost" id="multi-all">すべて選ぶ</button>
@@ -1705,6 +1705,7 @@
         <div class="guide-step-head"><div class="guide-step-num">1</div><h5>撮って登録する</h5></div>
         <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。</p>
         <div class="guide-callout warn"><b>写真は残りません</b>読み取りが終わった瞬間に写真は消え、サーバーにも保存されません。</div>
+        <p>学校のお知らせや年間行事表のように、<b>予定がいくつも印刷された紙</b>は、まとめて登録できます（試験的な機能。登録前に日付と名前を確かめてください）。手書きのカレンダーは読み取りの対象外です。</p>
       </div>
 
       <div class="guide-step">
@@ -1764,7 +1765,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13j"></script>
+<script src="crypto.js?v=2026-09-13k"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4205,8 +4206,12 @@ async function 写真を読み取る(e){
     }
     if(元画像.close) 元画像.close();
 
-    if(結果.kind === "multi" && Array.isArray(結果.items) && 結果.items.length >= 2) まとめて登録の画面を見せる(結果);
-    else 読み取り結果を見せる(結果);
+    if(結果.kind === "multi"){
+      const 件 = Array.isArray(結果.items) ? 結果.items.length : 0;
+      if(件 >= 2) まとめて登録の画面を見せる(結果);
+      else if(件 === 1) 読み取り結果を見せる(Object.assign({}, 結果, 結果.items[0]));
+      else throw new Error("予定表として読み取れませんでした。印刷された予定表を、真上から明るい場所で撮ってください。手書きのカレンダーは読み取りの対象外です。");
+    } else 読み取り結果を見せる(結果);
   } catch(err) {
     お知らせ((err && err.message) ? err.message : 読み取り失敗の文, true);
   } finally {
@@ -5431,7 +5436,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13j";
+const アプリの版 = "2026-09-13k";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
