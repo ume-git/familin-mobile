@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13c"></script>
+<script src="crypto.js?v=2026-09-13d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3858,9 +3858,10 @@ async function マスごとに読む(マス, 一回目){
     }
     const iso = y + "-" + String(m).padStart(2, "0") + "-" + String(日).padStart(2, "0");
     const 時 = (文.match(/(\d{1,2})[:：](\d{2})/) || [])[0] || null;
-    const 行 = 文.split(/[\n／\/]/).map(x => x.trim()).filter(Boolean);
-    items.push({ title: (行[0] || 文).slice(0, 14), due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
-      due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, memo: 行.slice(1).join(" ") || null, category: 一回目.category || null });
+    // 名前は「時刻と括弧を外した本文」から。全文はメモに残す（場所などが消えないように）
+    const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*[〜~～-]?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
+    items.push({ title: 名.slice(0, 14), due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
+      due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, memo: (文 !== 名.slice(0, 14)) ? 文 : null, category: 一回目.category || null });
   });
   if(!items.length) return null;
   return { items, year: 年, month: 月, upright: true };
@@ -5175,7 +5176,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13c";
+const アプリの版 = "2026-09-13d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
