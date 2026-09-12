@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13f"></script>
+<script src="crypto.js?v=2026-09-13g"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3743,6 +3743,10 @@ function マス目を切り出す(元画像, 回転){
     const 日列 = 列.filter(r => r[1] - r[0] >= 列幅 * 0.55);
     if(日列.length !== 7 || 日行.length < 4 || 日行.length > 6) return null;
 
+    // 手書きのかたまり（インクのつながり）を見つけ、どのマスに属するかを「かたまりの中心」で決める。
+    // タイルを切るとき、他のマスに属するかたまりは紙の色で消す。線をまたいで書かれた字が、隣のマスに化けない。
+    const 所属 = インクの所属を調べる(測.暗, 横線, 縦線, 日行, 日列);
+
     // 番号札つきのタイルを並べた画像にまとめる。
     // 手書きはマスの端（下や右）にはみ出して書かれることが多いので、マスの周りに少し余白を付けて切り出し、
     // 本当のマスの範囲を赤い枠で描く。AIには「赤い枠の中に大部分がある文字だけ」を読ませる。
@@ -3769,6 +3773,30 @@ function マス目を切り出す(元画像, 回転){
         g.fillText("#" + n, x + 4, y + 2);
         const sx = t.cl[0] - 余白x, sy = t.r[0] - 余白y, sw = マス幅 + 余白x * 2, sh = マス高 + 余白y * 2;
         g.drawImage(c, sx, sy, sw, sh, x, y + 札, タイル幅, タイル高);
+        // 他のマスのインクを消す
+        if(所属){
+          const 自分 = t.ri * 7 + t.ci;
+          const 画 = g.getImageData(x, y + 札, タイル幅, タイル高);
+          const d = 画.data; const w0 = 所属.w;
+          for(let ty = 0; ty < タイル高; ty++){
+            const sy2 = Math.min(所属.h - 1, Math.max(0, Math.round(sy + ty / 倍)));
+            for(let tx = 0; tx < タイル幅; tx++){
+              const sx2 = Math.min(w0 - 1, Math.max(0, Math.round(sx + tx / 倍)));
+              // その画素と周り1pxのどれかが「他のマスのインク」なら消す（縁の薄い部分も残さない）
+              let 消す = false;
+              for(let dy = -1; dy <= 1 && !消す; dy++) for(let dx = -1; dx <= 1; dx++){
+                const yy = sy2 + dy, xx = sx2 + dx; if(yy < 0 || yy >= 所属.h || xx < 0 || xx >= w0) continue;
+                const lab = 所属.印[yy * w0 + xx];
+                if(lab > 0 && 所属.マス[lab] !== 自分){ 消す = true; break; }
+              }
+              if(消す){
+                const i = (ty * タイル幅 + tx) * 4;
+                d[i] = 所属.紙色[0]; d[i + 1] = 所属.紙色[1]; d[i + 2] = 所属.紙色[2];
+              }
+            }
+          }
+          g.putImageData(画, x, y + 札);
+        }
         // 本当のマス（赤い枠）
         g.strokeStyle = "#e0242a"; g.lineWidth = 3;
         g.strokeRect(x + 余白x * 倍, y + 札 + 余白y * 倍, マス幅 * 倍, マス高 * 倍);
@@ -3821,7 +3849,7 @@ function 暗い画素(c){
   while(右 > 左 && 列明[右] < h * 0.5) 右--;
   // 紙の外は数えない
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) if(y < 上 || y > 下 || x < 左 || x > 右) 暗[y * w + x] = 0;
-  return { w, h, 暗, 紙: { 上, 下, 左, 右 } };
+  return { w, h, 暗, 紙: { 上, 下, 左, 右 }, 元: d };
 }
 function 行の合計(a){ const s = new Float64Array(a.h); for(let y = 0; y < a.h; y++){ let t = 0; const o = y * a.w; for(let x = 0; x < a.w; x++) t += a.暗[o + x]; s[y] = t; } return s; }
 function 列の合計(a, 上, 下){ 上 = 上 || 0; 下 = 下 || a.h; const s = new Float64Array(a.w); for(let x = 0; x < a.w; x++){ let t = 0; for(let y = 上; y < 下; y++) t += a.暗[y * a.w + x]; s[x] = t; } return s; }
@@ -3857,6 +3885,65 @@ function 端を補う(線, 幅, 列和){
     if(右可 && (!左可 || 濃さ(右) >= 濃さ(左))) 出.push(右); else 出.unshift(左);
   }
   return 出;
+}
+// インクのかたまり（連結成分）を数え上げ、中心がどのマスにあるかを返す
+function インクの所属を調べる(暗, 横線, 縦線, 日行, 日列){
+  try {
+    const w = 暗.w, h = 暗.h;
+    const 印 = new Int32Array(w * h);
+    // 罫線の近く（±5px）はインクとみなさない
+    const 線y = new Uint8Array(h), 線x = new Uint8Array(w);
+    横線.forEach(y => { for(let k = y - 5; k <= y + 5; k++) if(k >= 0 && k < h) 線y[k] = 1; });
+    縦線.forEach(x => { for(let k = x - 5; k <= x + 5; k++) if(k >= 0 && k < w) 線x[k] = 1; });
+    const インク = new Uint8Array(w * h);
+    for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+      const p = y * w + x;
+      インク[p] = (暗.暗[p] > 0.3 && !線y[y] && !線x[x]) ? 1 : 0;
+    }
+    // 連結成分（4近傍）。塗りながら、中心を出すための合計を取る
+    const 合x = [0], 合y = [0], 数 = [0];
+    let 番 = 0;
+    const 山 = new Int32Array(w * h);
+    for(let p0 = 0; p0 < w * h; p0++){
+      if(!インク[p0] || 印[p0]) continue;
+      番++; 合x.push(0); 合y.push(0); 数.push(0);
+      let 頂 = 0; 山[頂++] = p0; 印[p0] = 番;
+      while(頂 > 0){
+        const p = 山[--頂];
+        const y = (p / w) | 0, x = p - y * w;
+        合x[番] += x; 合y[番] += y; 数[番]++;
+        if(x > 0 && インク[p - 1] && !印[p - 1]){ 印[p - 1] = 番; 山[頂++] = p - 1; }
+        if(x < w - 1 && インク[p + 1] && !印[p + 1]){ 印[p + 1] = 番; 山[頂++] = p + 1; }
+        if(y > 0 && インク[p - w] && !印[p - w]){ 印[p - w] = 番; 山[頂++] = p - w; }
+        if(y < h - 1 && インク[p + w] && !印[p + w]){ 印[p + w] = 番; 山[頂++] = p + w; }
+      }
+    }
+    // 罫線をまたいで書かれた字は、線の所で2つに割れている。線の両側で向かい合うかたまりをつなぎ直す
+    const 親 = new Int32Array(番 + 1); for(let b = 0; b <= 番; b++) 親[b] = b;
+    const 根 = b => { while(親[b] !== b){ 親[b] = 親[親[b]]; b = 親[b]; } return b; };
+    const 結ぶ = (a, b) => { a = 根(a); b = 根(b); if(a !== b) 親[a] = b; };
+    横線.forEach(y => { const 上 = y - 7, 下 = y + 7; if(上 < 0 || 下 >= h) return;
+      for(let x = 0; x < w; x++){ const a = 印[上 * w + x], b = 印[下 * w + x]; if(a && b) 結ぶ(a, b); } });
+    縦線.forEach(x => { const 左 = x - 7, 右 = x + 7; if(左 < 0 || 右 >= w) return;
+      for(let y = 0; y < h; y++){ const a = 印[y * w + 左], b = 印[y * w + 右]; if(a && b) 結ぶ(a, b); } });
+    const 合x2 = new Float64Array(番 + 1), 合y2 = new Float64Array(番 + 1), 数2 = new Float64Array(番 + 1);
+    for(let b = 1; b <= 番; b++){ const r = 根(b); 合x2[r] += 合x[b]; 合y2[r] += 合y[b]; 数2[r] += 数[b]; }
+    for(let p = 0; p < w * h; p++) if(印[p]) 印[p] = 根(印[p]);
+    // かたまりごとの所属マス（行×7＋列）。どのマスにも入らなければ -1
+    const マス = new Int32Array(番 + 1).fill(-1);
+    for(let b = 1; b <= 番; b++){
+      if(根(b) !== b || 数2[b] < 6) continue;
+      const cx = 合x2[b] / 数2[b], cy = 合y2[b] / 数2[b];
+      const ri = 日行.findIndex(r => cy >= r[0] && cy < r[1]);
+      const ci = 日列.findIndex(cl => cx >= cl[0] && cx < cl[1]);
+      if(ri >= 0 && ci >= 0) マス[b] = ri * 7 + ci;
+    }
+    // 紙の色：インクでも線でもない画素の平均（間引いて）
+    let r = 0, g = 0, bl = 0, n = 0;
+    const 画 = 暗.元 ? 暗.元 : null;
+    const 紙色 = 画 ? (() => { for(let p = 0; p < w * h; p += 97){ if(インク[p]) continue; r += 画[p * 4]; g += 画[p * 4 + 1]; bl += 画[p * 4 + 2]; n++; } return n ? [r / n, g / n, bl / n] : [246, 244, 240]; })() : [246, 244, 240];
+    return { w, h, 印, マス, 紙色 };
+  } catch(e){ return null; }
 }
 // 間隔がそろっている最長の並びを返す（±15%）
 function 等間隔の並び(線){
@@ -5238,7 +5325,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13f";
+const アプリの版 = "2026-09-13g";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
