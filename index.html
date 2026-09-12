@@ -895,6 +895,15 @@
   .ask-row{display:flex;gap:8px;margin-bottom:24px}
   .ask-row input{flex:1;font-size:15px}
   .ask-row button{flex:none;font-size:13.5px;padding:0 16px;white-space:nowrap}
+  /* 声で入れる */
+  .voice-btn{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:9px 14px;font-size:13.5px;font-weight:700;
+    border-radius:var(--r-full);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);box-shadow:var(--sunken)}
+  .voice-btn .ic{width:18px;height:18px;color:var(--accent)}
+  .voice-btn.icon-only{margin:0;padding:0 12px}
+  .voice-btn.listening{background:var(--bad);border-color:transparent;color:#fff;animation:voice-pulse 1.2s ease-in-out infinite}
+  .voice-btn.listening .ic{color:#fff}
+  @keyframes voice-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--bad) 45%, transparent)}50%{box-shadow:0 0 0 8px transparent}}
+  .voice-hint{font-size:12.5px;color:var(--soft);margin-top:6px;line-height:1.6}
   .ask-answer{background:var(--accent-soft);border-radius:var(--r-md);
     padding:16px 18px;margin:-14px 0 24px;font-size:14.5px;line-height:1.8;color:var(--ink)}
 
@@ -1081,6 +1090,7 @@
 
   <div class="ask-row">
     <input type="text" id="ask-input" placeholder="例: 今月やることは？">
+    <button type="button" class="voice-btn icon-only" id="btn-ask-voice" data-for="ask-input" aria-label="声で聞く"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg></button>
     <button type="button" class="ghost" id="btn-ask">聞く</button>
   </div>
   <div id="ask-answer" class="ask-answer" style="display:none"></div>
@@ -1386,6 +1396,8 @@
       <div class="row"><div class="field">
         <label>感想・改善してほしい点</label>
         <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
+        <button type="button" class="voice-btn" id="btn-fb-voice" data-for="fb-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg><span>声で入れる</span></button>
+        <div class="voice-hint" id="fb-voice-hint" hidden></div>
       </div></div>
       <div class="btnrow" style="margin-top:6px">
         <button class="primary" id="btn-fb-send">送信する</button>
@@ -4359,6 +4371,65 @@ try { 一覧表示選択.value = localStorage.getItem("familin_listview") || "ur
   描画する();
 });
 
+// ---- 声で入れる（音声入力） ----
+// iPhoneのSafari・AndroidのChromeが持つ音声認識を使う。声はブラウザ（OS）が処理し、トルマモのサーバーには送らない。
+// 使えない機種では、ボタンを押すとキーボードのマイクの案内を出す。
+(function 声で入れるを配線する(){
+  const 認識クラス = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let 今の認識 = null, 今のボタン = null;
+
+  function 止める(){
+    if(今の認識){ try { 今の認識.stop(); } catch(e) {} }
+    今の認識 = null;
+    if(今のボタン){ 今のボタン.classList.remove("listening"); const 文 = 今のボタン.querySelector("span"); if(文) 文.textContent = "声で入れる"; }
+    今のボタン = null;
+  }
+  function 案内(ボタン, 文){
+    const id = ボタン.id === "btn-fb-voice" ? "fb-voice-hint" : null;
+    if(id){ const h = document.getElementById(id); h.textContent = 文; h.hidden = false; setTimeout(() => { h.hidden = true; }, 6000); }
+    else お知らせ(文, true);
+  }
+
+  document.querySelectorAll(".voice-btn").forEach(ボタン => {
+    ボタン.addEventListener("click", () => {
+      const 欄 = document.getElementById(ボタン.dataset.for);
+      if(!欄) return;
+      if(今のボタン === ボタン){ 止める(); return; }
+      止める();
+      if(!認識クラス){
+        欄.focus();
+        案内(ボタン, "この機種では、キーボードのマイクの記号を押すと声で入力できます。");
+        return;
+      }
+      const r = new 認識クラス();
+      r.lang = "ja-JP"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+      const 元の文 = 欄.value;
+      let 確定 = "";
+      r.onresult = e => {
+        let 途中 = "";
+        for(let i = e.resultIndex; i < e.results.length; i++){
+          const t = e.results[i][0].transcript;
+          if(e.results[i].isFinal) 確定 += t; else 途中 += t;
+        }
+        const つなぎ = 元の文 && !/[\s\n]$/.test(元の文) ? "\n" : "";
+        欄.value = 元の文 + つなぎ + 確定 + 途中;
+        欄.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      r.onerror = e => {
+        止める();
+        if(e.error === "not-allowed" || e.error === "service-not-allowed") 案内(ボタン, "マイクの使用が許可されていません。iPhoneの設定 → Safari → マイク を「許可」にしてください。");
+        else if(e.error === "no-speech") 案内(ボタン, "声が聞き取れませんでした。もう一度押して、話してください。");
+        else 案内(ボタン, "音声入力が使えませんでした。キーボードのマイクからも入力できます。");
+      };
+      r.onend = () => { if(今の認識 === r) 止める(); };
+      今の認識 = r; 今のボタン = ボタン;
+      ボタン.classList.add("listening");
+      const 文 = ボタン.querySelector("span"); if(文) 文.textContent = "聞いています… 押すと止まる";
+      try { r.start(); } catch(e){ 止める(); 案内(ボタン, "音声入力を始められませんでした。"); }
+    });
+  });
+})();
+
 // ---- 感想の文章（コピー用） ----
 // LINEで送る道はやめた。LINEだと誰が送ったか分かってしまい、匿名にならない。
 function 感想メッセージを作る(){
@@ -4524,7 +4595,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12t";
+const アプリの版 = "2026-09-12u";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
