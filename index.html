@@ -586,6 +586,12 @@
   .cal-how li{margin-bottom:4px}
   .cal-how p{margin:0 0 12px;font-size:12.5px;color:var(--soft);line-height:1.6}
   .cal-how ul{margin:0 0 10px;padding-left:20px;font-size:13px;line-height:1.7;color:var(--ink)}
+  /* 「TimeTreeなど」を押したときの説明。ボタンの下にふわっと開く */
+  .cal-others{margin-top:12px;background:var(--accent-soft);border-radius:var(--r-md);padding:14px 16px 16px}
+  .cal-others p{margin:0 0 10px;font-size:14px;line-height:1.7;color:var(--ink)}
+  .cal-others ol{margin:0 0 10px;padding-left:22px;font-size:14.5px;font-weight:700;line-height:1.7}
+  .cal-others ul{margin:0;padding-left:20px;font-size:13px;line-height:1.7;color:var(--soft)}
+  .cal-others .primary{font-size:15px;padding:13px}
   .cal-picked-head{font-size:13px;font-weight:800;color:var(--soft);margin:16px 2px 8px;letter-spacing:.02em}
   .cal-hint{color:var(--soft);font-size:13px;text-align:center;padding:14px 0 4px}
   .list{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
@@ -1299,9 +1305,25 @@
     <div class="settings-menu" style="margin-top:0;padding-top:0;border-top:none">
       <button type="button" id="btn-cal-google"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg><span>Googleカレンダー</span></button>
       <button type="button" id="btn-cal-ics"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span id="cal-device-label">iPhoneのカレンダー</span></button>
-      <button type="button" id="btn-cal-outlook"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M3.5 8l8.5 6 8.5-6"/></svg><span>Outlook（Microsoft）</span></button>
-      <button type="button" id="btn-cal-share"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>その他（TimeTree・Yahoo!・ジョルテ など）</span></button>
+      <button type="button" id="btn-cal-others"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>TimeTree・Yahoo!・ジョルテ など</span></button>
     </div>
+
+    <div class="cal-others" id="cal-others" hidden>
+      <p><b>TimeTree・Yahoo!カレンダー・ジョルテ・Lifebear・Outlook</b> などは、<b>スマホ本体のカレンダーに入れた予定を、そのまま表示できます</b>。ですので、2つの手順で連携できます。</p>
+      <ol>
+        <li>上の「<span class="cal-device-word">iPhone</span>のカレンダー」で予定を追加する</li>
+        <li>使っているアプリの設定で、本体カレンダーの表示をオンにする（1回だけ）</li>
+      </ol>
+      <ul>
+        <li><b>TimeTree</b>：右上のメニュー → 設定 → 「OSカレンダーの表示」をオン</li>
+        <li><b>Yahoo!カレンダー</b>：設定 → 「端末のカレンダーと同期」をオン</li>
+        <li><b>ジョルテ</b>：設定 → カレンダー → 「端末カレンダー」をオン</li>
+        <li><b>Lifebear</b>：設定 → 「端末カレンダーの表示」をオン</li>
+        <li><b>Outlook</b>：設定 → カレンダー → 本体のカレンダーを選ぶ</li>
+      </ul>
+      <button type="button" class="primary" id="btn-cal-ics-2" style="margin-top:6px"><span class="cal-device-word">iPhone</span>のカレンダーに追加する</button>
+    </div>
+
     <div class="cal-how">
       <details>
         <summary>Googleカレンダーのやり方</summary>
@@ -1327,23 +1349,9 @@
         <p>通知は <b>当日の朝9時</b> と <b>前日</b> に届きます（1つの予定に通知2つまでの機種があります）。</p>
       </details>
       <details>
-        <summary>Outlookのやり方</summary>
-        <ol>
-          <li>Outlook（outlook.live.com）の予定作成の画面が開きます。ログインしていなければログインします。</li>
-          <li>題名・日付・メモが入っているので <b>「保存」</b> を押します。</li>
-          <li>左上の「×」でトルマモに戻ります。</li>
-        </ol>
-        <p>会社・学校のMicrosoft 365のアカウントでも同じ画面で追加できます。</p>
-      </details>
-      <details>
-        <summary>その他のカレンダー（TimeTree・Yahoo!・ジョルテ・Lifebear など）</summary>
-        <p style="margin-top:8px">これらのアプリは、<b>スマホ本体のカレンダーに入れた予定をそのまま表示できます</b>。いちばん簡単なのは上の「iPhone／Androidのカレンダー」で追加して、各アプリで本体カレンダーを表示する設定にすることです。</p>
-        <ul>
-          <li><b>TimeTree</b>：メニュー → 設定 → 「OSカレンダーの表示」をオン</li>
-          <li><b>Yahoo!カレンダー</b>：設定 → 「端末のカレンダーと同期」をオン</li>
-          <li><b>ジョルテ・Lifebear</b>：設定の「カレンダー連携」で本体カレンダーを選ぶ</li>
-        </ul>
-        <p>直接ファイルで渡したいときは、「その他」を押すと予定ファイル（.ics）を共有できます（AirDrop・ファイルに保存・メール添付）。ファイルを開くと、そのアプリに取り込めます。</p>
+        <summary>パソコンのカレンダーに入れたい</summary>
+        <p style="margin-top:8px">予定ファイル（.ics）をAirDropやメールで送り、パソコンで開くと、Outlook・Thunderbird・Macのカレンダーなどに取り込めます。</p>
+        <button type="button" class="text-link" id="btn-cal-share" style="margin:0 0 10px">予定ファイルを共有する（AirDrop・メール・ファイルに保存）›</button>
       </details>
     </div>
   </div>
@@ -1551,9 +1559,9 @@
         <p>各登録には <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2 2 0 0 1 6 4h5.5v15H6a2 2 0 0 0-2 2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5.5v15H18a2 2 0 0 1 2 2z"/></svg> <b>更新に必要なもの</b>（持ち物のチェック付き）と、<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.5 1 1.3 1 2.1h5c0-.8.3-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg> <b>どうすればいい？</b>（今の状況に合わせた対応策）があります。<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg> でスマホのカレンダーにも入れられ、<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg> で読み上げます。</p>
         <p style="margin-top:8px">更新がすんだら <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> <b>完了</b> を押すと、次の期限を見積もって切り替わり、記録が残ります。</p>
         <div class="guide-callout good"><b>カレンダーに入れる手順</b>
-          Google・Outlook：開いた画面で「保存」を押す。<br>
+          Google：開いた画面で右上の「保存」を押す。<br>
           iPhone：「許可」（初回のみ）→ 下の「カレンダーに追加」を押す。<br>
-          TimeTree・Yahoo!・ジョルテなど：本体のカレンダーに入れて、各アプリで表示をオンにする。<br>
+          TimeTree・Yahoo!・ジョルテ・Outlookなど：iPhoneのカレンダーに入れて、各アプリで「本体カレンダーの表示」をオンにする。<br>
           どれも左上の「×」でトルマモに戻ります。</div>
       </div>
 
@@ -2431,6 +2439,8 @@ function カレンダーに登録(id){
   const item = (window.__items || []).find(i => i.id === id);
   if(!item) return;
   カレンダー対象の項目 = item;
+  document.getElementById("cal-others").hidden = true;
+  document.querySelectorAll(".cal-how details").forEach(d => d.open = false);
   document.getElementById("cal-choice-name").textContent = item.name + "（" + item.expire_date + "）";
   document.getElementById("modal-calendar").classList.add("show");
 }
@@ -3864,7 +3874,12 @@ document.getElementById("btn-security-close").addEventListener("click", () => {
 document.getElementById("btn-cal-google").addEventListener("click", グーグルカレンダーに追加する);
 document.getElementById("btn-cal-ics").addEventListener("click", iPhoneのカレンダーに追加する);
 document.getElementById("btn-cal-share").addEventListener("click", カレンダーファイルで追加する);
-document.getElementById("btn-cal-outlook").addEventListener("click", Outlookに追加する);
+document.getElementById("btn-cal-others").addEventListener("click", () => {
+  const 箱 = document.getElementById("cal-others");
+  箱.hidden = !箱.hidden;
+  if(!箱.hidden) 箱.scrollIntoView({ block: "nearest", behavior: "smooth" });
+});
+document.getElementById("btn-cal-ics-2").addEventListener("click", iPhoneのカレンダーに追加する);
 
 document.getElementById("btn-fb-send").addEventListener("click", async () => {
   const 本文 = document.getElementById("fb-text").value.trim();
@@ -4383,7 +4398,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12o";
+const アプリの版 = "2026-09-12p";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
