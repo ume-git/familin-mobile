@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13g"></script>
+<script src="crypto.js?v=2026-09-13h"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3998,10 +3998,14 @@ async function マスごとに読む(マス, 一回目){
     }
     const iso = y + "-" + String(m).padStart(2, "0") + "-" + String(日).padStart(2, "0");
     const 時 = (文.match(/(\d{1,2})[:：](\d{2})/) || [])[0] || null;
-    // 名前は「時刻と括弧を外した本文」から。全文はメモに残す（場所などが消えないように）
-    const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*[〜~～-]?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
-    items.push({ title: 名.slice(0, 14), due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
-      due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, memo: (文 !== 名.slice(0, 14)) ? 文 : null, category: 一回目.category || null });
+    // 「18:00〜」「18:00から」は始まる時刻。「まで」と付けない
+    const 開始 = !!時 && /\d{1,2}[:：]\d{2}\s*([〜~～]|から)/.test(文);
+    // 名前は「時刻と括弧を外した本文」から。名前を除いた残り（場所など）だけをメモに残す
+    const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
+    const 題 = 名.slice(0, 14);
+    const 残り = 文.replace(題, "").replace(/\s+/g, " ").trim();
+    items.push({ title: 題, due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
+      due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, 開始, memo: (残り && 残り !== 題) ? 残り : null, category: 一回目.category || null });
   });
   if(!items.length) return null;
   return { items, year: 年, month: 月, upright: true };
@@ -4290,7 +4294,7 @@ function まとめての一覧を描く(){
       <span class="m-date">${エスケープ(見やすい日付(r.due_date).replace(/^\d{4}年/, ""))}</span>
       <span class="m-body">
         <span class="m-title">${エスケープ(r.title)}</span>
-        <span class="m-sub">${エスケープ([r.due_time ? r.due_time + "まで" : "", r.category || "", r.memo || ""].filter(Boolean).join(" ・ "))}</span>
+        <span class="m-sub">${エスケープ([r.due_time ? r.due_time + (r.開始 ? "〜" : "まで") : "", r.memo || ""].filter(Boolean).join(" ・ "))}</span>
       </span>
     </label>`).join("");
   枠.querySelectorAll("input").forEach(cb => cb.addEventListener("change", () => {
@@ -4324,7 +4328,7 @@ document.getElementById("multi-ok").addEventListener("click", async () => {
       : (元.category && 種類一覧.includes(元.category)) ? 元.category : "その他の契約書類";
     const 新規 = { id: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
       name: String(r.title).slice(0, 40), category, expire_date: r.due_date,
-      memo: [r.due_time ? r.due_time + "まで" : "", r.memo || ""].filter(Boolean).join("　"),
+      memo: [r.due_time ? r.due_time + (r.開始 ? "〜" : "まで") : "", r.memo || ""].filter(Boolean).join("　"),
       cost: null, sub_type: "", is_senior: false, person_id: まとめて登録の内容.選んだ人物ID,
       読み取り要約: (元.title ? 元.title + "から読み取り" : "予定表から読み取り") };
     items.push(新規);
@@ -5325,7 +5329,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13g";
+const アプリの版 = "2026-09-13h";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
