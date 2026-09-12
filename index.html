@@ -293,7 +293,8 @@
   /* 短い説明文は行の長さをそろえて、1文字だけ次の行に落ちるのを防ぐ */
   .sub,.today-calm,.privacy-note,.empty{text-wrap:balance}
   /* ガイドの段落は長いので balance にすると右側が空く。行末の1文字落ちだけ防ぐ pretty に */
-  .guide-body p{text-wrap:pretty}
+  /* ガイド類の段落は、ふつうの折り返しにする。balance/pretty は iPhone で右側が空いて見えた */
+  .guide-body p,.guide-body li,.guide-callout,.cal-how ol,.cal-others{text-wrap:wrap;text-wrap:stable}
   /* 設定の説明は <br> で2文に分けているので、balance だと途中で変に折れる */
   .capture-safe{color:var(--soft);font-size:12.5px;line-height:1.7;margin:10px 0 0;
     padding:0;border:none;text-align:center;justify-content:center}
@@ -1380,11 +1381,8 @@
       <button class="ghost" id="btn-feedback-close">閉じる</button>
     </div>
     <div class="guide-body">
-      <p class="lead" style="color:var(--soft);font-size:14px;margin:0 0 18px">使ってみて、いかがでしたか？分かりにくかった点や、欲しい機能など、なんでも聞かせてください。</p>
-      <div class="row"><div class="field">
-        <label>お名前（任意）</label>
-        <input type="text" id="fb-name" placeholder="例: お母さん">
-      </div></div>
+      <p class="lead" style="color:var(--soft);font-size:14px;margin:0 0 12px">使ってみて、いかがでしたか？分かりにくかった点や、欲しい機能など、なんでも聞かせてください。</p>
+      <p style="font-size:12.5px;color:var(--soft);margin:0 0 16px;line-height:1.6">送信は<b>匿名</b>です。名前・機種・登録内容は一切送られず、書いた文章だけが開発者に届きます。</p>
       <div class="row"><div class="field">
         <label>感想・改善してほしい点</label>
         <textarea id="fb-text" placeholder="例: 文字は見やすいけど、登録ボタンがもう少し大きいと嬉しい"></textarea>
@@ -1394,10 +1392,8 @@
       </div>
       <div class="copy-fallback">
         うまく送れないときは
-        <button id="btn-line-send">LINEで送る</button>
-        か
         <button id="btn-copy-fb">文章をコピーする</button>
-        もできます。
+        こともできます。
       </div>
     </div>
   </div>
@@ -4030,11 +4026,8 @@ document.getElementById("btn-fb-send").addEventListener("click", async () => {
     const res = await fetch(API_BASE + "/feedback.php", {
       method: "POST",
       headers: AIの見出し,
-      body: JSON.stringify({
-        name: document.getElementById("fb-name").value.trim(),
-        text: 本文,
-        device: navigator.userAgent,
-      }),
+      // 匿名。名前も機種も送らない。本文だけ。
+      body: JSON.stringify({ text: 本文 }),
     });
     if(!res.ok) throw new Error("failed");
     const データ = await res.json();
@@ -4366,19 +4359,13 @@ try { 一覧表示選択.value = localStorage.getItem("familin_listview") || "ur
   描画する();
 });
 
-// ---- 感想をLINEで送る ----
+// ---- 感想の文章（コピー用） ----
+// LINEで送る道はやめた。LINEだと誰が送ったか分かってしまい、匿名にならない。
 function 感想メッセージを作る(){
-  const お名前 = document.getElementById("fb-name").value.trim();
   const 本文 = document.getElementById("fb-text").value.trim();
   if(!本文) return null;
-  return "【トルマモの感想】\n" + (お名前 ? "（" + お名前 + "より）\n" : "") + 本文;
+  return "【トルマモの感想】\n" + 本文;
 }
-
-document.getElementById("btn-line-send").addEventListener("click", () => {
-  const メッセージ = 感想メッセージを作る();
-  if(!メッセージ){ お知らせ("一言だけでも、感想を聞かせてくださいね。", true); return; }
-  location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(メッセージ);
-});
 
 async function クリップボードにコピーする(文章){
   try { await navigator.clipboard.writeText(文章); return true; }
@@ -4537,7 +4524,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12s";
+const アプリの版 = "2026-09-12t";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
