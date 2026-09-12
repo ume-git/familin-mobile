@@ -452,15 +452,15 @@
   .guide-callout.bad{background:var(--bad-soft);color:var(--bad)}
   .guide-callout.good{background:var(--good-soft);color:var(--good)}
 
-  /* 家族のしるし：色の丸に絵柄か頭文字。どこに出ても同じ形 */
-  .avatar{display:inline-flex;align-items:center;justify-content:center;flex:none;
-    width:var(--av-size,28px);height:var(--av-size,28px);border-radius:50%;
-    font-size:calc(var(--av-size,28px) * .56);line-height:1;
-    background:linear-gradient(135deg, hsl(var(--av-h) 80% var(--av-l1,88%)) 0%, hsl(calc(var(--av-h) + 30) 72% var(--av-l2,74%)) 100%);
-    box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55), 0 1px 3px rgba(16,24,32,.14)}
+  /* 家族のしるし：写真の丸か、頭文字の色の丸。どこに出ても同じ形 */
+  .avatar{display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden;
+    width:var(--av-size,28px);height:var(--av-size,28px);border-radius:50%;line-height:1;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5), 0 1px 3px rgba(16,24,32,.16)}
   .avatar.letter{font-size:calc(var(--av-size,28px) * .5);font-weight:800;color:#fff;
     text-shadow:0 1px 2px rgba(0,0,0,.2);
     background:linear-gradient(135deg, hsl(var(--av-h) 64% var(--av-l3,64%)) 0%, hsl(calc(var(--av-h) + 30) 60% var(--av-l4,52%)) 100%)}
+  .avatar.photo{background:var(--surface-2)}
+  .avatar.photo img{width:100%;height:100%;object-fit:cover;display:block}
   .person-pill .avatar{margin-left:-7px}
   .person-pill.add,.person-pill[data-person=""]{padding-left:15px}
   .item .who-tag,.today-who{display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 2px;vertical-align:middle}
@@ -469,24 +469,21 @@
   .read-who-pills button .avatar{margin-left:-4px}
 
   /* 家族を作る画面 */
-  .person-preview{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 14px}
+  .person-preview{display:flex;justify-content:center;margin:4px 0 12px}
   .person-preview .avatar{box-shadow:inset 0 0 0 2px rgba(255,255,255,.6), 0 6px 16px rgba(16,24,32,.16)}
-  .person-preview-name{font-size:16px;font-weight:800}
-  .color-row{display:flex;justify-content:center;gap:9px;margin-bottom:12px}
+  .photo-btns{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .photo-btns .ghost{display:inline-flex;align-items:center;gap:8px;width:auto;padding:11px 18px;font-size:15px;font-weight:700;color:var(--ink)}
+  .photo-btns .text-link{width:auto;font-size:13px;padding:6px 8px}
+  .color-row{display:flex;justify-content:center;gap:9px}
   .color-dot{width:26px;height:26px;border-radius:50%;padding:0;border:none;box-shadow:none;
-    background:linear-gradient(135deg, hsl(var(--av-h) 80% 78%) 0%, hsl(calc(var(--av-h) + 30) 72% 62%) 100%);
+    background:linear-gradient(135deg, hsl(var(--av-h) 64% 64%) 0%, hsl(calc(var(--av-h) + 30) 60% 52%) 100%);
     transition:transform .12s}
   .color-dot.selected{box-shadow:0 0 0 2px var(--surface), 0 0 0 4px var(--ink);transform:scale(1.08)}
-  .icon-tabs{display:flex;gap:4px;background:var(--bg);border-radius:var(--r-full);padding:3px;margin-bottom:8px}
-  .icon-tabs button{flex:1;padding:7px 0;border:none;border-radius:var(--r-full);background:transparent;
-    color:var(--soft);font-size:13px;font-weight:700;box-shadow:none}
-  .icon-tabs button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
-  .icon-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:16px;
-    max-height:168px;overflow-y:auto;padding:6px 4px;background:var(--bg);border-radius:var(--r-sm)}
-  .icon-choice{padding:4px 0;border-radius:var(--r-sm);border:none;background:transparent;box-shadow:none;
-    display:flex;justify-content:center;transition:transform .12s}
-  .icon-choice.selected{background:var(--surface);box-shadow:0 0 0 2px var(--accent)}
-  .icon-choice:active{transform:scale(.92)}
+  .crop-hint{font-size:13.5px;color:var(--soft);text-align:center;margin:0 0 12px}
+  .crop-wrap{display:flex;justify-content:center}
+  #crop-canvas{border-radius:var(--r-md);touch-action:none;cursor:grab;background:#0a0e14}
+  .crop-zoom-row{display:flex;align-items:center;gap:10px;margin:14px 6px 4px;font-size:12px;color:var(--soft);font-weight:700}
+  .crop-zoom-row input{flex:1;accent-color:var(--accent);box-shadow:none;border:none;padding:0;background:none}
 
   /* ひとつの札の中に、説明 → 手順1 → 手順2 → 補足。左端はすべて札の内側にそろえる */
   .backup-card{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
@@ -1063,7 +1060,7 @@
        「今日の確認」は絞り込みに関わらず、いつも家族全員分を見せる。 -->
   <div class="people-row" id="people-row"></div>
   <div class="people-actions" id="people-actions" style="display:none">
-    <button class="ghost" id="btn-edit-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13 7l4 4"/></svg> 名前を変更</button>
+    <button class="ghost" id="btn-edit-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13 7l4 4"/></svg> 名前・写真を変更</button>
     <button class="danger" id="btn-delete-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg> この人を削除</button>
   </div>
 
@@ -1437,14 +1434,29 @@
 <div class="modal-back" id="modal-person">
   <div class="modal-box">
     <p id="modal-person-title">家族を追加</p>
-    <div class="person-preview" id="person-preview"></div>
-    <div class="color-row" id="person-colors"></div>
-    <div class="icon-tabs" id="icon-tabs"></div>
-    <div class="icon-grid" id="icon-grid"></div>
-    <input type="text" id="modal-person-name" placeholder="呼び方（例: おじいさん、たかしさん）" maxlength="20">
-    <div class="btnrow">
-      <button class="ghost" id="modal-person-cancel">やめる</button>
-      <button class="primary" id="modal-person-ok">決定</button>
+    <div id="person-main">
+      <div class="person-preview" id="person-preview"></div>
+      <div class="photo-btns">
+        <button type="button" class="ghost" id="btn-photo-pick"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg><span>写真を撮る・選ぶ</span></button>
+        <button type="button" class="text-link" id="btn-photo-remove" hidden>写真を外す</button>
+      </div>
+      <input type="file" id="photo-file" accept="image/*" hidden>
+      <div class="settings-label" id="person-color-label" style="margin-top:14px">写真がないときの色</div>
+      <div class="color-row" id="person-colors"></div>
+      <input type="text" id="modal-person-name" placeholder="呼び方（例: おじいさん、たかしさん）" maxlength="20" style="margin-top:14px">
+      <div class="btnrow">
+        <button class="ghost" id="modal-person-cancel">やめる</button>
+        <button class="primary" id="modal-person-ok">決定</button>
+      </div>
+    </div>
+    <div id="crop-stage" hidden>
+      <p class="crop-hint">指で動かして、顔を丸の中に入れてください</p>
+      <div class="crop-wrap"><canvas id="crop-canvas" width="240" height="240"></canvas></div>
+      <div class="crop-zoom-row"><span>小</span><input type="range" id="crop-zoom" min="0" max="100" value="0"><span>大</span></div>
+      <div class="btnrow">
+        <button class="ghost" id="crop-cancel">やめる</button>
+        <button class="primary" id="crop-ok">この写真にする</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1833,10 +1845,10 @@ let 金庫データ = { items: [], people: null };
 
 function 既定人物一覧(){
   return [
-    {id:"p_honnin", name:"本人", icon:"🙂"},
-    {id:"p_ojii",   name:"おじいさん", icon:"👴"},
-    {id:"p_obaa",   name:"おばあさん", icon:"👵"},
-    {id:"p_kodomo", name:"こども", icon:"🧒"},
+    {id:"p_honnin", name:"本人"},
+    {id:"p_ojii",   name:"おじいさん"},
+    {id:"p_obaa",   name:"おばあさん"},
+    {id:"p_kodomo", name:"こども"},
   ];
 }
 
@@ -2053,14 +2065,9 @@ function エスケープ(s){
 // ============================================================
 let 選択中の人物ID = null;
 
-// 家族のしるし。絵柄 × 色の丸 で、その人らしさを出す。
-// "文字" は特別で、名前の頭文字を丸に載せる（Googleの連絡先と同じ見せ方）。
-const 人物アイコン群 = [
-  { 名: "かぞく",    絵: ["文字","🙂","👴","👵","👨","👩","🧑","👦","👧","🧒","👶","🧔","👱","😎","🥰","🤓","😴"] },
-  { 名: "いきもの",  絵: ["🐻","🐱","🐶","🐰","🐼","🦊","🐨","🐹","🐯","🦁","🐷","🐸","🐧","🐥","🦉","🐢","🐳","🦈","🐝","🦋","🐙","🦕"] },
-  { 名: "すきなもの", 絵: ["🌸","🌻","🌈","⭐","🔥","🍀","🍎","🍓","🍰","☕","⚽","🎸","🚗","✈️","🎣","🎮","📚","🎨","👑","💎","🌙","☀️"] },
-];
-// 丸の色。色相だけを持ち、明るさはライト・ダークで変える
+// 家族のしるし。LINEと同じで「本人の写真」が主役。
+// 写真は丸く切り抜いて 128px の JPEG にし、暗号化した金庫の中に保存する（サーバーには送らない）。
+// 写真がない人は、名前の頭文字を色の丸に載せる。絵文字は使わない（OSの部品なので、このアプリらしさが出ない）。
 const アバターの色相 = [345, 25, 48, 130, 175, 210, 265, 300];
 function 人物の色相(p){
   if(p && typeof p.color === "number") return p.color;
@@ -2073,14 +2080,11 @@ function 人物の色相(p){
 }
 function 人物アバターHTML(p, サイズ){
   const 名 = (p && p.name) || "";
-  const 絵 = (p && p.icon) || "🙂";
-  const 文字 = 絵 === "文字";
-  const 中身 = 文字 ? エスケープ([...名][0] || "？") : エスケープ(絵);
-  return `<span class="avatar${文字 ? " letter" : ""}" style="--av-h:${人物の色相(p)};--av-size:${サイズ || 28}px" aria-hidden="true">${中身}</span>`;
-}
-function 人物の絵文字(p){
-  const 絵 = (p && p.icon) || "🙂";
-  return 絵 === "文字" ? ([...((p && p.name) || "")][0] || "？") : 絵;
+  const 色 = 人物の色相(p);
+  if(p && p.photo){
+    return `<span class="avatar photo" style="--av-h:${色};--av-size:${サイズ || 28}px" aria-hidden="true"><img src="${p.photo}" alt=""></span>`;
+  }
+  return `<span class="avatar letter" style="--av-h:${色};--av-size:${サイズ || 28}px" aria-hidden="true">${エスケープ([...名][0] || "？")}</span>`;
 }
 
 function 人物名を取り出す(name){
@@ -2102,20 +2106,24 @@ function 人物選択欄を更新する(){
   const select = document.getElementById("f-person");
   const 今の値 = select.value;
   select.innerHTML = '<option value="">（未設定）</option>' +
-    人物一覧を読む().map(p => `<option value="${エスケープ(p.id)}">${エスケープ(人物の絵文字(p))} ${エスケープ(p.name)}</option>`).join("");
+    人物一覧を読む().map(p => `<option value="${エスケープ(p.id)}">${エスケープ(p.name)}</option>`).join("");
   if([...select.options].some(o => o.value === 今の値)) select.value = 今の値;
   else if(選択中の人物ID) select.value = 選択中の人物ID;
 }
 
-// 家族を作る画面。上に大きな見本、色の列、絵柄の棚（3つの引き出し）。
-// 触るたびに見本が変わるので、「作っている」楽しさが出る。
-let 人物編集中 = { icon: "🙂", color: 210, 棚: 0 };
+// 家族を作る画面。上に大きな見本、「写真を撮る・選ぶ」、写真がないときの色、名前。
+// 写真を選ぶと切り抜きの台が出る。指で動かし、つまみで大きさを変え、丸の中に収める。
+let 人物編集中 = { photo: null, color: 210 };
+let 切り抜き = null;   // { img, x, y, 倍率, 最小倍率 }
 
 function 人物見本を描く(){
   const 名 = document.getElementById("modal-person-name").value.trim();
   document.getElementById("person-preview").innerHTML =
-    人物アバターHTML({ id: "", name: 名 || "なまえ", icon: 人物編集中.icon, color: 人物編集中.color }, 84) +
-    `<span class="person-preview-name">${エスケープ(名 || "なまえ")}</span>`;
+    人物アバターHTML({ id: "", name: 名 || "な", photo: 人物編集中.photo, color: 人物編集中.color }, 96);
+  document.getElementById("btn-photo-remove").hidden = !人物編集中.photo;
+  document.querySelector("#btn-photo-pick span").textContent = 人物編集中.photo ? "写真を変える" : "写真を撮る・選ぶ";
+  document.getElementById("person-colors").hidden = !!人物編集中.photo;
+  document.getElementById("person-color-label").hidden = !!人物編集中.photo;
 }
 function 色の列を描く(){
   const el = document.getElementById("person-colors");
@@ -2123,42 +2131,130 @@ function 色の列を描く(){
     `<button type="button" class="color-dot${h === 人物編集中.color ? " selected" : ""}" data-h="${h}" style="--av-h:${h}" aria-label="色"></button>`
   ).join("");
   el.querySelectorAll(".color-dot").forEach(btn => btn.addEventListener("click", () => {
-    人物編集中.color = Number(btn.dataset.h); 色の列を描く(); アイコン欄を描画する(); 人物見本を描く();
-  }));
-}
-function アイコン欄を描画する(){
-  const tabs = document.getElementById("icon-tabs");
-  tabs.innerHTML = 人物アイコン群.map((g, k) =>
-    `<button type="button" class="${k === 人物編集中.棚 ? "active" : ""}" data-k="${k}">${g.名}</button>`).join("");
-  tabs.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
-    人物編集中.棚 = Number(b.dataset.k); アイコン欄を描画する();
-  }));
-  const el = document.getElementById("icon-grid");
-  const 名 = document.getElementById("modal-person-name").value.trim();
-  el.innerHTML = 人物アイコン群[人物編集中.棚].絵.map(icon =>
-    `<button type="button" class="icon-choice${icon === 人物編集中.icon ? " selected" : ""}" data-icon="${icon}" aria-label="${icon === "文字" ? "頭文字" : icon}">` +
-    人物アバターHTML({ id: "", name: 名 || "あ", icon, color: 人物編集中.color }, 40) + `</button>`
-  ).join("");
-  el.querySelectorAll(".icon-choice").forEach(btn => btn.addEventListener("click", () => {
-    人物編集中.icon = btn.dataset.icon;
-    el.querySelectorAll(".icon-choice").forEach(b => b.classList.toggle("selected", b === btn));
-    人物見本を描く();
+    人物編集中.color = Number(btn.dataset.h); 色の列を描く(); 人物見本を描く();
   }));
 }
 
-function カスタム人物編集(タイトル, 初期アイコン, 初期名前, 初期色){
+// ---- 切り抜き ----
+const 切り抜きの大きさ = 240;   // 画面上の丸の直径（CSSピクセル）
+function 画像を読む(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("画像を読めませんでした")); };
+    img.src = url;
+  });
+}
+async function 切り抜きを始める(file){
+  let img;
+  try { img = await 画像を読む(file); } catch(e){ お知らせ("この写真は読み込めませんでした"); return; }
+  const 最小 = 切り抜きの大きさ / Math.min(img.naturalWidth, img.naturalHeight);
+  切り抜き = { img, 倍率: 最小, 最小倍率: 最小, x: 0, y: 0 };
+  // 最初は中央
+  切り抜き.x = (切り抜きの大きさ - img.naturalWidth * 最小) / 2;
+  切り抜き.y = (切り抜きの大きさ - img.naturalHeight * 最小) / 2;
+  const つまみ = document.getElementById("crop-zoom");
+  つまみ.value = 0;
+  document.getElementById("crop-stage").hidden = false;
+  document.getElementById("person-main").hidden = true;
+  切り抜きを描く();
+}
+function 切り抜きを描く(){
+  if(!切り抜き) return;
+  const c = document.getElementById("crop-canvas");
+  const 密度 = Math.min(window.devicePixelRatio || 1, 3);
+  c.width = 切り抜きの大きさ * 密度; c.height = 切り抜きの大きさ * 密度;
+  c.style.width = c.style.height = 切り抜きの大きさ + "px";
+  const ctx = c.getContext("2d");
+  ctx.setTransform(密度, 0, 0, 密度, 0, 0);
+  ctx.clearRect(0, 0, 切り抜きの大きさ, 切り抜きの大きさ);
+  const { img, x, y, 倍率 } = 切り抜き;
+  ctx.drawImage(img, x, y, img.naturalWidth * 倍率, img.naturalHeight * 倍率);
+  // 丸の外を暗くする
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, 切り抜きの大きさ, 切り抜きの大きさ);
+  ctx.arc(切り抜きの大きさ / 2, 切り抜きの大きさ / 2, 切り抜きの大きさ / 2 - 1, 0, Math.PI * 2, true);
+  ctx.fillStyle = "rgba(10,14,20,.62)"; ctx.fill("evenodd");
+  ctx.restore();
+}
+function 切り抜きの位置を収める(){
+  // 丸の外に画像の端が入らないよう、動かせる範囲を絞る
+  const { img, 倍率 } = 切り抜き;
+  const w = img.naturalWidth * 倍率, h = img.naturalHeight * 倍率;
+  切り抜き.x = Math.min(0, Math.max(切り抜きの大きさ - w, 切り抜き.x));
+  切り抜き.y = Math.min(0, Math.max(切り抜きの大きさ - h, 切り抜き.y));
+}
+function 切り抜きを確定する(){
+  if(!切り抜き) return;
+  const 出力 = 128;
+  const c = document.createElement("canvas");
+  c.width = 出力; c.height = 出力;
+  const ctx = c.getContext("2d");
+  const 比 = 出力 / 切り抜きの大きさ;
+  const { img, x, y, 倍率 } = 切り抜き;
+  ctx.drawImage(img, x * 比, y * 比, img.naturalWidth * 倍率 * 比, img.naturalHeight * 倍率 * 比);
+  人物編集中.photo = c.toDataURL("image/jpeg", 0.86);
+  切り抜き = null;
+  document.getElementById("crop-stage").hidden = true;
+  document.getElementById("person-main").hidden = false;
+  人物見本を描く();
+}
+function 切り抜きをやめる(){
+  切り抜き = null;
+  document.getElementById("crop-stage").hidden = true;
+  document.getElementById("person-main").hidden = false;
+}
+(function 切り抜きを配線する(){
+  const c = document.getElementById("crop-canvas");
+  const つまみ = document.getElementById("crop-zoom");
+  if(!c) return;
+  let 掴み = null;
+  c.addEventListener("pointerdown", e => { 掴み = { px: e.clientX, py: e.clientY, x: 切り抜き ? 切り抜き.x : 0, y: 切り抜き ? 切り抜き.y : 0 }; c.setPointerCapture(e.pointerId); });
+  c.addEventListener("pointermove", e => {
+    if(!掴み || !切り抜き) return;
+    切り抜き.x = 掴み.x + (e.clientX - 掴み.px);
+    切り抜き.y = 掴み.y + (e.clientY - 掴み.py);
+    切り抜きの位置を収める(); 切り抜きを描く();
+  });
+  c.addEventListener("pointerup", () => { 掴み = null; });
+  c.addEventListener("pointercancel", () => { 掴み = null; });
+  つまみ.addEventListener("input", () => {
+    if(!切り抜き) return;
+    // つまみ 0〜100 → 最小倍率の1倍〜3倍。中心を保ったまま拡大する
+    const 新 = 切り抜き.最小倍率 * (1 + Number(つまみ.value) / 100 * 2);
+    const 中 = 切り抜きの大きさ / 2;
+    切り抜き.x = 中 - (中 - 切り抜き.x) * (新 / 切り抜き.倍率);
+    切り抜き.y = 中 - (中 - 切り抜き.y) * (新 / 切り抜き.倍率);
+    切り抜き.倍率 = 新;
+    切り抜きの位置を収める(); 切り抜きを描く();
+  });
+  document.getElementById("crop-ok").addEventListener("click", 切り抜きを確定する);
+  document.getElementById("crop-cancel").addEventListener("click", 切り抜きをやめる);
+  document.getElementById("btn-photo-pick").addEventListener("click", () => document.getElementById("photo-file").click());
+  document.getElementById("photo-file").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(f) 切り抜きを始める(f);
+  });
+  document.getElementById("btn-photo-remove").addEventListener("click", () => { 人物編集中.photo = null; 人物見本を描く(); });
+})();
+
+function カスタム人物編集(タイトル, 人){
   return new Promise(resolve => {
     document.getElementById("modal-person-title").textContent = タイトル;
-    const 絵 = 初期アイコン || "🙂";
-    人物編集中 = { icon: 絵, color: (typeof 初期色 === "number") ? 初期色 : アバターの色相[Math.floor(Math.random() * アバターの色相.length)],
-                  棚: Math.max(0, 人物アイコン群.findIndex(g => g.絵.includes(絵))) };
+    人物編集中 = { photo: (人 && 人.photo) || null,
+                  color: 人 ? 人物の色相(人) : アバターの色相[Math.floor(Math.random() * アバターの色相.length)] };
+    切り抜き = null;
+    document.getElementById("crop-stage").hidden = true;
+    document.getElementById("person-main").hidden = false;
     const nameField = document.getElementById("modal-person-name");
-    nameField.value = 初期名前 || "";
-    色の列を描く(); アイコン欄を描画する(); 人物見本を描く();
+    nameField.value = (人 && 人.name) || "";
+    色の列を描く(); 人物見本を描く();
     document.getElementById("modal-person").classList.add("show");
     const okBtn = document.getElementById("modal-person-ok");
     const cancelBtn = document.getElementById("modal-person-cancel");
-    function onInput(){ 人物見本を描く(); if(人物編集中.icon === "文字" || 人物編集中.棚 === 0) アイコン欄を描画する(); }
+    function onInput(){ 人物見本を描く(); }
     function 片付ける(結果){
       document.getElementById("modal-person").classList.remove("show");
       okBtn.removeEventListener("click", onOk);
@@ -2169,7 +2265,7 @@ function カスタム人物編集(タイトル, 初期アイコン, 初期名前
     function onOk(){
       const name = nameField.value.trim();
       if(!name){ nameField.focus(); return; }
-      片付ける({ icon: 人物編集中.icon, name, color: 人物編集中.color });
+      片付ける({ name, photo: 人物編集中.photo, color: 人物編集中.color });
     }
     function onCancel(){ 片付ける(null); }
     okBtn.addEventListener("click", onOk);
@@ -2220,10 +2316,10 @@ function 人物タブを描画する(){
     });
   });
   document.getElementById("btn-add-person").addEventListener("click", async () => {
-    const 結果 = await カスタム人物編集("家族を追加", "🙂", "");
+    const 結果 = await カスタム人物編集("家族を追加", null);
     if(!結果) return;
     const list = 人物一覧を読む();
-    list.push({id: "p_" + Date.now(), name: 結果.name, icon: 結果.icon, color: 結果.color});
+    list.push({id: "p_" + Date.now(), name: 結果.name, photo: 結果.photo, color: 結果.color});
     await 人物一覧を保存する(list);
     人物タブを描画する();
     人物選択欄を更新する();
@@ -2237,11 +2333,12 @@ document.getElementById("btn-edit-person").addEventListener("click", async () =>
   const list = 人物一覧を読む();
   const target = list.find(p => p.id === 選択中の人物ID);
   if(!target) return;
-  const 結果 = await カスタム人物編集("名前・しるしを変更", target.icon, target.name, 人物の色相(target));
+  const 結果 = await カスタム人物編集("名前・写真を変更", target);
   if(!結果) return;
   target.name = 結果.name;
-  target.icon = 結果.icon;
+  target.photo = 結果.photo || undefined;
   target.color = 結果.color;
+  delete target.icon;
   await 人物一覧を保存する(list);
   人物タブを描画する();
   人物選択欄を更新する();
@@ -4151,7 +4248,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12j";
+const アプリの版 = "2026-09-12k";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
