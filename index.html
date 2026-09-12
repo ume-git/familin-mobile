@@ -438,6 +438,19 @@
   .icon-choice:hover{transform:scale(1.12)}
   .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.08)}
 
+  .backup-btns{display:flex;flex-direction:column;gap:8px}
+  .backup-btns .primary{font-size:15px;padding:13px}
+  .backup-btns .ghost{font-size:14.5px;padding:12px}
+  /* 文字の大きさ。root の font-size を変えるだけで、rem/em を使う所が追従する */
+  html[data-text="large"]{font-size:112%}
+  html[data-text="xlarge"]{font-size:126%}
+  html[data-text="large"] body{font-size:18px}
+  html[data-text="xlarge"] body{font-size:20px}
+  html[data-text="large"] .item-head .name,html[data-text="large"] .today-what{font-size:17px}
+  html[data-text="xlarge"] .item-head .name,html[data-text="xlarge"] .today-what{font-size:19px}
+  html[data-text="large"] .today-todo,html[data-text="large"] .action{font-size:15px}
+  html[data-text="xlarge"] .today-todo,html[data-text="xlarge"] .action{font-size:17px}
+  html[data-text="xlarge"] .hero-title{font-size:34px}
   .settings-menu{display:flex;flex-direction:column;gap:8px;margin-top:22px;
     padding-top:20px;border-top:1px solid var(--line)}
   .settings-menu button{display:flex;align-items:center;gap:12px;width:100%;
@@ -486,6 +499,31 @@
   .btnrow{display:flex;gap:10px;margin-top:8px}
   .btnrow button{flex:1}
 
+  /* 月間カレンダー */
+  .cal{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);padding:12px 10px 10px}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .cal-title{font-size:17px;font-weight:800;letter-spacing:.01em}
+  .cal-head .cal-nav{width:38px;height:38px;padding:0;border-radius:50%;font-size:22px;line-height:1;
+    background:var(--surface-2);border:1px solid var(--line);box-shadow:var(--sunken);color:var(--ink)}
+  .cal-week{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;
+    font-size:11px;font-weight:800;color:var(--soft);letter-spacing:.04em;margin-bottom:4px}
+  .cal-week .sun{color:var(--bad)} .cal-week .sat{color:var(--accent)}
+  /* minmax(0,1fr) にしないと、升の中身の幅に引きずられて7列が画面からはみ出す */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .cal-cell{min-width:0;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    gap:3px;padding:5px 0 0;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;
+    box-shadow:none;color:var(--ink);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+  .cal-cell.blank{pointer-events:none}
+  .cal-cell.has{background:var(--surface-2);border-color:var(--line)}
+  .cal-cell.today span{background:var(--accent);color:var(--on-accent);border-radius:50%;
+    width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
+  .cal-cell.picked{border-color:var(--accent);box-shadow:var(--ring)}
+  .cal-cell .dots{display:flex;gap:2px;height:6px}
+  .cal-cell .dot{width:6px;height:6px;border-radius:50%;display:block;background:var(--soft)}
+  .cal-cell .dot.bad{background:var(--bad)} .cal-cell .dot.warn{background:var(--warn)} .cal-cell .dot.good{background:var(--good)}
+  .cal-picked-head{font-size:13px;font-weight:800;color:var(--soft);margin:16px 2px 8px;letter-spacing:.02em}
+  .cal-hint{color:var(--soft);font-size:13px;text-align:center;padding:14px 0 4px}
   .list{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
   .item{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-md);
     box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);overflow:hidden}
@@ -612,6 +650,13 @@
   .gb-sec ul,.gb-sec ol{margin:0;padding-left:1.3em;font-size:15px;line-height:1.7}
   .gb-sec li{margin-bottom:5px}
   .gb-sec li:last-child{margin-bottom:0}
+  .gb-progress{float:right;font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .gb-check{display:flex;flex-direction:column;gap:6px}
+  .gb-check label{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);
+    background:var(--surface-2);box-shadow:var(--sunken);font-size:15px;line-height:1.55;cursor:pointer}
+  .gb-check label.on{background:var(--good-soft);color:var(--soft);text-decoration:line-through}
+  .gb-check input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--good);
+    box-shadow:none;padding:0;border:none}
   .gb-kv{display:flex;gap:12px;font-size:14.5px;line-height:1.7;padding:10px 0;border-top:1px solid var(--line)}
   .gb-kv b{flex:none;width:70px;color:var(--soft);font-weight:800;font-size:12.5px;padding-top:2px}
   .gb-warn{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 var(--r-sm) var(--r-sm) 0;
@@ -718,6 +763,14 @@
   .calm-head{display:flex;align-items:center;gap:9px;color:var(--good);font-weight:800;font-size:17px}
   .calm-head .ic{width:22px;height:22px;stroke-width:2.4}
   .calm-body{color:var(--soft);font-size:16px;line-height:1.75;margin:8px 0 0 31px;text-align:left}
+  .count-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+  .count{display:flex;flex-direction:column;align-items:center;gap:1px;padding:10px 6px 9px;
+    border-radius:var(--r-md);background:var(--grad-card);border:1px solid var(--line);
+    box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);color:var(--soft)}
+  .count b{font-size:24px;font-weight:800;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .count span{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+  .count.bad b{color:var(--bad)} .count.warn b{color:var(--warn)}
+  .count.zero b{color:var(--soft);opacity:.55}
   .today-calm{color:var(--soft);text-align:left;padding:16px 0 20px;border:none;
     border-bottom:1px solid var(--line);border-radius:0;background:none;box-shadow:none;
     font-size:14.5px;margin-bottom:0}
@@ -899,6 +952,11 @@
       <span class="today-date" id="today-date"></span>
       <span id="mascot-slot" hidden></span>
     </div>
+    <div class="count-strip" id="count-strip" hidden>
+      <button type="button" class="count bad" data-scope="expired"><b id="cnt-expired">0</b><span>期限切れ</span></button>
+      <button type="button" class="count warn" data-scope="today"><b id="cnt-today">0</b><span>今日まで</span></button>
+      <button type="button" class="count soon" data-scope="week"><b id="cnt-week">0</b><span>7日以内</span></button>
+    </div>
     <div id="today-summary"></div>
   </section>
 
@@ -953,6 +1011,7 @@
       <option value="urgency">緊急度順</option>
       <option value="category">種類ごとにまとめる</option>
       <option value="person">家族・名前ごとにまとめる</option>
+      <option value="calendar">カレンダーで見る</option>
     </select>
   </div>
   <div class="list" id="list"></div>
@@ -1075,6 +1134,28 @@
     <div class="settings-row">
       <label></label>
       <button class="ghost" id="btn-voice-test">試しに聞く</button>
+    </div>
+
+    <div class="settings-block">
+      <div class="settings-label">文字の大きさ</div>
+      <div class="seg" id="text-seg">
+        <button type="button" data-text="normal">標準</button>
+        <button type="button" data-text="large">大きめ</button>
+        <button type="button" data-text="xlarge">特大</button>
+      </div>
+    </div>
+
+    <div class="settings-block">
+      <div class="settings-label">控えと引き継ぎ</div>
+      <p class="settings-hint" style="margin-bottom:12px">端末を失っても登録が消えないように、控えを作っておけます。
+        控えは<b>合言葉で暗号化</b>され、機種変更のときはこの控えを新しい端末で読み込みます。</p>
+      <div class="backup-btns">
+        <button type="button" class="primary" id="btn-backup-export">控えを書き出す</button>
+        <button type="button" class="ghost" id="btn-backup-import">控えから読み込む</button>
+        <button type="button" class="ghost" id="btn-csv-export">表計算用（CSV）で書き出す</button>
+      </div>
+      <input type="file" id="backup-file" accept=".tmbk,application/json,.json" style="display:none">
+      <p class="settings-hint" id="backup-last"></p>
     </div>
 
     <div class="settings-menu">
@@ -1552,9 +1633,24 @@ const 更新の手引き = {
   },
 };
 
+let 手引きの項目ID = null;
+
+async function 持ち物を切り替える(番号){
+  const items = 項目一覧を読む();
+  const 場所 = items.findIndex(x => x.id === 手引きの項目ID);
+  if(場所 < 0) return;
+  const 今 = Object.assign({}, items[場所].持ち物チェック || {});
+  今[番号] = !今[番号];
+  items[場所] = Object.assign({}, items[場所], { 持ち物チェック: 今 });
+  await 項目一覧を保存する(items);
+  描画する();
+  手引きを開く(手引きの項目ID);
+}
+
 function 手引きを開く(id){
   const i = (window.__items || []).find(x => x.id === id);
   if(!i) return;
+  手引きの項目ID = id;
   const 手 = 更新の手引き[i.category];
   if(!手) return;
   const 案内 = 公式の案内先[i.category];
@@ -1574,7 +1670,14 @@ function 手引きを開く(id){
     <div class="gb-name">${エスケープ(i.name)}<small>${エスケープ(i.category)}</small></div>
     <p class="gb-lead">${エスケープ(手.要約)}</p>
     ${講習の補足 ? `<div class="gb-warn">${エスケープ(講習の補足)}</div>` : ""}
-    <div class="gb-sec"><h4>持っていくもの</h4><ul>${手.持ち物.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ul></div>
+    <div class="gb-sec">
+      <h4>持っていくもの <span class="gb-progress">${Object.values(i.持ち物チェック || {}).filter(Boolean).length} / ${手.持ち物.length}</span></h4>
+      <div class="gb-check">${手.持ち物.map((t, k) => `
+        <label class="${(i.持ち物チェック || {})[k] ? "on" : ""}">
+          <input type="checkbox" ${(i.持ち物チェック || {})[k] ? "checked" : ""} onchange="持ち物を切り替える(${k})">
+          <span>${エスケープ(t)}</span>
+        </label>`).join("")}</div>
+    </div>
     <div class="gb-sec"><h4>手順</h4><ol>${手.手順.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ol></div>
     <div class="gb-kv"><b>かかる時間</b><span>${エスケープ(手.所要)}</span></div>
     <div class="gb-kv"><b>費用の目安</b><span>${エスケープ(手.費用)}</span></div>
@@ -2117,6 +2220,8 @@ function 項目カードHTML(i){
         </div>` : ""}
       ${i.cost ? `<div class="meta">費用の目安: ${Number(i.cost).toLocaleString()}円</div>` : ""}
       ${i.memo ? `<div class="meta">メモ: ${エスケープ(i.memo)}</div>` : ""}
+      ${(i.履歴 && i.履歴.length) ? `<div class="meta history">更新の記録：${i.履歴.slice(-3).reverse().map(h =>
+          `${エスケープ(h.日)} ${エスケープ(h.種別)}（${エスケープ(h.前)} → ${エスケープ(h.後)}）`).join("／")}</div>` : ""}
       ${対応策のHTML(i)}
       <div class="row-btns">
         ${更新の手引き[i.category] ? `<button class="ghost guide-btn" onclick="手引きを開く('${i.id}')">📋 更新に必要なもの</button>` : ""}
@@ -2227,6 +2332,22 @@ function 今日やることを描画する(items){
   const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
   const 注意 = items.filter(i => i.段階 === "注意");
 
+  // 件数の帯。競合が最初に見せる3つの数字。登録が1件でもあれば出す。
+  const 期限切れ数 = items.filter(i => i.残り日数 != null && i.残り日数 < 0).length;
+  const 今日数     = items.filter(i => i.残り日数 === 0).length;
+  const 週内数     = items.filter(i => i.残り日数 != null && i.残り日数 > 0 && i.残り日数 <= 7).length;
+  const 帯 = document.getElementById("count-strip");
+  if(帯){
+    帯.hidden = items.length === 0;
+    const 置く = (id, n, cls) => { const b = document.getElementById(id); b.textContent = n; b.parentElement.classList.toggle("zero", n === 0); };
+    置く("cnt-expired", 期限切れ数); 置く("cnt-today", 今日数); 置く("cnt-week", 週内数);
+  }
+  // ホーム画面のアイコンにも件数を出す（対応している端末だけ。iOSはホーム画面に追加した場合）
+  try {
+    const 急ぎ = 期限切れ数 + 今日数;
+    if("setAppBadge" in navigator){ 急ぎ > 0 ? navigator.setAppBadge(急ぎ) : navigator.clearAppBadge(); }
+  } catch(e) {}
+
   if(緊急.length === 0 && 注意.length === 0){
     el.innerHTML = `<div class="today-calm">
       <div class="calm-head"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>すべて確認済み</div>
@@ -2314,6 +2435,67 @@ function 今後の予定を描画する(items){
   }).join("") + `</div>`;
 }
 
+// ============================================================
+// 月間カレンダー
+// 「今月、何がいつ来るか」を一枚で見る。競合はみな持っている見せ方。
+// 日付の点は段階の色。日を押すと、その日の項目が下に出る。
+// ============================================================
+let 表示中の月 = null;      // {y, m}（mは1〜12）
+let 選んだ日 = null;        // "YYYY-MM-DD"
+
+function 月間カレンダーを描画する(items){
+  const 今日 = new Date();
+  if(!表示中の月) 表示中の月 = { y: 今日.getFullYear(), m: 今日.getMonth() + 1 };
+  const { y, m } = 表示中の月;
+  const 月初 = new Date(y, m - 1, 1);
+  const 日数 = new Date(y, m, 0).getDate();
+  const 先頭の曜日 = 月初.getDay();
+  const 今日の札 = 今日.getFullYear() + "-" + String(今日.getMonth() + 1).padStart(2, "0") + "-" + String(今日.getDate()).padStart(2, "0");
+
+  const 日ごと = {};
+  items.forEach(i => { if(i.expire_date){ (日ごと[i.expire_date] = 日ごと[i.expire_date] || []).push(i); } });
+
+  let 升 = "";
+  // 「empty」は一覧の空表示の class と重なる（余白36pxが付いて升が伸びた）ので blank にする
+  for(let k = 0; k < 先頭の曜日; k++) 升 += `<div class="cal-cell blank"></div>`;
+  for(let d = 1; d <= 日数; d++){
+    const 札 = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+    const ある = 日ごと[札] || [];
+    const 点 = ある.slice(0, 3).map(i => `<i class="dot ${i.色}"></i>`).join("");
+    const cls = ["cal-cell", 札 === 今日の札 ? "today" : "", 札 === 選んだ日 ? "picked" : "", ある.length ? "has" : ""].filter(Boolean).join(" ");
+    升 += `<button type="button" class="${cls}" onclick="カレンダーの日を選ぶ('${札}')"><span>${d}</span><div class="dots">${点}</div></button>`;
+  }
+  const 選んだ = 選んだ日 ? (日ごと[選んだ日] || []) : [];
+  const 下 = 選んだ日
+    ? (選んだ.length
+        ? `<div class="cal-picked-head">${エスケープ(見やすい日付(選んだ日))}</div>` + 選んだ.map(項目カードHTML).join("")
+        : `<div class="cal-picked-head">${エスケープ(見やすい日付(選んだ日))}</div><div class="empty" style="padding:18px 10px">この日に期限のものはありません。</div>`)
+    : `<div class="cal-hint">日を押すと、その日に期限のものが出ます。</div>`;
+
+  return `
+    <div class="cal">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" onclick="月を動かす(-1)" aria-label="前の月">‹</button>
+        <div class="cal-title">${y}年${m}月</div>
+        <button type="button" class="cal-nav" onclick="月を動かす(1)" aria-label="次の月">›</button>
+      </div>
+      <div class="cal-week">${["日","月","火","水","木","金","土"].map((w, k) => `<span class="${k === 0 ? "sun" : k === 6 ? "sat" : ""}">${w}</span>`).join("")}</div>
+      <div class="cal-grid">${升}</div>
+    </div>
+    ${下}`;
+}
+function 月を動かす(差){
+  if(!表示中の月) return;
+  let { y, m } = 表示中の月;
+  m += 差; if(m < 1){ m = 12; y--; } if(m > 12){ m = 1; y++; }
+  表示中の月 = { y, m }; 選んだ日 = null;
+  描画する();
+}
+function カレンダーの日を選ぶ(札){
+  選んだ日 = (選んだ日 === 札) ? null : 札;
+  描画する();
+}
+
 function カテゴリー別に描画する(items){
   let html = "";
   種類一覧.forEach(cat => {
@@ -2387,6 +2569,7 @@ function 描画する(){
     const モード = document.getElementById("list-view-mode").value;
     if(モード === "category") list.innerHTML = カテゴリー別に描画する(items);
     else if(モード === "person") list.innerHTML = 人物別に描画する(items);
+    else if(モード === "calendar") list.innerHTML = 月間カレンダーを描画する(items);
     else list.innerHTML = items.map(項目カードHTML).join("");
   }
 
@@ -2591,6 +2774,172 @@ document.getElementById("btn-open-form").addEventListener("click", () => {
   });
   消す.addEventListener("click", () => { 欄.value = ""; 消す.hidden = true; 描画する(); 欄.focus(); });
 })();
+
+// ============================================================
+// 文字の大きさ
+// ============================================================
+(function 文字の大きさを配線する(){
+  const 段 = document.getElementById("text-seg");
+  if(!段) return;
+  let 今 = "normal";
+  try { 今 = localStorage.getItem("torumamo_text") || "normal"; } catch(e) {}
+  const 反映 = (v) => {
+    if(v === "normal") document.documentElement.removeAttribute("data-text");
+    else document.documentElement.setAttribute("data-text", v);
+    段.querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.text === v));
+  };
+  反映(今);
+  段.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-text]"); if(!b) return;
+    try { localStorage.setItem("torumamo_text", b.dataset.text); } catch(err) {}
+    反映(b.dataset.text);
+  });
+})();
+
+// ============================================================
+// 控えと引き継ぎ
+//
+// 端末を失うと全部消える、というのは見守りアプリとして致命的。
+// 控えは、登録・家族・設定をまとめて、本人が決めた合言葉で暗号化した1つのファイル。
+// 合言葉はPINとは別（PINは4桁で、ファイルを守るには弱い）。
+// ファイルはこの端末の中で作られ、どこにも送られない。共有先を選ぶのは本人。
+// ============================================================
+const 控えの形式 = "torumamo-backup";
+
+function 今の設定を集める(){
+  const 取る = (k) => { try { return localStorage.getItem(k) || ""; } catch(e) { return ""; } };
+  return { mode: 取る("torumamo_mode"), color: 取る("torumamo_color"), voice: 取る("familin_voice"), text: 取る("torumamo_text") };
+}
+
+async function 控えを作る(合言葉){
+  const 中身 = {
+    形式: 控えの形式, 版: 1, 作成: new Date().toISOString(),
+    items: 項目一覧を読む(), people: 人物一覧を読む(), 設定: 今の設定を集める(),
+  };
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const 鍵 = await 鍵を導出する(合言葉, salt);
+  const 暗号 = await 暗号化する(鍵, new TextEncoder().encode(JSON.stringify(中身)));
+  return { 形式: 控えの形式, 版: 1, 作成: 中身.作成, 件数: 中身.items.length,
+           salt: base64化(salt), iv: 暗号.iv, data: 暗号.data };
+}
+
+async function 控えを開く(ファイルの中身, 合言葉){
+  const 包み = JSON.parse(ファイルの中身);
+  if(!包み || 包み.形式 !== 控えの形式) throw new Error("トルマモの控えファイルではありません。");
+  const 鍵 = await 鍵を導出する(合言葉, base64を戻す(包み.salt));
+  let 平文;
+  try { 平文 = await 復号する(鍵, 包み.iv, 包み.data); }
+  catch(e) { throw new Error("合言葉が違います。"); }
+  const 中身 = JSON.parse(new TextDecoder().decode(平文));
+  if(!Array.isArray(中身.items)) throw new Error("控えの中身が読めませんでした。");
+  return 中身;
+}
+
+function 日付の札(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
+async function ファイルを渡す(名前, 中身, 種類){
+  const blob = new Blob([中身], { type: 種類 });
+  const file = new File([blob], 名前, { type: 種類 });
+  // iPhoneでは「共有」から「ファイルに保存」やAirDropが選べる。これが機種変更の道になる。
+  if(navigator.canShare && navigator.canShare({ files: [file] })){
+    try { await navigator.share({ files: [file], title: 名前 }); return "共有"; }
+    catch(e) { if(e && e.name === "AbortError") return "やめた"; }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = 名前;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  return "保存";
+}
+
+document.getElementById("btn-backup-export").addEventListener("click", async () => {
+  const 合言葉 = await カスタム入力("控えを守る合言葉（6文字以上。読み込むときに要ります）", "");
+  if(合言葉 === null || 合言葉 === undefined) return;
+  if(String(合言葉).length < 6){ お知らせ("合言葉は6文字以上にしてください。", true); return; }
+  const btn = document.getElementById("btn-backup-export");
+  btn.disabled = true; btn.textContent = "作っています…";
+  try {
+    const 包み = await 控えを作る(String(合言葉));
+    const 結果 = await ファイルを渡す("トルマモの控え-" + 日付の札() + ".tmbk", JSON.stringify(包み), "application/json");
+    if(結果 !== "やめた"){
+      try { localStorage.setItem("torumamo_backup_at", new Date().toISOString()); } catch(e) {}
+      控えの日付を出す();
+      お知らせ("控えを作りました（" + 包み.件数 + "件）。合言葉は忘れないでください。", true);
+    }
+  } catch(err) {
+    お知らせ("控えを作れませんでした。", true);
+  } finally {
+    btn.disabled = false; btn.textContent = "控えを書き出す";
+  }
+});
+
+document.getElementById("btn-backup-import").addEventListener("click", () => {
+  document.getElementById("backup-file").click();
+});
+document.getElementById("backup-file").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if(!file) return;
+  const 合言葉 = await カスタム入力("控えの合言葉", "");
+  if(合言葉 === null || 合言葉 === undefined) return;
+  try {
+    const 中身 = await 控えを開く(await file.text(), String(合言葉));
+    const 作成 = 中身.作成 ? 見やすい日付(中身.作成.slice(0, 10)) : "不明";
+    const 今 = 項目一覧を読む();
+    let 足すだけ = false;
+    if(今.length > 0){
+      足すだけ = !(await カスタム確認(
+        `控え（${作成}・${中身.items.length}件）を読み込みます。
+` +
+        `「はい」＝今の${今.length}件を消して置き換える
+「やめる」＝消さずに足す（同じものは飛ばす）`));
+    }
+    let items;
+    if(足すだけ){
+      const ある = new Set(今.map(i => i.id));
+      items = 今.concat(中身.items.filter(i => !ある.has(i.id)));
+    } else {
+      items = 中身.items;
+    }
+    await 項目一覧を保存する(items);
+    if(Array.isArray(中身.people) && 中身.people.length) await 人物一覧を保存する(中身.people);
+    if(中身.設定){
+      try {
+        if(中身.設定.mode)  localStorage.setItem("torumamo_mode", 中身.設定.mode);
+        if(中身.設定.color) localStorage.setItem("torumamo_color", 中身.設定.color);
+        if(中身.設定.voice) localStorage.setItem("familin_voice", 中身.設定.voice);
+        if(中身.設定.text)  localStorage.setItem("torumamo_text", 中身.設定.text);
+      } catch(err) {}
+      色を反映する(色の設定を読む()); 色の画面を描く();
+    }
+    描画する();
+    お知らせ(`読み込みました（${items.length}件）。`, true);
+  } catch(err) {
+    お知らせ((err && err.message) ? err.message : "読み込めませんでした。", true);
+  }
+});
+
+document.getElementById("btn-csv-export").addEventListener("click", async () => {
+  const ok = await カスタム確認("CSVは暗号化されません。表計算で見るためのもので、人に渡すときは注意してください。書き出しますか？");
+  if(!ok) return;
+  const 囲む = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+  const 行 = [["名前","種類","誰の","期限","残り日数","状態","免許の色","70歳以上","費用","メモ","読み取った要約"]];
+  (window.__items || []).forEach(i => 行.push([
+    i.name, i.category, 項目の人物名(i), i.expire_date, i.残り日数, i.段階ラベル, i.sub_type, i.is_senior ? "はい" : "",
+    i.cost, i.memo, i.読み取り要約 ]));
+  const csv = "\uFEFF" + 行.map(r => r.map(囲む).join(",")).join("\r\n");
+  await ファイルを渡す("トルマモ-" + 日付の札() + ".csv", csv, "text/csv");
+});
+
+function 控えの日付を出す(){
+  const el = document.getElementById("backup-last");
+  if(!el) return;
+  let at = ""; try { at = localStorage.getItem("torumamo_backup_at") || ""; } catch(e) {}
+  el.textContent = at ? "最後に控えを作った日：" + 見やすい日付(at.slice(0, 10)) : "まだ控えを作っていません。";
+}
+控えの日付を出す();
 
 // ============================================================
 // 画面の切り替え（ホーム／一覧／設定）
@@ -3063,8 +3412,13 @@ document.getElementById("btn-save").addEventListener("click", async () => {
       const 更新 = { name, category, expire_date, memo, cost, sub_type, is_senior, person_id };
       if(要約) 更新.読み取り要約 = 要約;
       if(やること && やること.length) 更新.読み取りやること = やること;
-      // 期限が変わったら、前の期限向けの対応策は古いので消す
-      if(items[idx].expire_date !== expire_date) 更新.対応策 = undefined;
+      // 期限が変わったら、前の期限向けの対応策は古いので消し、記録を1行残す
+      if(items[idx].expire_date !== expire_date){
+        更新.対応策 = undefined;
+        更新.持ち物チェック = {};
+        更新.履歴 = (items[idx].履歴 || []).concat([{ 日: 日付の札(), 前: items[idx].expire_date, 後: expire_date,
+          種別: (読み取り && 読み取り.置き換える先) ? "更新版" : "変更" }]);
+      }
       items[idx] = Object.assign({}, items[idx], 更新);
     }
   } else {
@@ -3361,7 +3715,8 @@ document.getElementById("done-keep").addEventListener("click", async () => {
   const items = 項目一覧を読む();
   const 場所 = items.findIndex(i => i.id === 元.id);
   if(場所 < 0) return;
-  items[場所] = Object.assign({}, items[場所], { expire_date: 見積もり.日付 });
+  const 記録 = (items[場所].履歴 || []).concat([{ 日: 日付の札(), 前: 元.expire_date, 後: 見積もり.日付, 種別: "完了" }]);
+  items[場所] = Object.assign({}, items[場所], { expire_date: 見積もり.日付, 履歴: 記録, 持ち物チェック: {}, 対応策: undefined });
   await 項目一覧を保存する(items);
   祝う画面を閉じる();
   描画する();
@@ -3659,7 +4014,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12d";
+const アプリの版 = "2026-09-12e";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
