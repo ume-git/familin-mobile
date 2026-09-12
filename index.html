@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13h"></script>
+<script src="crypto.js?v=2026-09-13i"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3692,20 +3692,30 @@ function 画像を4分割する(元画像, 回転, 各最大辺){
 // ============================================================
 // 罫線を測る：傾きを直し、横線・縦線の位置と紙の範囲を返す（向きの判定にも、マスの切り出しにも使う）
 function 罫線を測る(元画像, 回転, 幅){
+  // 紙の範囲は傾けていない画像で1回だけ決め、少し内側に縮めて使う。
+  // 傾けた画像で決め直すと、回した角の白い隙間や机の縁が「紙」に混ざって、机の縁を罫線と見てしまう
+  const c0 = キャンバスに描く(元画像, 回転, 900, 0);
+  const 紙0 = 暗い画素(c0).紙;
+  const 縮めた = (紙, 倍) => {
+    const dx = Math.round((紙.右 - 紙.左) * 0.005), dy = Math.round((紙.下 - 紙.上) * 0.005);
+    return { 上: Math.round((紙.上 + dy) * 倍), 下: Math.round((紙.下 - dy) * 倍), 左: Math.round((紙.左 + dx) * 倍), 右: Math.round((紙.右 - dx) * 倍) };
+  };
   let 最良 = { 角: 0, 得点: -1 };
   for(let 角 = -3; 角 <= 3; 角 += 0.5){
-    const c = キャンバスに描く(元画像, 回転, 900, 角);
-    const 暗 = 暗い画素(c);
-    const 得点 = 尖り(行の合計(暗)) + 尖り(列の合計(暗));
+    const c = 角 === 0 ? c0 : キャンバスに描く(元画像, 回転, 900, 角);
+    const 暗 = 暗い画素(c, 縮めた(紙0, 1));
+    const 得点 = 合計(線の強さ(暗, false)) + 合計(線の強さ(暗, true));
     if(得点 > 最良.得点) 最良 = { 角, 得点 };
   }
   const c = キャンバスに描く(元画像, 回転, 幅, 最良.角);
-  const 暗 = 暗い画素(c);
-  const 行和 = 行の合計(暗);
+  const 倍 = c.width / c0.width;
+  const 暗 = 暗い画素(c, 縮めた(紙0, 倍));
+  暗.紙元 = { 上: Math.round(紙0.上 * 倍), 下: Math.round(紙0.下 * 倍), 左: Math.round(紙0.左 * 倍), 右: Math.round(紙0.右 * 倍) };
+  const 行和 = 線の強さ(暗, false);
   const 横線 = 線を見つける(行和, Math.max(...行和) * 0.35, 6);
   if(横線.length < 3) return null;
   const 上 = 横線[0], 下 = 横線[横線.length - 1];
-  const 列和 = 列の合計(暗, 上, 下);
+  const 列和 = 線の強さ(暗, true, 上, 下);
   let 縦線 = 線を見つける(列和, Math.max(...列和) * 0.35, 6);
   縦線 = 端を補う(縦線, 暗.w, 列和);
   if(縦線.length < 3) return null;
@@ -3717,7 +3727,7 @@ function 予定表の向きを決める(元画像){
   try {
     const 測 = 罫線を測る(元画像, 0, 900);
     if(!測) return null;
-    const 紙 = 測.暗.紙;
+    const 紙 = 測.暗.紙元 || 測.暗.紙;
     // 等間隔に並ぶ線の並び（＝日付のマス目）だけを罫線とみなす。楽譜や別の紙の線に引きずられない
     const 横 = 等間隔の並び(測.横線), 縦 = 等間隔の並び(測.縦線);
     if(横.length < 4 || 縦.length < 4) return null;
@@ -3725,8 +3735,14 @@ function 予定表の向きを決める(元画像){
     const 左余白 = 縦[0] - 紙.左, 右余白 = 紙.右 - 縦[縦.length - 1];
     const 候補 = [[上余白, 0], [左余白, 90], [下余白, 180], [右余白, 270]].sort((a, b) => b[0] - a[0]);
     // いちばん広い側が、2番目より明らかに広いときだけ信じる
-    if(候補[0][0] < 候補[1][0] * 1.4) return null;
-    return 候補[0][1];
+    if(候補[0][0] >= 候補[1][0] * 1.4) return 候補[0][1];
+    // 余白で決まらないときは、マスの並びで決める：曜日は7列なので、7つ並んでいる向きが横。
+    // 上下（左右）どちらが上かは、広いほうの余白を上とする（外れても、AIが「逆さ」と答えれば180度回して読み直す）
+    const 数 = 線 => { const r = 区間(線); const m = Math.max(...r.map(x => x[1] - x[0])); return r.filter(x => x[1] - x[0] >= m * 0.55).length; };
+    const 横数 = 数(測.縦線), 縦数 = 数(測.横線);
+    if(横数 === 7 && 縦数 !== 7) return 上余白 >= 下余白 ? 0 : 180;
+    if(縦数 === 7 && 横数 !== 7) return 左余白 >= 右余白 ? 90 : 270;
+    return null;
   } catch(e){ return null; }
 }
 function マス目を切り出す(元画像, 回転){
@@ -3782,9 +3798,9 @@ function マス目を切り出す(元画像, 回転){
             const sy2 = Math.min(所属.h - 1, Math.max(0, Math.round(sy + ty / 倍)));
             for(let tx = 0; tx < タイル幅; tx++){
               const sx2 = Math.min(w0 - 1, Math.max(0, Math.round(sx + tx / 倍)));
-              // その画素と周り1pxのどれかが「他のマスのインク」なら消す（縁の薄い部分も残さない）
+              // その画素と周り2pxのどれかが「他のマスのインク」なら消す（縁の薄い部分も残さない）
               let 消す = false;
-              for(let dy = -1; dy <= 1 && !消す; dy++) for(let dx = -1; dx <= 1; dx++){
+              for(let dy = -2; dy <= 2 && !消す; dy++) for(let dx = -2; dx <= 2; dx++){
                 const yy = sy2 + dy, xx = sx2 + dx; if(yy < 0 || yy >= 所属.h || xx < 0 || xx >= w0) continue;
                 const lab = 所属.印[yy * w0 + xx];
                 if(lab > 0 && 所属.マス[lab] !== 自分){ 消す = true; break; }
@@ -3821,7 +3837,7 @@ function キャンバスに描く(元画像, 回転, 最大辺, 角){
   g.drawImage(元画像, -w / 2, -h / 2, w, h);
   return c;
 }
-function 暗い画素(c){
+function 暗い画素(c, 紙指定){
   const g = c.getContext("2d"), w = c.width, h = c.height;
   const d = g.getImageData(0, 0, w, h).data;
   const 明 = new Uint8Array(w * h);
@@ -3843,16 +3859,54 @@ function 暗い画素(c){
     if(v >= 明るい){ 行明[(p / w) | 0]++; 列明[p % w]++; }
   }
   let 上 = 0, 下 = h - 1, 左 = 0, 右 = w - 1;
-  while(上 < h && 行明[上] < w * 0.5) 上++;
-  while(下 > 上 && 行明[下] < w * 0.5) 下--;
-  while(左 < w && 列明[左] < h * 0.5) 左++;
-  while(右 > 左 && 列明[右] < h * 0.5) 右--;
+  if(紙指定){
+    上 = Math.max(0, 紙指定.上); 下 = Math.min(h - 1, 紙指定.下); 左 = Math.max(0, 紙指定.左); 右 = Math.min(w - 1, 紙指定.右);
+  } else {
+    while(上 < h && 行明[上] < w * 0.5) 上++;
+    while(下 > 上 && 行明[下] < w * 0.5) 下--;
+    while(左 < w && 列明[左] < h * 0.5) 左++;
+    while(右 > 左 && 列明[右] < h * 0.5) 右--;
+  }
   // 紙の外は数えない
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++) if(y < 上 || y > 下 || x < 左 || x > 右) 暗[y * w + x] = 0;
   return { w, h, 暗, 紙: { 上, 下, 左, 右 }, 元: d };
 }
 function 行の合計(a){ const s = new Float64Array(a.h); for(let y = 0; y < a.h; y++){ let t = 0; const o = y * a.w; for(let x = 0; x < a.w; x++) t += a.暗[o + x]; s[y] = t; } return s; }
 function 列の合計(a, 上, 下){ 上 = 上 || 0; 下 = 下 || a.h; const s = new Float64Array(a.w); for(let x = 0; x < a.w; x++){ let t = 0; for(let y = 上; y < 下; y++) t += a.暗[y * a.w + x]; s[x] = t; } return s; }
+// 行（縦=true なら列）ごとの「線らしさ」。紙の幅の半分以上つづく暗い並びがあれば、その並びの平均の濃さ。
+// 暗さの合計で見ると、大きな日付の数字や色つきの曜日帯に引きずられて罫線が埋もれる。
+// 「途切れずに長くつながっているか」で見れば、数字は短いので反応せず、点線は薄いので下がる。
+function 線の強さ(a, 縦, 上, 下){
+  const w = a.w, h = a.h, 紙 = a.紙;
+  const 本数 = 縦 ? w : h;
+  const 始 = 縦 ? Math.max(上 || 0, 紙.上) : 紙.左;
+  const 終 = 縦 ? Math.min(下 || h, 紙.下 + 1) : 紙.右 + 1;
+  const s = new Float64Array(本数);
+  const 必要 = (終 - 始) * 0.5;
+  if(必要 <= 0) return s;
+  for(let i = 0; i < 本数; i++){
+    if(縦 ? (i < 紙.左 || i > 紙.右) : (i < 紙.上 || i > 紙.下)) continue;
+    let 最良 = 0, 始点 = -1, 最後 = -1, 濃 = 0;
+    const 閉じる = () => { if(始点 >= 0){ const 長 = 最後 - 始点 + 1; if(長 >= 必要) 最良 = Math.max(最良, 濃 / 長); } 始点 = -1; 濃 = 0; };
+    // 細い線は1画素ぶんずれたり途切れたりするので、隣の行（列）も合わせて見る
+    const 前 = 縦 ? Math.max(0, i - 1) : Math.max(0, i - 1), 次 = 縦 ? Math.min(w - 1, i + 1) : Math.min(h - 1, i + 1);
+    // 6画素はなれた両側とも暗ければ「線」ではなく塗り（色つきの帯・机の縁・大きな数字の中）
+    const 外1 = 縦 ? Math.max(0, i - 6) : Math.max(0, i - 6), 外2 = 縦 ? Math.min(w - 1, i + 6) : Math.min(h - 1, i + 6);
+    for(let k = 始; k < 終; k++){
+      let v = 縦 ? Math.max(a.暗[k * w + 前], a.暗[k * w + i], a.暗[k * w + 次]) : Math.max(a.暗[前 * w + k], a.暗[i * w + k], a.暗[次 * w + k]);
+      if(v > 0){
+        const 塗り = 縦 ? Math.min(a.暗[k * w + 外1], a.暗[k * w + 外2]) : Math.min(a.暗[外1 * w + k], a.暗[外2 * w + k]);
+        if(塗り > 0.5) v = 0;
+      }
+      if(v > 0){ if(始点 < 0) 始点 = k; 最後 = k; 濃 += v; }
+      else if(始点 >= 0 && k - 最後 > 16) 閉じる();
+    }
+    閉じる();
+    s[i] = 最良;
+  }
+  return s;
+}
+function 合計(s){ let t = 0; for(const v of s) t += v; return t; }
 // 罫線がぴったり水平・垂直になると、その行（列）だけ合計が跳ね上がる。最大値÷平均が大きいほど「くっきり」
 function 尖り(s){ let 合計 = 0, 最大 = 0; for(const v of s){ 合計 += v; if(v > 最大) 最大 = v; } return 合計 ? 最大 / (合計 / s.length) : 0; }
 // 合計がしきい値を超える並びを1本の線にまとめ、その中心を返す
@@ -3898,20 +3952,23 @@ function インクの所属を調べる(暗, 横線, 縦線, 日行, 日列){
     const インク = new Uint8Array(w * h);
     for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
       const p = y * w + x;
-      インク[p] = (暗.暗[p] > 0.3 && !線y[y] && !線x[x]) ? 1 : 0;
+      インク[p] = (暗.暗[p] > 0.15 && !線y[y] && !線x[x]) ? 1 : 0;
     }
     // 連結成分（4近傍）。塗りながら、中心を出すための合計を取る
-    const 合x = [0], 合y = [0], 数 = [0];
+    const 合x = [0], 合y = [0], 数 = [0], 左端 = [0], 右端 = [0], 上端 = [0], 下端 = [0], 合r = [0], 合g = [0], 合b = [0];
+    const 元画 = 暗.元 || null;
     let 番 = 0;
     const 山 = new Int32Array(w * h);
     for(let p0 = 0; p0 < w * h; p0++){
       if(!インク[p0] || 印[p0]) continue;
-      番++; 合x.push(0); 合y.push(0); 数.push(0);
+      番++; 合x.push(0); 合y.push(0); 数.push(0); 左端.push(w); 右端.push(0); 上端.push(h); 下端.push(0); 合r.push(0); 合g.push(0); 合b.push(0);
       let 頂 = 0; 山[頂++] = p0; 印[p0] = 番;
       while(頂 > 0){
         const p = 山[--頂];
         const y = (p / w) | 0, x = p - y * w;
         合x[番] += x; 合y[番] += y; 数[番]++;
+        if(x < 左端[番]) 左端[番] = x; if(x > 右端[番]) 右端[番] = x; if(y < 上端[番]) 上端[番] = y; if(y > 下端[番]) 下端[番] = y;
+        if(元画){ 合r[番] += 元画[p * 4]; 合g[番] += 元画[p * 4 + 1]; 合b[番] += 元画[p * 4 + 2]; }
         if(x > 0 && インク[p - 1] && !印[p - 1]){ 印[p - 1] = 番; 山[頂++] = p - 1; }
         if(x < w - 1 && インク[p + 1] && !印[p + 1]){ 印[p + 1] = 番; 山[頂++] = p + 1; }
         if(y > 0 && インク[p - w] && !印[p - w]){ 印[p - w] = 番; 山[頂++] = p - w; }
@@ -3926,8 +3983,46 @@ function インクの所属を調べる(暗, 横線, 縦線, 日行, 日列){
       for(let x = 0; x < w; x++){ const a = 印[上 * w + x], b = 印[下 * w + x]; if(a && b) 結ぶ(a, b); } });
     縦線.forEach(x => { const 左 = x - 7, 右 = x + 7; if(左 < 0 || 右 >= w) return;
       for(let y = 0; y < h; y++){ const a = 印[y * w + 左], b = 印[y * w + 右]; if(a && b) 結ぶ(a, b); } });
+    // 横に並んだ字は1つの言葉としてまとめる（字と字の間が字の高さより狭ければ同じ言葉）。
+    // 言葉の途中で罫線をまたいでも、言葉全体の中心で所属を決めるので、後半の字が隣のマスに化けない。
+    // 罫線をまたぐときは、隣のマスの別の言葉とくっつけないよう、許す間隔を狭くする
+    const マス高 = 日行.length ? 日行[0][1] - 日行[0][0] : 0, マス幅 = 日列.length ? 日列[0][1] - 日列[0][0] : 0;
+    const 字 = [], 字か = new Uint8Array(番 + 1);
+    for(let b = 1; b <= 番; b++){
+      if(数[b] < 6) continue;
+      const 高 = 下端[b] - 上端[b] + 1, 幅 = 右端[b] - 左端[b] + 1;
+      if(高 > マス高 * 0.45 || 幅 > マス幅 * 0.6) continue;   // 大きな数字や囲みの丸はつながない
+      字.push(b); 字か[b] = 1;
+    }
+    // 色ペンの字（青・赤）と黒い印刷文字は別の言葉。色の有無で分ける
+    const 有色 = new Uint8Array(番 + 1);
+    if(元画) for(const b of 字){ const mx = Math.max(合r[b], 合g[b], 合b[b]), mn = Math.min(合r[b], 合g[b], 合b[b]); 有色[b] = (mx > 0 && (mx - mn) / mx > 0.12) ? 1 : 0; }
+    字.sort((a, b) => 左端[a] - 左端[b]);
+    for(let i = 0; i < 字.length; i++){
+      const a = 字[i];
+      for(let j = i + 1; j < 字.length; j++){
+        const b = 字[j];
+        if(有色[a] !== 有色[b]) continue;
+        const 隙 = 左端[b] - 右端[a];
+        // 「ー」や「一」のように背の低い字もあるので、間隔の許しは高いほうの字の高さで決める
+        const 高 = Math.max(下端[a] - 上端[a], 下端[b] - 上端[b]) + 1, 低 = Math.min(下端[a] - 上端[a], 下端[b] - 上端[b]) + 1;
+        if(隙 > 高 * 0.8) { if(左端[b] - 右端[a] > マス高) break; continue; }
+        const 重なり = Math.min(下端[a], 下端[b]) - Math.max(上端[a], 上端[b]) + 1;
+        if(重なり < 低 * 0.5) continue;
+        // 罫線の両側5画素はインクとみなしていないので、またぐときはその分（約11画素）を隙間から引く
+        const またぐ = 縦線.some(x => x > 右端[a] && x < 左端[b]);
+        if(またぐ && 隙 - 11 > 高 * 0.4) continue;
+        結ぶ(a, b);
+      }
+    }
+    // 中心は「字の大きさのかたまり」だけで出す。囲みの丸や取り消し線が罫線にかかっていても、字のある側に決まる
     const 合x2 = new Float64Array(番 + 1), 合y2 = new Float64Array(番 + 1), 数2 = new Float64Array(番 + 1);
-    for(let b = 1; b <= 番; b++){ const r = 根(b); 合x2[r] += 合x[b]; 合y2[r] += 合y[b]; 数2[r] += 数[b]; }
+    const 全x = new Float64Array(番 + 1), 全y = new Float64Array(番 + 1), 全数 = new Float64Array(番 + 1);
+    for(let b = 1; b <= 番; b++){
+      const r = 根(b); 全x[r] += 合x[b]; 全y[r] += 合y[b]; 全数[r] += 数[b];
+      if(字か[b]){ 合x2[r] += 合x[b]; 合y2[r] += 合y[b]; 数2[r] += 数[b]; }
+    }
+    for(let b = 1; b <= 番; b++) if(根(b) === b && !数2[b]){ 合x2[b] = 全x[b]; 合y2[b] = 全y[b]; 数2[b] = 全数[b]; }
     for(let p = 0; p < w * h; p++) if(印[p]) 印[p] = 根(印[p]);
     // かたまりごとの所属マス（行×7＋列）。どのマスにも入らなければ -1
     const マス = new Int32Array(番 + 1).fill(-1);
@@ -5329,7 +5424,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13h";
+const アプリの版 = "2026-09-13i";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
