@@ -967,10 +967,10 @@
   .ask-answer{background:var(--accent-soft);border-radius:var(--r-md);
     padding:16px 18px;margin:-14px 0 24px;font-size:14.5px;line-height:1.8;color:var(--ink)}
 
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  .toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--bg);padding:14px 22px;border-radius:var(--r-full);
-    font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);display:none;z-index:50;
-    max-width:90%;text-align:center}
+    font-size:15px;font-weight:600;box-shadow:var(--shadow-lg);display:none;z-index:400;
+    max-width:90%;text-align:center;line-height:1.5}
 
   #btn-stop-speech{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:var(--bad);color:#fff;border:none;border-radius:999px;padding:15px 26px;
@@ -1509,6 +1509,12 @@
     </div>
   </div>
 </div>
+<div class="modal-back" id="modal-choice">
+  <div class="modal-box">
+    <p id="modal-choice-text"></p>
+    <div class="btnrow" id="modal-choice-buttons" style="flex-direction:column;gap:10px"></div>
+  </div>
+</div>
 
 <!-- 読み取り中。写真を送ってから答えが返るまで数秒かかるので、
      何が起きているかを大きく見せる。以前は小さな一行だけで、動いているのか分からなかった。 -->
@@ -1766,7 +1772,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13l"></script>
+<script src="crypto.js?v=2026-09-13m"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3516,11 +3522,13 @@ document.getElementById("backup-file").addEventListener("change", async (e) => {
     const 今 = 項目一覧を読む();
     let 足すだけ = false;
     if(今.length > 0){
-      足すだけ = !(await カスタム確認(
-        `控え（${作成}・${中身.items.length}件）を読み込みます。
-` +
-        `「はい」＝今の${今.length}件を消して置き換える
-「やめる」＝消さずに足す（同じものは飛ばす）`));
+      const 選 = await カスタム選択(
+        `控え（${作成}に作成・${中身.items.length}件）を読み込みます。今このスマホには ${今.length}件 あります。どうしますか？`,
+        [ { 値: "置換", 文: `今の${今.length}件を消して、控えの${中身.items.length}件に置き換える`, 種: "danger" },
+          { 値: "追加", 文: "今の登録は残して、控えの分を足す（同じものは飛ばす）", 種: "primary" },
+          { 値: null, 文: "やめる", 種: "ghost" } ]);
+      if(選 === null) return;
+      足すだけ = 選 === "追加";
     }
     let items;
     if(足すだけ){
@@ -3541,7 +3549,7 @@ document.getElementById("backup-file").addEventListener("change", async (e) => {
       色を反映する(色の設定を読む()); 色の画面を描く();
     }
     描画する();
-    お知らせ(`読み込みました（${items.length}件）。`, true);
+    お知らせ(足すだけ ? `控えを足しました。全部で${items.length}件です。` : `控えを戻しました。${items.length}件です。`, true);
   } catch(err) {
     お知らせ((err && err.message) ? err.message : "読み込めませんでした。", true);
   }
@@ -4710,6 +4718,22 @@ function カスタム確認(メッセージ){
   });
 }
 
+// 3つ以上から選ぶ確認。選択肢は [{ 値, 文, 種 }]。閉じたら null
+function カスタム選択(メッセージ, 選択肢){
+  return new Promise(resolve => {
+    document.getElementById("modal-choice-text").textContent = メッセージ;
+    const 枠 = document.getElementById("modal-choice-buttons");
+    枠.innerHTML = "";
+    選択肢.forEach(c => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = c.種 || "ghost"; b.textContent = c.文; b.style.width = "100%";
+      b.addEventListener("click", () => { document.getElementById("modal-choice").classList.remove("show"); resolve(c.値); });
+      枠.appendChild(b);
+    });
+    document.getElementById("modal-choice").classList.add("show");
+  });
+}
+
 function カスタム入力(ラベル, 初期値){
   return new Promise(resolve => {
     document.getElementById("modal-input-label").textContent = ラベル;
@@ -5437,7 +5461,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13l";
+const アプリの版 = "2026-09-13m";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
