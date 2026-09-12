@@ -308,6 +308,7 @@
   .settings-block{margin-bottom:26px}
   /* Face ID */
   .bio-btn{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px}
+  .bio-hint{font-size:12.5px;color:var(--soft);line-height:1.6;margin:0 0 8px;text-align:center}
   .bio-btn .ic{width:22px;height:22px}
   .bio-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;box-shadow:var(--shadow-sm)}
   .bio-row{display:flex;align-items:center;gap:14px}
@@ -1030,6 +1031,7 @@
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></div>
       <h2>トルマモ はロックされています</h2>
       <div class="error" id="error-lock"></div>
+      <p class="bio-hint" id="bio-hint" hidden>次に出る画面で「パスキーを使用」を押すと、Face IDが動きます。</p>
       <button type="button" class="primary wide-btn bio-btn" id="btn-bio-unlock" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9.5v1M15 9.5v1M12 9v4h-1.2"/><path d="M9 15.2a4.2 4.2 0 0 0 6 0"/></svg><span>Face ID・指紋で開く</span></button>
       <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" placeholder="暗証番号">
       <button class="primary wide-btn" id="btn-unlock">開く</button>
@@ -1692,7 +1694,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-12y"></script>
+<script src="crypto.js?v=2026-09-12z"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4614,21 +4616,27 @@ async function 起動時の画面を決める(){
   if(!(await 設定済みか())){ 画面を切り替える("screen-setup"); return; }
   画面を切り替える("screen-lock");
   await ロック画面の生体ボタンを整える();
+  // 開いた直後は、ボタンを押さなくても Face ID の画面を出してみる（1タップ減らす）。
+  // 端末が「押してから」と言う場合は静かにあきらめ、ボタンから開いてもらう。
+  if(!document.getElementById("btn-bio-unlock").hidden){
+    try { await 生体で開く(true); } catch(e) {}
+  }
 }
 
 // ---- Face ID・指紋 ----
 async function ロック画面の生体ボタンを整える(){
   const b = document.getElementById("btn-bio-unlock");
   b.hidden = !(生体認証が使えそうか() && await 生体認証が登録済みか());
+  document.getElementById("bio-hint").hidden = b.hidden;
 }
-async function 生体で開く(){
+async function 生体で開く(静かに){
   const err = document.getElementById("error-lock");
   err.style.display = "none";
   const dek = await 生体認証で開く();
   if(dek){
     現在のDEK = dek;
     await 金庫データを読み込んでから進む();
-  } else {
+  } else if(!静かに) {
     err.textContent = "Face IDで開けませんでした。暗証番号で開いてください。";
     err.style.display = "block";
   }
@@ -4784,7 +4792,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12y";
+const アプリの版 = "2026-09-12z";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
