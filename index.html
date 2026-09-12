@@ -2653,19 +2653,6 @@ function グーグルカレンダーに追加する(){
   document.getElementById("modal-calendar").classList.remove("show");
 }
 
-function Outlookに追加する(){
-  const item = カレンダー対象の項目;
-  if(!item) return;
-  const 翌日 = (() => { const d = new Date(item.expire_date + "T00:00:00"); d.setDate(d.getDate() + 1); return d.toISOString().slice(0, 10); })();
-  const url = "https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent"
-    + "&subject=" + encodeURIComponent("【トルマモ】" + item.name + "の期限")
-    + "&startdt=" + item.expire_date + "&enddt=" + 翌日 + "&allday=true"
-    + "&body=" + encodeURIComponent("今やること: " + (item.今やること || ""));
-  const a = document.createElement("a");
-  a.href = url; a.target = "_blank"; a.rel = "noopener";
-  document.body.appendChild(a); a.click(); a.remove();
-  document.getElementById("modal-calendar").classList.remove("show");
-}
 // iPhone か Android かで、ボタンの名前と手順を入れ替える
 (function 端末に合わせる(){
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
