@@ -2456,7 +2456,10 @@ function グーグルカレンダーに追加する(){
   })();
   const url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
     + "&text=" + encodeURIComponent("【トルマモ】" + item.name + "の期限")
-    + "&dates=" + 日 + "/" + 翌日
+    // Googleの決まりでは終わりは「翌日」（終日の予定は終わりを含まない）。
+    // ところが Android のGoogleカレンダーアプリは終わりを含む日として読むので、翌日にすると
+    // 「終わりが始まりより前」になって保存できなかった（2026-09-12 Android実機）。Androidは同じ日にする。
+    + "&dates=" + 日 + "/" + (/Android/i.test(navigator.userAgent) ? 日 : 翌日)
     + "&details=" + encodeURIComponent("今やること: " + (item.今やること || ""));
   // window.open はホーム画面に置いたアプリの中では無視されることがある。リンクを押した扱いにする
   const a = document.createElement("a");
@@ -4398,7 +4401,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12q";
+const アプリの版 = "2026-09-12r";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
