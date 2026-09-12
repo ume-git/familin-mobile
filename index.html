@@ -182,8 +182,8 @@
     /* 押せるもののグラデーション。黒や白を混ぜると濁って「別の色に変わる」ように見えた。
        流行のフラット2.0は、鮮やかな2色をそのまま斜めに流す。左上がわずかに明るい主色、
        右下が同じ明るさの相方色。それだけ。 */
-    --grad-a:hsl(var(--hue) var(--sat) calc(var(--al) + 6%));
-    --grad-b:hsl(var(--hue2) var(--sat) var(--al));
+    --grad-a:hsl(var(--hue) var(--sat) calc(var(--al) + 9%));
+    --grad-b:hsl(var(--hue2) var(--sat) calc(var(--al) - 8%));
     --grad-accent:linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 100%);
     --grad-sheet:radial-gradient(135% 62% at 50% -8%, var(--pastel) 0%, var(--bg) 72%);
     --grad-card:linear-gradient(180deg, var(--card-top) 0%, var(--surface) 62%);
@@ -344,7 +344,7 @@
     font-size:16px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.4)}
   .color-swatch span{font-size:11.5px;color:var(--soft);white-space:nowrap;font-weight:700;letter-spacing:.02em}
   .color-swatch.active span{color:var(--ink)}
-  .color-grid{padding-bottom:6px;max-width:320px}
+  .color-grid{padding-bottom:6px;justify-items:center}
 
   .settings-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .settings-row label{color:var(--soft);font-size:13px;flex:none;min-width:88px}
@@ -423,9 +423,13 @@
   .guide-head button{font-size:13px;padding:8px 14px;white-space:nowrap;flex:none}
   .guide-body{padding:20px 22px 26px;overflow-y:auto}
 
-  .guide-cover{background:var(--accent);color:#fff;border-radius:var(--r-md);padding:28px 22px;
+  .guide-cover{background:var(--grad-accent);color:#fff;border-radius:var(--r-md);padding:28px 22px;
     margin-bottom:20px;text-align:center}
-  .guide-cover .logo{font-size:36px;margin-bottom:6px}
+  .guide-cover .logo{margin-bottom:6px}
+  .ic-big{width:44px;height:44px;stroke-width:1.6}
+  /* 文中の記号。文字と同じ高さで、色は少し主色に寄せる */
+  .ic-t{width:1.05em;height:1.05em;vertical-align:-.15em;color:var(--accent);stroke-width:2.1}
+  .guide-step-num .ic{width:17px;height:17px;stroke-width:2.2}
   .guide-cover h4{font-size:20px;margin:0 0 6px;color:#fff}
   .guide-cover p{font-size:14px;margin:0;opacity:.95;color:#fff}
 
@@ -620,6 +624,8 @@
     margin-bottom:10px;color:var(--soft);letter-spacing:.05em}
   .today-group-head .count{font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--r-full)}
   .today-group.urgent .today-group-head{color:var(--bad)}
+  .dot-mark{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+  .dot-mark.bad{background:var(--bad)} .dot-mark.warn{background:var(--warn)}
   .today-group.urgent .today-group-head .count{background:var(--bad);color:#fff}
   .today-group.soon .today-group-head .count{background:var(--warn-soft);color:var(--warn)}
 
@@ -676,6 +682,7 @@
     box-shadow:none;padding:0;border:none}
   .gb-kv{display:flex;gap:12px;font-size:14.5px;line-height:1.7;padding:10px 0;border-top:1px solid var(--line)}
   .gb-kv b{flex:none;width:70px;color:var(--soft);font-weight:800;font-size:12.5px;padding-top:2px}
+  .gb-warn .ic-t,.caution .ic-t,.security-note .ic-t,.advice-head .ic-t{color:inherit}
   .gb-warn{background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:0 var(--r-sm) var(--r-sm) 0;
     padding:11px 13px;font-size:13.5px;line-height:1.7;margin:14px 0}
   .gb-official{margin-top:16px;padding:13px 14px;background:var(--accent-soft);border-radius:var(--r-md);font-size:14px;line-height:1.7}
@@ -750,7 +757,8 @@
 
   /* 「終わった」を祝う画面 */
   .done-box{text-align:center}
-  .done-mark{font-size:44px;line-height:1;margin-bottom:10px}
+  .done-mark{display:flex;justify-content:center;margin-bottom:10px;color:var(--good)}
+  .ic-done{width:56px;height:56px;stroke-width:1.7}
   .done-box h3{margin:0 0 6px;font-size:20px;font-weight:800;color:var(--ink)}
   .modal-box .done-what{margin:0 0 18px;font-size:14.5px;color:var(--soft)}
   .done-next{background:var(--grad-soft);border-radius:var(--r-md);
@@ -838,6 +846,7 @@
   .alert-overlay.show{display:flex}
   .alert-box{max-width:520px;width:100%;background:rgba(0,0,0,.18);border-radius:18px;padding:24px 20px;margin-top:10px}
   .alert-head{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+  .alert-head .ic-t{color:inherit;stroke-width:2}
   .alert-sub{font-size:15px;text-align:center;opacity:.9;margin-bottom:18px}
   .alert-item{background:rgba(255,255,255,.16);border-radius:12px;padding:15px 16px;margin-bottom:12px}
   .alert-item .name{font-size:18px;font-weight:700}
@@ -856,7 +865,8 @@
   .auth-wrap{min-height:min(76vh,600px);display:flex;align-items:center;justify-content:center;padding:20px 0}
   .auth-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
     padding:34px 28px;max-width:440px;width:100%;box-shadow:var(--shadow-md)}
-  .auth-box .lock-emoji{font-size:34px;text-align:center;margin-bottom:10px}
+  .auth-box .lock-emoji{display:flex;justify-content:center;margin-bottom:10px;color:var(--accent)}
+  .ic-lock{width:44px;height:44px;stroke-width:1.6}
   .auth-box h2{font-size:19px;margin:0 0 12px;text-align:center;font-weight:700}
   .auth-box p.lead{color:var(--soft);font-size:14.5px;margin:0 0 20px;text-align:left;line-height:1.75}
   .auth-box input{width:100%;padding:15px;border:1px solid var(--line);border-radius:var(--r-sm);
@@ -891,10 +901,10 @@
 
   <div class="step show" id="screen-setup">
     <div class="auth-wrap"><div class="auth-box">
-      <div class="lock-emoji">🔑</div>
+      <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
       <h2>暗証番号を決めてください</h2>
       <p class="lead">最初に1回だけ、4〜6桁の好きな数字を決めます。次にトルマモを開くときから、この番号が必要になります。</p>
-      <div class="security-note">🔒 登録した内容は、この端末の中で暗号化されたうえで保存されます。この端末の外には一切送信されません。</div>
+      <div class="security-note"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 登録した内容は、この端末の中で暗号化されたうえで保存されます。この端末の外には一切送信されません。</div>
       <div class="error" id="error-setup"></div>
       <label class="field-label">暗証番号（4〜6桁の数字）</label>
       <input type="password" id="setup-pin1" inputmode="numeric" maxlength="6">
@@ -906,7 +916,7 @@
 
   <div class="step" id="screen-recovery-display">
     <div class="auth-wrap"><div class="auth-box">
-      <div class="lock-emoji">🗝️</div>
+      <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
       <h2>回復キーを保管してください</h2>
       <p class="lead">暗証番号を忘れてしまったときに、データを取り戻すための合言葉です。これを失くすと、データを取り戻す方法はありません（開発者にも復元できません）。</p>
       <div class="auth-recovery-key" id="recovery-key-display">----</div>
@@ -921,7 +931,7 @@
 
   <div class="step" id="screen-lock">
     <div class="auth-wrap"><div class="auth-box">
-      <div class="lock-emoji">🔒</div>
+      <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></div>
       <h2>トルマモ はロックされています</h2>
       <div class="error" id="error-lock"></div>
       <input type="password" id="lock-pin" inputmode="numeric" maxlength="6" placeholder="暗証番号">
@@ -933,7 +943,7 @@
 
   <div class="step" id="screen-recovery-entry">
     <div class="auth-wrap"><div class="auth-box">
-      <div class="lock-emoji">🗝️</div>
+      <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
       <h2>回復キーで開く</h2>
       <p class="lead">最初に控えた回復キーを入力してください。</p>
       <div class="error" id="error-recovery"></div>
@@ -945,7 +955,7 @@
 
   <div class="step" id="screen-newpin">
     <div class="auth-wrap"><div class="auth-box">
-      <div class="lock-emoji">🔑</div>
+      <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
       <h2>新しい暗証番号を決めてください</h2>
       <div class="ok" id="ok-newpin">回復キーが確認できました。次からのために、新しい暗証番号を決めます。</div>
       <div class="error" id="error-newpin"></div>
@@ -1018,8 +1028,8 @@
        「今日の確認」は絞り込みに関わらず、いつも家族全員分を見せる。 -->
   <div class="people-row" id="people-row"></div>
   <div class="people-actions" id="people-actions" style="display:none">
-    <button class="ghost" id="btn-edit-person">✏️ 名前を変更</button>
-    <button class="danger" id="btn-delete-person">🗑 この人を削除</button>
+    <button class="ghost" id="btn-edit-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13 7l4 4"/></svg> 名前を変更</button>
+    <button class="danger" id="btn-delete-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg> この人を削除</button>
   </div>
 
   <div class="list-head">
@@ -1061,7 +1071,7 @@
           <select id="f-day"></select>
         </div>
         <div class="weekday-hint" id="f-date-weekday"></div>
-        <button type="button" class="ghost" id="btn-toggle-calendar" style="margin-top:8px;font-size:14px;padding:9px 14px">📅 カレンダーで選ぶ</button>
+        <button type="button" class="ghost" id="btn-toggle-calendar" style="margin-top:8px;font-size:14px;padding:9px 14px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg> カレンダーで選ぶ</button>
         <div class="calendar-widget" id="calendar-widget" style="display:none"></div>
       </div>
     </div>
@@ -1208,7 +1218,7 @@
 <div class="modal-back" id="modal-security">
   <div class="modal-box guide-box">
     <div class="guide-head">
-      <h3>🔒 安全のしくみ</h3>
+      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 安全のしくみ</h3>
       <button class="ghost" id="btn-security-close">閉じる</button>
     </div>
     <div class="guide-body">
@@ -1243,8 +1253,8 @@
     <p style="font-size:14px;color:var(--soft);margin:0 0 4px">追加する予定</p>
     <p style="font-weight:700;margin:0 0 20px" id="cal-choice-name"></p>
     <div class="settings-menu" style="margin-top:0;padding-top:0;border-top:none">
-      <button type="button" id="btn-cal-google"><span>📅</span> Googleカレンダーに追加</button>
-      <button type="button" id="btn-cal-ics"><span>🍎</span> iPhoneのカレンダーに追加</button>
+      <button type="button" id="btn-cal-google"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg><span>Googleカレンダーに追加</span></button>
+      <button type="button" id="btn-cal-ics"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg><span>iPhoneのカレンダーに追加</span></button>
     </div>
     <p style="font-size:12.5px;color:var(--soft);margin:16px 0 0;line-height:1.6">
       追加すると、7日前・前日・当日にカレンダー側からお知らせが届きます。
@@ -1255,7 +1265,7 @@
 <div class="modal-back" id="modal-feedback">
   <div class="modal-box guide-box">
     <div class="guide-head">
-      <h3>💬 感想・要望を送る</h3>
+      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5z"/></svg> 感想・要望を送る</h3>
       <button class="ghost" id="btn-feedback-close">閉じる</button>
     </div>
     <div class="guide-body">
@@ -1361,7 +1371,7 @@
 
 <div class="modal-back" id="modal-done">
   <div class="modal-box done-box">
-    <div class="done-mark">🎉</div>
+    <div class="done-mark"><svg class="ic ic-done" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg></div>
     <h3>更新できました！</h3>
     <p class="done-what" id="done-what"></p>
     <div class="done-next" id="done-next" hidden>
@@ -1404,56 +1414,62 @@
 <div class="modal-back" id="modal-guide">
   <div class="modal-box guide-box">
     <div class="guide-head">
-      <h3>📖 使い方</h3>
+      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2 2 0 0 1 6 4h5.5v15H6a2 2 0 0 0-2 2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5.5v15H18a2 2 0 0 1 2 2z"/></svg> 使い方</h3>
       <button class="ghost" id="btn-guide-close">閉じる</button>
     </div>
     <div class="guide-body">
       <div class="guide-cover">
-        <div class="logo">🛡️</div>
+        <div class="logo"><svg class="ic ic-big" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.5-3.2 8-7.5 9.5C7.7 19.5 4.5 16 4.5 11.5V6z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
         <h4>トルマモ 使い方ガイド</h4>
         <p>むずかしい言葉を使わずに、順番どおりに書いてあります。</p>
       </div>
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">?</div><h5>トルマモって何？</h5></div>
-        <p>パスポート・車検・保険など、期限のあるものをまとめて登録すると、期限が近づいたときに教えてくれます。</p>
-        <div class="guide-callout good"><b>「あと〇日です」ではなく</b>「今これをやってください」と、次にやることまで教えてくれます。</div>
+        <p>免許証・車検・納付書・学校のプリントなど、期限のあるものを写真で登録しておくと、期限が近づいたときに「次にやること」まで教えてくれます。</p>
+        <div class="guide-callout good"><b>「あと〇日です」で終わらせない</b>持ち物・手順・費用や、「どうすればいい？」への答えまで出します。</div>
       </div>
 
       <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>登録する</h5></div>
-        <p>「＋ 新しく登録する」から、名称・種類・期限日・登録する人を入れて「登録する」を押します。</p>
-        <div class="guide-callout warn"><b>運転免許を選んだとき</b>免許の色や年齢の欄も出てきます。分かる範囲で大丈夫です。</div>
+        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>撮って登録する</h5></div>
+        <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。</p>
+        <div class="guide-callout warn"><b>写真は残りません</b>読み取りが終わった瞬間に写真は消え、サーバーにも保存されません。</div>
       </div>
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">2</div><h5>一覧で見る</h5></div>
-        <p>「📋 登録一覧」に並びます。右上の選択欄で「種類ごと」「家族ごと」にまとめて見ることもできます。上の人物ボタン（本人・おじいさんなど）を押すと、その人の分だけに絞り込めます。</p>
+        <p>下の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01" stroke-width="2.6"/></svg> <b>一覧</b> に並びます。<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg> 検索欄で名前やメモから探せるほか、「種類ごと」「家族ごと」「カレンダー」の見方に切り替えられます。家族のボタンを押すと、その人の分だけになります。</p>
       </div>
 
       <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>編集・削除する</h5></div>
-        <p>各項目の「編集」を押すと、下の登録フォームに内容が入ります。書き換えて「更新する」を押してください。「📅 カレンダーに登録」を押すと、スマホのカレンダーアプリにも予定として追加できます。</p>
-        <div class="guide-callout bad"><b>削除について</b>「削除」を押すと確認画面が出ます。誤って消えることはありません。</div>
+        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>期限が近づいたら</h5></div>
+        <p>各登録には <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2 2 0 0 1 6 4h5.5v15H6a2 2 0 0 0-2 2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5.5v15H18a2 2 0 0 1 2 2z"/></svg> <b>更新に必要なもの</b>（持ち物のチェック付き）と、<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.5 1 1.3 1 2.1h5c0-.8.3-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg> <b>どうすればいい？</b>（今の状況に合わせた対応策）があります。<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg> でスマホのカレンダーにも入れられ、<svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg> で読み上げます。</p>
+        <p style="margin-top:8px">更新がすんだら <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg> <b>完了</b> を押すと、次の期限を見積もって切り替わり、記録が残ります。</p>
       </div>
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">4</div><h5>見逃さないための工夫</h5></div>
-        <p>今すぐ対応が必要なものがあると、開いた瞬間に全画面の警告が出ます。「🔊 読み上げ」で音声でも確認できます（声は選べます）。</p>
+        <p>今すぐ対応が必要なものがあると、開いた瞬間に全画面の知らせが出ます。ホームの「期限切れ・今日まで・7日以内」の数と、アプリの右上の数字（対応機種）でも分かります。</p>
       </div>
 
       <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>ロックする</h5></div>
-        <p>右上の🔒ボタンでロックできます。次に開くときは最初に決めた暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
+        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>控えと引き継ぎ</h5></div>
+        <p><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg> <b>設定</b> の「控えを作る」で、登録を合言葉つきの1ファイルにまとめて保存できます。機種変更のときは新しいスマホで「控えを戻す」を押すだけです。</p>
+        <div class="guide-callout bad"><b>削除について</b>「削除」を押すと確認画面が出ます。誤って消えることはありません。</div>
       </div>
 
       <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">💬</div><h5>感想を送る</h5></div>
-        <p>一番下の「💬 感想を送る」から、使ってみた感想をLINEで送れます。</p>
+        <div class="guide-step-head"><div class="guide-step-num">6</div><h5>ロックする</h5></div>
+        <p>設定の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> <b>今すぐロックする</b> で閉じられます。次に開くときは暗証番号が必要です。忘れた場合は「暗証番号を忘れた場合はこちら」から回復キーで開けます。</p>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-head"><div class="guide-step-num"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5z"/></svg></div><h5>感想を送る</h5></div>
+        <p>設定の <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5z"/></svg> <b>感想・要望を送る</b> から、使ってみた感想を送れます。困ったことや「こうしてほしい」を、そのまま書いてください。</p>
       </div>
 
       <div class="security-note">
-        🔒 登録した内容は、この端末の中で暗号化されて保存されます。開発者にも中身は見えません。
+        <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 登録した内容は、この端末の中で暗号化されて保存されます。開発者にも中身は見えません。
       </div>
     </div>
   </div>
@@ -1461,11 +1477,11 @@
 
 <div class="alert-overlay" id="alert-overlay">
   <div class="alert-box">
-    <div class="alert-head">🔴 今すぐ確認してください</div>
+    <div class="alert-head"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg> 今すぐ確認してください</div>
     <div class="alert-sub" id="alert-sub"></div>
     <div id="alert-list"></div>
     <div class="alert-btns">
-      <button class="ghost" id="btn-alert-read">🔊 読み上げる</button>
+      <button class="ghost" id="btn-alert-read"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg> 読み上げる</button>
       <button class="primary" id="btn-alert-ok">確認しました</button>
     </div>
   </div>
@@ -1708,7 +1724,7 @@ function 手引きを開く(id){
     <div class="gb-sec"><h4>手順</h4><ol>${手.手順.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ol></div>
     <div class="gb-kv"><b>かかる時間</b><span>${エスケープ(手.所要)}</span></div>
     <div class="gb-kv"><b>費用の目安</b><span>${エスケープ(手.費用)}</span></div>
-    ${手.注意 ? `<div class="gb-warn">⚠ ${エスケープ(手.注意)}</div>` : ""}
+    ${手.注意 ? `<div class="gb-warn"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17h.01" stroke-width="2.4"/></svg> ${エスケープ(手.注意)}</div>` : ""}
     ${案内 ? `<div class="gb-official">細かい条件はこちらで：<a href="${エスケープ(案内.url)}" target="_blank" rel="noopener">${エスケープ(案内.名)} ↗</a>${案内.言葉 ? `<br><span style="color:var(--soft);font-size:13px">${エスケープ(案内.言葉)}</span>` : ""}</div>`
       : `<div class="gb-official">細かい条件は、契約先・所属先の案内で確かめてください。</div>`}
     <div class="gb-stamp">一般的な目安です（2026年9月時点）。手数料や必要書類は変わることがあります。</div>`;
@@ -2411,13 +2427,13 @@ function 今日やることを描画する(items){
   let html = "";
   if(緊急.length > 0){
     html += `<div class="today-group urgent">
-      <div class="today-group-head">🔴 今日やること <span class="count">${緊急.length}件</span></div>
+      <div class="today-group-head"><i class="dot-mark bad"></i>今日やること <span class="count">${緊急.length}件</span></div>
       ${緊急.map(カードHTML).join("")}
     </div>`;
   }
   if(注意.length > 0){
     html += `<div class="today-group soon">
-      <div class="today-group-head">🟡 そろそろ <span class="count">${注意.length}件</span></div>
+      <div class="today-group-head"><i class="dot-mark warn"></i>そろそろ <span class="count">${注意.length}件</span></div>
       ${注意.map(カードHTML).join("")}
     </div>`;
   }
@@ -3594,10 +3610,10 @@ function 対応策のHTML(i){
   const 案内 = 公式の案内先[i.category];
   return `
     <div class="advice">
-      <div class="advice-head">💡 ${エスケープ(a.headline || "いまやること")}</div>
+      <div class="advice-head"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.5 1 1.3 1 2.1h5c0-.8.3-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg> ${エスケープ(a.headline || "いまやること")}</div>
       <ol>${a.steps.map(t => `<li>${エスケープ(t)}</li>`).join("")}</ol>
       ${(Array.isArray(a.bring) && a.bring.length) ? `<div class="bring">持っていくもの：${エスケープ(a.bring.join("・"))}</div>` : ""}
-      ${a.caution ? `<div class="caution">⚠ ${エスケープ(a.caution)}</div>` : ""}
+      ${a.caution ? `<div class="caution"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17h.01" stroke-width="2.4"/></svg> ${エスケープ(a.caution)}</div>` : ""}
       ${案内 ? `<div class="official">細かい条件は公式で：<a href="${エスケープ(案内.url)}" target="_blank" rel="noopener">${エスケープ(案内.名)} ↗</a>${案内.言葉 ? `<br><span style="color:var(--soft);font-size:12.5px">${エスケープ(案内.言葉)}</span>` : ""}</div>` : ""}
       <div class="stamp">AIによる一般的な目安です（${エスケープ(a.日 || "")}）。制度や条件は変わることがあります。</div>
     </div>`;
@@ -3779,6 +3795,10 @@ function お知らせ(文章, 長め){
 }
 
 // ---- 画面の色（テーマカラー × 明るさ） ----
+// "hsl(h s% l%)" の明るさだけを動かす。左上を薄く、右下を濃くするために使う。
+function 明るさをずらす(hsl, 差){
+  return hsl.replace(/(\d+(?:\.\d+)?)%\)$/, (m, l) => Math.max(0, Math.min(100, parseFloat(l) + 差)) + "%)");
+}
 const テーマカラー一覧 = [
   // id は保存された設定と結びついているので変えない。名前だけカタカナに。
   { id: "umi",      名: "マリン",     色: ["hsl(195 62% 46%)", "hsl(170 58% 50%)"] },
@@ -3834,7 +3854,7 @@ function 色の画面を描く(){
   枠.innerHTML = テーマカラー一覧.map(c => `
     <button type="button" class="color-swatch${c.id === 今.色 ? " active" : ""}"
       data-color="${c.id}" title="${c.名}" aria-label="${c.名}">
-      <i style="background:linear-gradient(135deg, ${c.色[0]} 0%, ${c.色[1]} 100%)"></i><span>${c.名}</span>
+      <i style="background:linear-gradient(135deg, ${明るさをずらす(c.色[0], 9)} 0%, ${明るさをずらす(c.色[1], -8)} 100%)"></i><span>${c.名}</span>
     </button>`).join("");
 
   枠.querySelectorAll(".color-swatch").forEach(btn => {
@@ -4042,7 +4062,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12h";
+const アプリの版 = "2026-09-12i";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
