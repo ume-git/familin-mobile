@@ -1764,7 +1764,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13d"></script>
+<script src="crypto.js?v=2026-09-13e"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3690,29 +3690,52 @@ function 画像を4分割する(元画像, 回転, 各最大辺){
 // そこで、罫線をこちらで見つけてマスを切り出し、番号札を付けて並べた画像を渡す。
 // AIの仕事は「この札のマスの数字と手書き文字は何か」だけになり、日付の取り違えが消える。
 // ============================================================
+// 罫線を測る：傾きを直し、横線・縦線の位置と紙の範囲を返す（向きの判定にも、マスの切り出しにも使う）
+function 罫線を測る(元画像, 回転, 幅){
+  let 最良 = { 角: 0, 得点: -1 };
+  for(let 角 = -3; 角 <= 3; 角 += 0.5){
+    const c = キャンバスに描く(元画像, 回転, 900, 角);
+    const 暗 = 暗い画素(c);
+    const 得点 = 尖り(行の合計(暗)) + 尖り(列の合計(暗));
+    if(得点 > 最良.得点) 最良 = { 角, 得点 };
+  }
+  const c = キャンバスに描く(元画像, 回転, 幅, 最良.角);
+  const 暗 = 暗い画素(c);
+  const 行和 = 行の合計(暗);
+  const 横線 = 線を見つける(行和, Math.max(...行和) * 0.35, 6);
+  if(横線.length < 3) return null;
+  const 上 = 横線[0], 下 = 横線[横線.length - 1];
+  const 列和 = 列の合計(暗, 上, 下);
+  let 縦線 = 線を見つける(列和, Math.max(...列和) * 0.35, 6);
+  縦線 = 端を補う(縦線, 暗.w, 列和);
+  if(縦線.length < 3) return null;
+  return { c, 暗, 横線, 縦線, 角: 最良.角 };
+}
+// 写真の向きを決める。AIに聞くと外れることがあるので、紙の形から決める：
+// 月の見出し（大きな月名）は罫線の「上」にあるので、罫線の外側の余白がいちばん広い側が上。
+function 予定表の向きを決める(元画像){
+  try {
+    const 測 = 罫線を測る(元画像, 0, 900);
+    if(!測) return null;
+    const 紙 = 測.暗.紙;
+    // 等間隔に並ぶ線の並び（＝日付のマス目）だけを罫線とみなす。楽譜や別の紙の線に引きずられない
+    const 横 = 等間隔の並び(測.横線), 縦 = 等間隔の並び(測.縦線);
+    if(横.length < 4 || 縦.length < 4) return null;
+    const 上余白 = 横[0] - 紙.上, 下余白 = 紙.下 - 横[横.length - 1];
+    const 左余白 = 縦[0] - 紙.左, 右余白 = 紙.右 - 縦[縦.length - 1];
+    const 候補 = [[上余白, 0], [左余白, 90], [下余白, 180], [右余白, 270]].sort((a, b) => b[0] - a[0]);
+    // いちばん広い側が、2番目より明らかに広いときだけ信じる
+    if(候補[0][0] < 候補[1][0] * 1.4) return null;
+    return 候補[0][1];
+  } catch(e){ return null; }
+}
 function マス目を切り出す(元画像, 回転){
   try {
-    const 幅 = 1400;
-    const 素 = キャンバスに描く(元画像, 回転, 幅, 0);
-    // 傾きを直す：-3°〜3° で罫線がいちばん「くっきり」する角度を探す
-    let 最良 = { 角: 0, 得点: -1 };
-    for(let 角 = -3; 角 <= 3; 角 += 0.5){
-      const c = キャンバスに描く(元画像, 回転, 900, 角);
-      const 暗 = 暗い画素(c);
-      const 得点 = 尖り(行の合計(暗)) + 尖り(列の合計(暗));
-      if(得点 > 最良.得点) 最良 = { 角, 得点 };
-    }
-    const c = キャンバスに描く(元画像, 回転, 幅, 最良.角);
-    const 暗 = 暗い画素(c);
-    const 行和 = 行の合計(暗);
-    const 横線 = 線を見つける(行和, Math.max(...行和) * 0.35, 6);
-    if(横線.length < 4) return null;
-    const 上 = 横線[0], 下 = 横線[横線.length - 1];
-    const 列和 = 列の合計(暗, 上, 下);
-    let 縦線 = 線を見つける(列和, Math.max(...列和) * 0.35, 6);
-    // 外枠が薄くて拾えないことがある。内側の線が等間隔なら、両端を1本ずつ補う
-    縦線 = 端を補う(縦線, 暗.w, 列和);
-    if(縦線.length < 6) return null;
+    const 測 = 罫線を測る(元画像, 回転, 1400);
+    if(!測) return null;
+    const { c, 横線, 縦線 } = 測;
+    const 最良 = { 角: 測.角 };
+    if(横線.length < 4 || 縦線.length < 6) return null;
     // マス：隣り合う線の間。細い行（曜日の見出し）や細い列（枠の外）は捨てる
     const 行 = 区間(横線), 列 = 区間(縦線);
     const 行高 = Math.max(...行.map(r => r[1] - r[0])), 列幅 = Math.max(...列.map(r => r[1] - r[0]));
@@ -3817,12 +3840,31 @@ function 端を補う(線, 幅, 列和){
   let 守 = 0;
   while(出.length < 8 && 守++ < 4){
     const 右 = 出[出.length - 1] + d, 左 = 出[0] - d;
-    const 右可 = 右 <= 幅 - 2, 左可 = 左 >= 2;
+    // 「線の気配」が無い所には足さない（マスが6列以下の予定表や、横向きの写真で嘘の線を作らないため）
+    const 最低 = Math.max(...列和) * 0.15;
+    const 右可 = 右 <= 幅 - 2 && 濃さ(右) >= 最低, 左可 = 左 >= 2 && 濃さ(左) >= 最低;
     if(!右可 && !左可) break;
-    // 薄くても線の気配があるほうを先に足す
     if(右可 && (!左可 || 濃さ(右) >= 濃さ(左))) 出.push(右); else 出.unshift(左);
   }
   return 出;
+}
+// 間隔がそろっている最長の並びを返す（±15%）
+function 等間隔の並び(線){
+  let 最良 = [];
+  for(let i = 0; i < 線.length; i++){
+    for(let j = i + 1; j < 線.length; j++){
+      const d = 線[j] - 線[i]; if(d < 24) continue;
+      const 並び = [線[i], 線[j]];
+      let 前 = 線[j];
+      for(let k = j + 1; k < 線.length; k++){
+        const e = 線[k] - 前;
+        if(Math.abs(e - d) <= d * 0.15){ 並び.push(線[k]); 前 = 線[k]; }
+        else if(e > d * 1.15) break;
+      }
+      if(並び.length > 最良.length) 最良 = 並び;
+    }
+  }
+  return 最良;
 }
 function 区間(線){ const r = []; for(let i = 1; i < 線.length; i++) if(線[i] - 線[i - 1] > 24) r.push([線[i - 1], 線[i]]); return r; }
 
@@ -3835,6 +3877,7 @@ async function マスごとに読む(マス, 一回目){
   if(!r.ok) return null;
   const j = await r.json();
   if(j.error || !Array.isArray(j.cells)) return null;
+  if(j.upright === false) return { 逆さ: true };
   const 年 = Number(j.year) || Number((一回目.due_date || "").slice(0, 4)) || new Date().getFullYear();
   const 月 = Number(j.month) || Number((一回目.due_date || "").slice(5, 7)) || (new Date().getMonth() + 1);
   const 札 = new Map(j.cells.map(c => [Number(c.n), c]));
@@ -3930,6 +3973,9 @@ async function 写真を読み取る(e){
         const j = await r.json();
         return (!j.error && Array.isArray(j.items)) ? j : null;
       };
+      // 向きは紙の形から決める（月の見出しがある側が上）。決められないときだけAIの答えを使う。
+      const 形から = 予定表の向きを決める(元画像);
+      if(形から !== null) 回転 = 形から;
       // まず「マスを1つずつ切り出して読む」方法を試す。AIに位置関係を考えさせないので、日付の取り違えが起きない。
       // 罫線が見つからない写真（傾き・歪みが大きい）のときだけ、4分割の読み直しに戻る。
       let 結果2 = null;
@@ -3937,6 +3983,12 @@ async function 写真を読み取る(e){
       if(マス){
         読み取り中を見せる(true, "マスを1つずつ読んでいます…");
         結果2 = await マスごとに読む(マス, 結果);
+        if(結果2 && 結果2.逆さ){
+          回転 = (回転 + 180) % 360;
+          const マス2 = マス目を切り出す(元画像, 回転);
+          結果2 = マス2 ? await マスごとに読む(マス2, 結果) : null;
+          if(結果2 && 結果2.逆さ) 結果2 = null;
+        }
       }
       if(!結果2){
         結果2 = await 読み直す(回転);
@@ -5176,7 +5228,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13d";
+const アプリの版 = "2026-09-13e";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
