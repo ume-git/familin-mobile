@@ -142,30 +142,31 @@
      真っ黒ではなく、炭のような灰色を土台にする。
      昼の室内でも夜でも目が疲れにくく、白い面のまぶしさも出ない。 */
   :root[data-mode="mid"]{
-    --bg:hsl(var(--hue) 13% 16%);
-    --surface:hsl(var(--hue) 12% 22.5%);
-    --surface-2:hsl(var(--hue) 13% 18.5%);
-    --card-top:hsl(var(--hue) 12% 26%);
-    --edge:rgba(255,255,255,.07);
-    --ink:hsl(var(--hue) 12% 91%);
-    --soft:hsl(var(--hue) 8% 67%);
-    --line:hsl(var(--hue) 10% 31%);
-    --accent:hsl(var(--hue) calc(var(--sat) * .85) 62%);
-    --accent-2:hsl(var(--hue2) calc(var(--sat) * .85) 67%);
-    --accent-soft:hsl(var(--hue) calc(var(--sat) * .4) 28%);
-    --pastel:hsl(var(--hue) 20% 28%);
-    --pastel-2:hsl(var(--hue2) 22% 25%);
-    --on-accent:hsl(var(--hue) 40% 10%);
-    --hero-a:hsl(var(--hue) calc(var(--sat) * .9) 36%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .9) 44%); --on-hero:#fff;
-    --bad:#e08c86; --bad-soft:#43292a;
-    --warn:#e0bb6c; --warn-soft:#413720;
-    --good:#79c79a; --good-soft:#22392e;
+    /* 「明るい」の白いまぶしさを落としただけの配色。暗い部屋でも目に刺さらず、文字は黒のまま。 */
+    --bg:hsl(var(--hue) 20% 84%);
+    --surface:hsl(var(--hue) 24% 92%);
+    --surface-2:hsl(var(--hue) 20% 88.5%);
+    --card-top:hsl(var(--hue) 26% 95%);
+    --edge:rgba(255,255,255,.6);
+    --ink:hsl(var(--hue) 26% 15%);
+    --soft:hsl(var(--hue) 12% 38%);
+    --line:hsl(var(--hue) 18% 75%);
+    --accent:hsl(var(--hue) var(--sat) calc(var(--al) - 3%));
+    --accent-2:hsl(var(--hue2) var(--sat) calc(var(--al) + 6%));
+    --accent-soft:hsl(var(--hue) calc(var(--sat) * .55) 84%);
+    --pastel:hsl(var(--hue) 46% 82%);
+    --pastel-2:hsl(var(--hue2) 46% 81%);
+    --on-accent:#fff;
+    --hero-a:var(--accent); --hero-b:var(--accent-2); --on-hero:#fff;
+    --bad:#a83636; --bad-soft:#f3dcdc;
+    --warn:#9a6818; --warn-soft:#f1e6cf;
+    --good:#2b7349; --good-soft:#dbeadf;
     --line-green:#06c755;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(0,0,0,.22);
-    --shadow-md:0 2px 6px rgba(0,0,0,.32), 0 12px 28px rgba(0,0,0,.26);
-    --shadow-lg:0 24px 60px rgba(0,0,0,.46);
-    --sunken:inset 0 1px 3px rgba(0,0,0,.32);
-    --press:inset 0 2px 6px rgba(0,0,0,.38);
+    --shadow-sm:0 1px 1px rgba(16,24,32,.06), 0 2px 5px rgba(16,24,32,.09);
+    --shadow-md:0 1px 2px rgba(16,24,32,.07), 0 6px 14px rgba(16,24,32,.12), 0 16px 36px rgba(16,24,32,.08);
+    --shadow-lg:0 20px 60px rgba(16,24,32,.26);
+    --sunken:inset 0 1px 2px rgba(16,24,32,.10);
+    --press:inset 0 2px 5px rgba(16,24,32,.18);
   }
 
   :root{
@@ -281,7 +282,8 @@
   .capture-safe{display:flex;align-items:flex-start;gap:7px;justify-content:center;text-align:left}
   .capture-safe .ic{margin-top:.2em;opacity:.8}
   /* 短い説明文は行の長さをそろえて、1文字だけ次の行に落ちるのを防ぐ */
-  .settings-hint,.sub,.today-calm,.privacy-note,.empty,.guide-body p{text-wrap:balance}
+  .sub,.today-calm,.privacy-note,.empty,.guide-body p{text-wrap:balance}
+  /* 設定の説明は <br> で2文に分けているので、balance だと途中で変に折れる */
   .capture-safe{color:var(--soft);font-size:12.5px;line-height:1.7;margin:10px 0 0;
     padding:0;border:none;text-align:center;justify-content:center}
   .capture-safe span{text-wrap:balance}
@@ -320,7 +322,8 @@
   .license-pick.active{color:var(--ink);border-color:var(--accent);
     box-shadow:var(--ring), inset 0 1px 0 var(--edge)}
 
-  .color-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
+  /* 6列だと右端が画面からはみ出し、名前も重なっていた。4列×3段にする */
+  .color-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 10px}
   .color-swatch{position:relative;aspect-ratio:1;border-radius:var(--r-full);
     border:2px solid transparent;background:transparent;padding:0;box-shadow:none;
     cursor:pointer;display:flex;align-items:center;justify-content:center;
@@ -331,9 +334,9 @@
   .color-swatch.active{border-color:var(--ink)}
   .color-swatch.active::after{content:"✓";position:absolute;color:#fff;
     font-size:15px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.35)}
-  .color-swatch span{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);
-    font-size:10px;color:var(--soft);white-space:nowrap;font-weight:600}
-  .color-grid{padding-bottom:20px}
+  .color-swatch span{position:absolute;bottom:-19px;left:50%;transform:translateX(-50%);
+    font-size:11px;color:var(--soft);white-space:nowrap;font-weight:700;letter-spacing:.02em}
+  .color-grid{padding-bottom:22px;max-width:320px}
 
   .settings-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .settings-row label{color:var(--soft);font-size:13px;flex:none;min-width:88px}
@@ -438,19 +441,22 @@
   .icon-choice:hover{transform:scale(1.12)}
   .icon-choice.selected{border-color:var(--accent);background:var(--accent-soft);transform:scale(1.08)}
 
-  .backup-btns{display:flex;flex-direction:column;gap:8px}
-  .backup-btns .primary{font-size:15px;padding:13px}
-  .backup-btns .ghost{font-size:14.5px;padding:12px}
-  /* 文字の大きさ。root の font-size を変えるだけで、rem/em を使う所が追従する */
-  html[data-text="large"]{font-size:112%}
-  html[data-text="xlarge"]{font-size:126%}
-  html[data-text="large"] body{font-size:18px}
-  html[data-text="xlarge"] body{font-size:20px}
-  html[data-text="large"] .item-head .name,html[data-text="large"] .today-what{font-size:17px}
-  html[data-text="xlarge"] .item-head .name,html[data-text="xlarge"] .today-what{font-size:19px}
-  html[data-text="large"] .today-todo,html[data-text="large"] .action{font-size:15px}
-  html[data-text="xlarge"] .today-todo,html[data-text="xlarge"] .action{font-size:17px}
-  html[data-text="xlarge"] .hero-title{font-size:34px}
+  .backup-card{display:flex;flex-direction:column;gap:14px}
+  .backup-what{font-size:13.5px;color:var(--soft);line-height:1.7;background:var(--surface-2);
+    border-radius:var(--r-sm);padding:11px 13px;box-shadow:var(--sunken)}
+  .backup-what b{color:var(--ink)}
+  .backup-step{display:flex;gap:12px;align-items:flex-start}
+  .backup-num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--on-accent);
+    font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .backup-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+  .backup-body > b{font-size:14.5px}
+  .backup-body .primary{font-size:15px;padding:13px}
+  .backup-body .ghost{font-size:14.5px;padding:12px;width:100%}
+  .backup-body small{font-size:12.5px;color:var(--soft);line-height:1.6}
+  /* 文字の大きさ。文字の指定が px だらけなので、root を変えても効かなかった。
+     画面全体を拡大する（zoom）。文字も余白もそのまま大きくなり、折り返しも追従する。 */
+  html[data-text="large"] body{zoom:1.14}
+  html[data-text="xlarge"] body{zoom:1.3}
   .settings-menu{display:flex;flex-direction:column;gap:8px;margin-top:22px;
     padding-top:20px;border-top:1px solid var(--line)}
   .settings-menu button{display:flex;align-items:center;gap:12px;width:100%;
@@ -1119,7 +1125,7 @@
         <button type="button" data-mode="dark">暗い</button>
       </div>
       <p class="settings-hint">「自動」は、スマホの設定に合わせて朝は明るく夜は暗くなります。<br>
-        「ほどよい」は、真っ黒ではない炭色です。白いまぶしさが苦手なときに。</p>
+        「ほどよい」は、明るいまま白のまぶしさを少し落とした色です。</p>
     </div>
 
     <div class="settings-block">
@@ -1147,12 +1153,26 @@
 
     <div class="settings-block">
       <div class="settings-label">控えと引き継ぎ</div>
-      <p class="settings-hint" style="margin-bottom:12px">端末を失っても登録が消えないように、控えを作っておけます。
-        控えは<b>合言葉で暗号化</b>され、機種変更のときはこの控えを新しい端末で読み込みます。</p>
-      <div class="backup-btns">
-        <button type="button" class="primary" id="btn-backup-export">控えを書き出す</button>
-        <button type="button" class="ghost" id="btn-backup-import">控えから読み込む</button>
-        <button type="button" class="ghost" id="btn-csv-export">表計算用（CSV）で書き出す</button>
+      <div class="backup-card">
+        <div class="backup-what"><b>控えとは</b>：登録・家族・設定をまとめた、暗号化された1つのファイルです。
+          スマホを失くしたときや機種変更のときに、これがあれば元に戻せます。</div>
+        <div class="backup-step">
+          <span class="backup-num">1</span>
+          <div class="backup-body">
+            <b>ふだんは、これだけ</b>
+            <button type="button" class="primary" id="btn-backup-export">控えを作る</button>
+            <small>合言葉を決める → 「ファイルに保存」か AirDrop で好きな場所へ。月に1度が目安。</small>
+          </div>
+        </div>
+        <div class="backup-step">
+          <span class="backup-num">2</span>
+          <div class="backup-body">
+            <b>新しいスマホで</b>
+            <button type="button" class="ghost" id="btn-backup-import">控えを戻す</button>
+            <small>保存しておいた控えファイルを選び、合言葉を入れます。</small>
+          </div>
+        </div>
+        <button type="button" class="text-link" id="btn-csv-export" style="margin-top:6px">表計算（Excel）で見たいときはCSV ›</button>
       </div>
       <input type="file" id="backup-file" accept=".tmbk,application/json,.json" style="display:none">
       <p class="settings-hint" id="backup-last"></p>
@@ -2872,7 +2892,7 @@ document.getElementById("btn-backup-export").addEventListener("click", async () 
   } catch(err) {
     お知らせ("控えを作れませんでした。", true);
   } finally {
-    btn.disabled = false; btn.textContent = "控えを書き出す";
+    btn.disabled = false; btn.textContent = "控えを作る";
   }
 });
 
@@ -3753,18 +3773,19 @@ function お知らせ(文章, 長め){
 
 // ---- 画面の色（テーマカラー × 明るさ） ----
 const テーマカラー一覧 = [
-  { id: "umi",      名: "うみ",     色: ["hsl(195 62% 46%)", "hsl(170 58% 50%)"] },
-  { id: "sora",     名: "そら",     色: ["hsl(212 68% 55%)", "hsl(190 64% 58%)"] },
-  { id: "sumire",   名: "すみれ",   色: ["hsl(258 56% 63%)", "hsl(288 52% 66%)"] },
-  { id: "budou",    名: "ぶどう",   色: ["hsl(287 50% 59%)", "hsl(318 52% 64%)"] },
-  { id: "sakura",   名: "さくら",   色: ["hsl(338 72% 68%)", "hsl(288 58% 70%)"] },
-  { id: "ichigo",   名: "いちご",   色: ["hsl(356 74% 63%)", "hsl(22 78% 64%)"]  },
-  { id: "mikan",    名: "みかん",   色: ["hsl(24 84% 57%)",  "hsl(46 84% 58%)"]  },
-  { id: "himawari",名: "ひまわり", 色: ["hsl(42 88% 56%)",  "hsl(20 82% 60%)"]  },
-  { id: "matcha",   名: "まっちゃ", 色: ["hsl(88 46% 47%)",  "hsl(62 50% 52%)"]  },
-  { id: "mori",     名: "もり",     色: ["hsl(154 46% 41%)", "hsl(180 44% 46%)"] },
-  { id: "kinari",   名: "きなり",   色: ["hsl(33 42% 58%)",  "hsl(14 44% 62%)"]  },
-  { id: "sumi",     名: "すみ",     色: ["hsl(220 14% 46%)", "hsl(250 16% 52%)"] },
+  // id は保存された設定と結びついているので変えない。名前だけカタカナに。
+  { id: "umi",      名: "マリン",     色: ["hsl(195 62% 46%)", "hsl(170 58% 50%)"] },
+  { id: "sora",     名: "スカイ",     色: ["hsl(212 68% 55%)", "hsl(190 64% 58%)"] },
+  { id: "sumire",   名: "ラベンダー", 色: ["hsl(258 56% 63%)", "hsl(288 52% 66%)"] },
+  { id: "budou",    名: "グレープ",   色: ["hsl(287 50% 59%)", "hsl(318 52% 64%)"] },
+  { id: "sakura",   名: "ローズ",     色: ["hsl(338 72% 68%)", "hsl(288 58% 70%)"] },
+  { id: "ichigo",   名: "コーラル",   色: ["hsl(356 74% 63%)", "hsl(22 78% 64%)"]  },
+  { id: "mikan",    名: "オレンジ",   色: ["hsl(24 84% 57%)",  "hsl(46 84% 58%)"]  },
+  { id: "himawari",名: "サニー",     色: ["hsl(42 88% 56%)",  "hsl(20 82% 60%)"]  },
+  { id: "matcha",   名: "ライム",     色: ["hsl(88 46% 47%)",  "hsl(62 50% 52%)"]  },
+  { id: "mori",     名: "フォレスト", 色: ["hsl(154 46% 41%)", "hsl(180 44% 46%)"] },
+  { id: "kinari",   名: "サンド",     色: ["hsl(33 42% 58%)",  "hsl(14 44% 62%)"]  },
+  { id: "sumi",     名: "グレー",     色: ["hsl(220 14% 46%)", "hsl(250 16% 52%)"] },
 ];
 
 function 色の設定を読む(){
@@ -4014,7 +4035,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-12e";
+const アプリの版 = "2026-09-12f";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
