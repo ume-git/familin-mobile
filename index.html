@@ -4096,8 +4096,10 @@ async function マスごとに読む(マス, 一回目){
     // 「18:00〜」「18:00から」は始まる時刻。「まで」と付けない
     const 開始 = !!時 && /\d{1,2}[:：]\d{2}\s*([〜~～]|から)/.test(文);
     // 名前は「時刻と括弧を外した本文」から。名前を除いた残り（場所など）だけをメモに残す
-    const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
-    const 題 = 名.slice(0, 14);
+    const 名 = 文.replace(/\d{1,2}[:：]\d{2}\s*[〜~～-]\s*\d{1,2}[:：]\d{2}/g, "").replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?\s*/g, "").replace(/[（(][^）)]*[）)]/g, " ").replace(/\s+/g, " ").trim() || 文;
+    // 名前は14字まで。言葉の途中で切れないよう、空白の区切りで止める
+    let 題 = 名.slice(0, 14);
+    if(名.length > 14 && 名.includes(" ")){ const 区 = 名.slice(0, 15).lastIndexOf(" "); if(区 >= 2) 題 = 名.slice(0, 区); }
     const 残り = 文.replace(題, "").replace(/\d{1,2}[:：]\d{2}\s*([〜~～-]|から|まで)?/, "").replace(/\s+/g, " ").trim();
     items.push({ title: 題, due_date: iso, due_date_text: y + "年" + m + "月 " + 日 + "日",
       due_time: 時 ? 時.replace("：", ":").padStart(5, "0") : null, 開始, memo: (残り && 残り !== 題) ? 残り : null, category: 一回目.category || null });
