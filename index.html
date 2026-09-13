@@ -1795,7 +1795,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13p"></script>
+<script src="crypto.js?v=2026-09-13q"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5539,7 +5539,11 @@ document.getElementById("btn-goto-recovery").addEventListener("click", () => 画
 document.getElementById("btn-back-to-lock").addEventListener("click", () => 画面を切り替える("screen-lock"));
 
 document.getElementById("btn-recover").addEventListener("click", async () => {
-  const 入力 = document.getElementById("recovery-input").value.trim().toUpperCase();
+  // 小文字・全角・区切りの違い（空白／なし／全角ハイフン）は、こちらで整える。
+  // 回復キーの文字は A〜Z（O と I を除く）と 2〜9 だけなので、それ以外は区切りとみなして捨てる
+  const 入力 = document.getElementById("recovery-input").value
+    .replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .toUpperCase().replace(/[^A-Z2-9]/g, "").match(/.{1,4}/g)?.join("-") || "";
   const err = document.getElementById("error-recovery");
   err.style.display = "none";
   const dek = await 回復キーで開く(入力);
@@ -5598,7 +5602,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13p";
+const アプリの版 = "2026-09-13q";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
