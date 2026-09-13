@@ -1321,6 +1321,19 @@
       </div>
     </div>
 
+    <div class="settings-block">
+      <div class="settings-label">家族から受け取る</div>
+      <div class="bio-card">
+        <div class="bio-row">
+          <div class="bio-text"><b>家族が送った登録を、このスマホに入れる</b>
+            <small>一覧の「家族に送る」で作られたコード（例：ABCDE-FGHIJ）を入れると、その登録がここにも入り、通知も届きます。送る側のスマホで暗号化されているので、途中で中身は読めません。</small></div>
+        </div>
+        <div class="btnrow" style="margin-top:10px">
+          <button type="button" class="ghost" id="btn-receive-code">コードを入れて受け取る</button>
+        </div>
+      </div>
+    </div>
+
     <div class="settings-block" id="plan-block">
       <div class="settings-label">プラン</div>
       <div class="bio-card">
@@ -1483,6 +1496,7 @@
           <li>「保存」または「インポート」を押します。</li>
         </ol>
         <p>通知は <b>当日の朝9時</b> と <b>前日</b> に届きます（1つの予定に通知2つまでの機種があります）。</p>
+        <p>一覧の <b>「家族に送る」</b> で、その登録を家族のスマホにも入れられます（LINEで届いたコードを、相手が 設定 →「家族から受け取る」に入れるだけ）。親の免許や保険を子が登録して、親のスマホにも通知を届ける、という使い方ができます。</p>
         <p>カレンダーに入れなくても、<b>設定 →「期限が近づいたら知らせる」</b> をオンにすると、警告が始まる日・前日・当日の朝に、トルマモから通知が届きます（iPhoneはホーム画面に追加したアプリで）。</p>
       </details>
       <details>
@@ -1811,7 +1825,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13u"></script>
+<script src="crypto.js?v=2026-09-13v"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -2804,6 +2818,7 @@ function 項目カードHTML(i){
         <button class="ghost" onclick="編集開始('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13 7l4 4"/></svg>編集</button>
         <button class="ghost" onclick="カレンダーに登録('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>カレンダー</button>
         <button class="ghost" onclick="項目を読み上げる('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>読み上げ</button>
+        <button class="ghost" onclick="家族に送る('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/></svg>家族に送る</button>
         <button class="danger" onclick="削除する('${i.id}')">削除</button>
       </div>
     </div>
@@ -5321,6 +5336,7 @@ async function 金庫データを読み込んでから進む(){
   通知の予定を送り直す();
   プランを確かめて描く();
   共有された写真があれば読む();
+  届いたものを受け取る();
 }
 
 // Androidの「共有」からスクショや写真を受け取ったとき（manifest の share_target）。
@@ -5339,6 +5355,13 @@ async function 共有された写真があれば読む(){
   } catch(e){ /* 何もしない */ }
 }
 
+// 家族から送られたリンク（…/#c=コード）で開かれたら、コードを覚えておき、開錠後に受け取る
+(function 届いたコードを覚える(){
+  try {
+    const m = (location.hash || "").match(/[#&]c=([A-Za-z0-9-]{6,20})/);
+    if(m){ localStorage.setItem("torumamo_incoming", m[1]); history.replaceState(null, "", location.pathname + location.search); }
+  } catch(e) {}
+})();
 async function 起動時の画面を決める(){
   if(!(await 設定済みか())){ 画面を切り替える("screen-setup"); return; }
   画面を切り替える("screen-lock");
@@ -5369,6 +5392,91 @@ async function 生体で開く(静かに){
   }
 }
 document.getElementById("btn-bio-unlock").addEventListener("click", 生体で開く);
+
+// ---- 家族に送る／家族から受け取る ----
+// 登録1件を、家族のスマホにも入れてもらう仕組み。
+// 送る側のスマホで、コードから作った鍵で暗号化してから中継箱（share.php）に預ける。
+// コードは受け取る人にだけ渡る（リンクの # の後ろ、またはLINEの文面）。サーバーはコードも中身も知らない。
+const 送るコードの文字 = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function 送るコードを作る(){
+  const b = crypto.getRandomValues(new Uint8Array(10)); let s = "";
+  for(let i = 0; i < 10; i++) s += 送るコードの文字[b[i] % 送るコードの文字.length];
+  return s.slice(0, 5) + "-" + s.slice(5);
+}
+function 送るコードを整える(v){ const t = String(v || "").toUpperCase().replace(/[^A-Z2-9]/g, ""); return t.length === 10 ? t.slice(0, 5) + "-" + t.slice(5) : ""; }
+async function 送るコードから鍵と番号(コード){
+  const 素材 = await crypto.subtle.importKey("raw", new TextEncoder().encode(コード), "PBKDF2", false, ["deriveKey"]);
+  const 鍵 = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: new TextEncoder().encode("torumamo-share-v1"), iterations: 200000, hash: "SHA-256" },
+    素材, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("id|" + コード));
+  const 番号 = Array.from(new Uint8Array(h)).slice(0, 10).map(b => b.toString(16).padStart(2, "0")).join("");
+  return { 鍵, 番号 };
+}
+async function 家族に送る(id){
+  const item = 項目一覧を読む().find(i => i.id === id); if(!item) return;
+  const 人 = 項目の人物情報(item);
+  const 荷 = { v: 1, items: [Object.assign({}, item, { 履歴: undefined })], people: 人 && 人.id ? [{ name: 人.name, color: 人.color, photo: 人.photo || null }] : [] };
+  const コード = 送るコードを作る();
+  お知らせ("送る準備をしています…");
+  try {
+    const { 鍵, 番号 } = await 送るコードから鍵と番号(コード);
+    const 暗 = await 暗号化する(鍵, new TextEncoder().encode(JSON.stringify(荷)));
+    const r = await fetch(API_BASE + "/share.php", { method: "POST", headers: AIの見出し, body: JSON.stringify({ action: "put", id: 番号, iv: 暗.iv, data: 暗.data }) });
+    if(!r.ok) throw new Error(await 断られた理由(r, "送れませんでした。"));
+    const リンク = location.origin + location.pathname + "#c=" + コード;
+    const 文 = `トルマモから「${item.name}」（${見やすい日付(item.expire_date)}まで）の登録が届いています。\n` +
+      `▼ はじめての方はこちらを開く\n${リンク}\n` +
+      `▼ すでにトルマモを使っている方は、アプリの 設定 →「家族から受け取る」にコードを入れてください\nコード：${コード}（7日間有効）`;
+    if(navigator.share){
+      try { await navigator.share({ text: 文 }); お知らせ("送りました。相手がコードを入れると、その登録が相手のスマホにも入ります。", true); return; }
+      catch(e){ if(e && e.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(文); お知らせ("送る文をコピーしました。LINEなどに貼り付けてください。", true); }
+    catch(e){ await カスタム確認(文); }
+  } catch(e){ お知らせ((e && e.message) || "送れませんでした。", true); }
+}
+async function 届いたものを受け取る(コード){
+  コード = 送るコードを整える(コード || localStorage.getItem("torumamo_incoming"));
+  if(!コード) return;
+  localStorage.removeItem("torumamo_incoming");
+  try {
+    const { 鍵, 番号 } = await 送るコードから鍵と番号(コード);
+    const r = await fetch(API_BASE + "/share.php", { method: "POST", headers: AIの見出し, body: JSON.stringify({ action: "get", id: 番号 }) });
+    if(!r.ok) throw new Error(await 断られた理由(r, "受け取れませんでした。コードを確かめてください。"));
+    const j = await r.json();
+    let 荷;
+    try { 荷 = JSON.parse(new TextDecoder().decode(await 復号する(鍵, j.iv, j.data))); }
+    catch(e){ throw new Error("コードが違うようです。もう一度確かめてください。"); }
+    if(!荷 || !Array.isArray(荷.items) || !荷.items.length) throw new Error("受け取る内容がありませんでした。");
+    const 一覧 = 荷.items.map(i => `・${i.name}（${見やすい日付(i.expire_date)}まで）`).join("\n");
+    const ok = await カスタム確認(`家族から届いた登録を、このスマホに入れます。\n${一覧}\n\n入れると、期限の通知もこのスマホに届きます。`);
+    if(!ok) return;
+    const items = 項目一覧を読む(); const people = 人物一覧を読む();
+    let 人物ID = "";
+    if(荷.people && 荷.people[0] && 荷.people[0].name){
+      const p = 荷.people[0];
+      let 既 = people.find(x => x.name === p.name);
+      if(!既){ 既 = { id: "p_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6), name: p.name, color: p.color, photo: p.photo || undefined }; people.push(既); await 人物一覧を保存する(people); }
+      人物ID = 既.id;
+    }
+    let 足した = 0;
+    荷.items.forEach(i => {
+      const 新 = Object.assign({}, i, { person_id: 人物ID || i.person_id || "", 履歴: [] });
+      const k = items.findIndex(x => x.id === i.id);
+      if(k >= 0) items[k] = Object.assign({}, items[k], 新); else items.push(新);
+      足した++;
+    });
+    await 項目一覧を保存する(items);
+    描画する(); if(typeof 人物タブを描画する === "function") 人物タブを描画する();
+    お知らせ(`受け取りました（${足した}件）。`, true);
+  } catch(e){ お知らせ((e && e.message) || "受け取れませんでした。", true); }
+}
+document.getElementById("btn-receive-code").addEventListener("click", async () => {
+  const v = await カスタム入力("家族から届いたコード（例：ABCDE-FGHIJ）", "");
+  if(v === null || v === undefined) return;
+  if(!送るコードを整える(v)){ お知らせ("コードは英数字10文字です。もう一度確かめてください。", true); return; }
+  await 届いたものを受け取る(v);
+});
 
 // ---- プラン（無料／家族） ----
 // 数えているのは写真の読み取りだけ。予定表も写真1枚。聞く・通知・カレンダーは数えない。
@@ -5671,7 +5779,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13u";
+const アプリの版 = "2026-09-13v";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
