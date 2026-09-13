@@ -1825,7 +1825,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13v"></script>
+<script src="crypto.js?v=2026-09-13w"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5693,6 +5693,10 @@ document.getElementById("btn-continue").addEventListener("click", () => {
   window.__alertShown = false;
   画面を切り替える("screen-app");
   描画する();
+  // 初めての設定のあとも、家族から届いたものがあれば受け取る／プランを出す
+  設定の通知スイッチを整える();
+  プランを確かめて描く();
+  届いたものを受け取る();
 });
 
 document.getElementById("btn-unlock").addEventListener("click", async () => {
@@ -5779,7 +5783,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13v";
+const アプリの版 = "2026-09-13w";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
