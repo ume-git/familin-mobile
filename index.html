@@ -5805,7 +5805,9 @@ document.getElementById("btn-force-update").addEventListener("click", async () =
 
 // ---- PWA: サービスワーカーを登録（オフラインでも開けるようにする） ----
 // 新しい版を公開したとき、端末が古い版のまま止まらないようにする。
-if("serviceWorker" in navigator){
+// ストア版（Capacitor）ではアプリ本体に同梱するので、サービスワーカーは使わない。
+const ストア版か = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+if("serviceWorker" in navigator && !ストア版か){
   // 「もともとサービスワーカーに動かされていたか」を先に控える。
   // 初回インストール時にも制御が切り替わるので、これが無いと無駄に再読み込みしてしまう。
   const 最初から制御されていた = !!navigator.serviceWorker.controller;
@@ -5829,5 +5831,7 @@ if("serviceWorker" in navigator){
   });
 }
 </script>
+<!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
+<script src="native.js?v=2026-09-13w"></script>
 </body>
 </html>
