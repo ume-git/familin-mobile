@@ -1785,7 +1785,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13n"></script>
+<script src="crypto.js?v=2026-09-13o"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4137,7 +4137,20 @@ function 名前に近い人物を探す(person_hint){
   const 完全一致 = list.find(p => p.name === person_hint);
   if(完全一致) return 完全一致.id;
   const 部分一致 = list.find(p => person_hint.includes(p.name) || p.name.includes(person_hint));
-  return 部分一致 ? 部分一致.id : "";
+  if(部分一致) return 部分一致.id;
+  // 「お子さん」「祖父」「パパ」のように言い方が違っても、同じ人を指す言葉の組で探す
+  const 組 = [
+    ["こども", "子ども", "子供", "お子さん", "お子様", "息子", "娘", "こどもたち"],
+    ["おじいさん", "おじいちゃん", "祖父", "じいじ", "じーじ"],
+    ["おばあさん", "おばあちゃん", "祖母", "ばあば", "ばーば"],
+    ["お父さん", "父", "パパ", "とうさん", "夫", "旦那"],
+    ["お母さん", "母", "ママ", "かあさん", "妻", "嫁"],
+    ["本人", "自分", "私", "わたし"],
+  ];
+  const 該当 = 組.find(g => g.some(w => person_hint.includes(w)));
+  if(!該当) return "";
+  const 仲間 = list.find(p => 該当.some(w => p.name.includes(w)));
+  return 仲間 ? 仲間.id : "";
 }
 
 document.getElementById("btn-photo-capture").addEventListener("click", () => {
@@ -5571,7 +5584,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13n";
+const アプリの版 = "2026-09-13o";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
