@@ -499,6 +499,7 @@
   .guide-step p{font-size:14.5px;margin:0;color:var(--ink);line-height:1.7}
   .guide-callout{border-radius:10px;padding:11px 14px;margin-top:10px;font-size:13.5px;line-height:1.7}
   .guide-callout b{display:block;font-size:14px;margin-bottom:3px}
+  .guide-callout li b{display:inline;font-size:inherit;margin:0}
   .guide-callout.warn{background:var(--warn-soft);color:var(--warn)}
   .guide-callout.bad{background:var(--bad-soft);color:var(--bad)}
   .guide-callout.good{background:var(--good-soft);color:var(--good)}
@@ -1575,6 +1576,7 @@
         <div class="read-val" id="read-when"></div>
       </div>
       <div class="read-past" id="read-past" hidden>この期限は<b>もう過ぎています</b>。登録すると「期限切れ」として扱われます。日付が違うときは「直してから登録」で直せます。</div>
+      <div class="read-past" id="read-nodate" hidden><b>期限の日付が読み取れませんでした。</b>影・ぼけ・見切れが原因のことが多いです。期限の部分がはっきり写るように<b>真上から明るい所で</b>撮り直すか、「直してから登録」で日付を選んでください。</div>
       <div class="read-row" id="read-row-todo" hidden>
         <div class="read-key">やること</div>
         <div class="read-val"><ul class="read-list" id="read-todo"></ul></div>
@@ -1725,6 +1727,14 @@
         <div class="guide-step-head"><div class="guide-step-num">1</div><h5>撮って登録する</h5></div>
         <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。</p>
         <div class="guide-callout warn"><b>写真は残りません</b>読み取りが終わった瞬間に写真は消え、サーバーにも保存されません。</div>
+        <div class="guide-callout good"><b>きれいに読み取るコツ</b>
+          <ul style="margin:6px 0 0;padding-left:18px">
+            <li><b>真上から</b>、紙の全体が入るように（斜めだと文字がゆがみます）</li>
+            <li><b>明るい所で、影を入れない</b>（自分の影や手の影が期限の上にかかりやすい）</li>
+            <li><b>期限の部分がはっきり見える</b>ように。免許証や保険証は、光の反射で日付が飛ぶことがあるので少し角度を変える</li>
+            <li>ぼけていたら撮り直す。<b>1回タップしてピントを合わせて</b>から撮る</li>
+          </ul>
+        </div>
         <p>学校のお知らせや年間行事表のように、<b>予定がいくつも印刷された紙</b>は、まとめて登録できます（試験的な機能。登録前に日付と名前を確かめてください）。手書きのカレンダーは読み取りの対象外です。</p>
       </div>
 
@@ -1785,7 +1795,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13o"></script>
+<script src="crypto.js?v=2026-09-13p"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4236,7 +4246,9 @@ async function 写真を読み取る(e){
       else throw new Error("予定表として読み取れませんでした。印刷された予定表を、真上から明るい場所で撮ってください。手書きのカレンダーは読み取りの対象外です。");
     } else 読み取り結果を見せる(結果);
   } catch(err) {
-    お知らせ((err && err.message) ? err.message : 読み取り失敗の文, true);
+    const 通信切れ = !navigator.onLine || (err && err.name === "TypeError" && /fetch|network/i.test(err.message || ""));
+    お知らせ(通信切れ ? "インターネットにつながっていません。電波のある所で、もう一度お試しください。"
+      : (err && err.message) ? err.message : 読み取り失敗の文, true);
   } finally {
     読み取り中を見せる(false);
     ボタン一覧.forEach(b => b.disabled = false);
@@ -4335,9 +4347,11 @@ function 読み取り結果を見せる(結果){
       '<span class="big">' + エスケープ(見やすい日付(結果.due_date)) + "</span>" + エスケープ(時刻) + 印字;
     出し入れ("read-row-when", true);
     出し入れ("read-past", 結果.due_date < 日付の札());
+    出し入れ("read-nodate", false);
   } else {
     出し入れ("read-row-when", false);
     出し入れ("read-past", false);
+    出し入れ("read-nodate", true);
   }
 
   // やること
@@ -5584,7 +5598,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13o";
+const アプリの版 = "2026-09-13p";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
