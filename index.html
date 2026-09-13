@@ -462,6 +462,7 @@
      以前は align-items:center だったため、長い設定画面で上端の「閉じる」が
      画面の外に出て押せなくなっていた。margin:auto なら、収まるときは中央、
      収まらないときは上から並ぶ。 */
+  #modal-confirm-text{white-space:pre-line}
   .modal-back{position:fixed;inset:0;background:rgba(12,18,24,.55);display:none;
     align-items:flex-start;justify-content:center;z-index:80;padding:20px;
     overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -1320,6 +1321,21 @@
       </div>
     </div>
 
+    <div class="settings-block" id="plan-block">
+      <div class="settings-label">プラン</div>
+      <div class="bio-card">
+        <div class="bio-row">
+          <div class="bio-text"><b id="plan-title">無料プラン</b>
+            <small id="plan-desc">今月の読み取りを確かめています…</small></div>
+        </div>
+        <div class="btnrow" style="margin-top:10px">
+          <button type="button" class="ghost" id="btn-plan-key">会員番号を入れる</button>
+          <button type="button" class="ghost" id="btn-plan-about">家族プランとは</button>
+        </div>
+        <p class="bio-hint" id="plan-hint" hidden></p>
+      </div>
+    </div>
+
     <div class="settings-block" id="push-block" hidden>
       <div class="settings-label">期限が近づいたら知らせる</div>
       <div class="bio-card">
@@ -1795,7 +1811,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-13s"></script>
+<script src="crypto.js?v=2026-09-13t"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -2575,6 +2591,9 @@ function 人物タブを描画する(){
     });
   });
   document.getElementById("btn-add-person").addEventListener("click", async () => {
+    if(人物一覧を読む().length >= 3 && !(プランの状態 && プランの状態.plan === "family")){
+      お知らせ("無料プランでは家族3人まで登録できます。家族プランなら何人でも（設定 → プラン）。", true); return;
+    }
     const 結果 = await カスタム人物編集("家族を追加", null);
     if(!結果) return;
     const list = 人物一覧を読む();
@@ -3642,6 +3661,8 @@ const APP_KEY = "tm-app-2d999b41dbbed3456c9fcf08c9473ede";
 // 端末の目印：この端末が月にどれだけ使ったかを数えるためだけの、無作為な文字列。個人の情報は含まない
 const 端末の目印 = (() => { try { let v = localStorage.getItem("torumamo_device"); if(!v || !/^[a-z0-9-]{8,64}$/.test(v)){ v = (crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("")); localStorage.setItem("torumamo_device", v); } return v; } catch(e){ return ""; } })();
 const AIの見出し = { "Content-Type": "application/json", "X-Torumamo-Key": APP_KEY, "X-Torumamo-Device": 端末の目印 };
+// 会員番号（家族プラン）。入れてあれば毎回いっしょに送る
+(function(){ try { const k = localStorage.getItem("torumamo_license"); if(k) AIの見出し["X-Torumamo-License"] = k; } catch(e) {} })();
 
 // 上限に達したときなど、サーバーが日本語の説明を返してくることがある。
 // それがあればそのまま見せ、無ければ、あたりさわりのない文にする。
@@ -4254,6 +4275,7 @@ async function 写真を読み取る(e){
   } finally {
     読み取り中を見せる(false);
     ボタン一覧.forEach(b => b.disabled = false);
+    プランを確かめて描く();
   }
 }
 
@@ -5296,6 +5318,7 @@ async function 金庫データを読み込んでから進む(){
   設定の生体スイッチを整える();
   設定の通知スイッチを整える();
   通知の予定を送り直す();
+  プランを確かめて描く();
   共有された写真があれば読む();
 }
 
@@ -5345,6 +5368,47 @@ async function 生体で開く(静かに){
   }
 }
 document.getElementById("btn-bio-unlock").addEventListener("click", 生体で開く);
+
+// ---- プラン（無料／家族） ----
+// 数えているのは写真の読み取りだけ。予定表も写真1枚。聞く・通知・カレンダーは数えない。
+let プランの状態 = null;
+const 家族プランの説明 = "家族プラン：写真の読み取りが月60枚、家族は何人でも、同じ番号で5台まで。月300円／年2,500円。\n\n購入の受付は準備中です。ご家族や知人から会員番号を受け取った方は「会員番号を入れる」から入力してください。無料プランはこのまま、ずっと無料で使えます。";
+async function プランを確かめて描く(){
+  const title = document.getElementById("plan-title"), desc = document.getElementById("plan-desc"), hint = document.getElementById("plan-hint");
+  try {
+    const r = await fetch(API_BASE + "/quota_status.php", { method: "POST", headers: AIの見出し, body: "{}" });
+    if(!r.ok) throw new Error(String(r.status));
+    プランの状態 = await r.json();
+  } catch(e){ desc.textContent = "今月の読み取りの数は、電波のある所で表示されます。"; return; }
+  const q = プランの状態;
+  const 家族 = q.plan === "family";
+  title.textContent = 家族 ? "家族プラン" : "無料プラン";
+  const 残 = Math.max(0, q.limit - q.used);
+  desc.textContent = `今月の読み取り ${q.used}／${q.limit}枚（あと${残}枚）。${見やすい日付(q.resets)} にもどります。`
+    + (家族 && q.expires ? `　会員番号の有効期限：${見やすい日付(q.expires)}` : "");
+  hint.hidden = !q.reason; hint.textContent = q.reason || "";
+  document.getElementById("btn-plan-key").textContent = 家族 ? "会員番号を変える" : "会員番号を入れる";
+}
+document.getElementById("btn-plan-about").addEventListener("click", () => カスタム確認(家族プランの説明).catch(() => {}));
+document.getElementById("btn-plan-key").addEventListener("click", async () => {
+  const 入力 = await カスタム入力("会員番号（TM-XXXX-XXXX-XXXX）", localStorage.getItem("torumamo_license") || "");
+  if(入力 === null || 入力 === undefined) return;
+  const 整 = String(入力).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if(整 === ""){ localStorage.removeItem("torumamo_license"); delete AIの見出し["X-Torumamo-License"]; await プランを確かめて描く(); お知らせ("会員番号を外しました。無料プランになります。", true); return; }
+  if(!/^TM[A-Z2-9]{12}$/.test(整)){ お知らせ("会員番号の形が違います。TM- で始まる14文字です。", true); return; }
+  const 番号 = "TM-" + 整.slice(2, 6) + "-" + 整.slice(6, 10) + "-" + 整.slice(10, 14);
+  AIの見出し["X-Torumamo-License"] = 番号;
+  await プランを確かめて描く();
+  if(プランの状態 && プランの状態.plan === "family"){
+    localStorage.setItem("torumamo_license", 番号);
+    お知らせ("家族プランになりました。", true);
+  } else {
+    delete AIの見出し["X-Torumamo-License"];
+    const k = localStorage.getItem("torumamo_license"); if(k) AIの見出し["X-Torumamo-License"] = k;
+    お知らせ((プランの状態 && プランの状態.reason) || "この会員番号は使えませんでした。", true);
+    await プランを確かめて描く();
+  }
+});
 
 // ---- 期限の通知（Web Push） ----
 // サーバーに預けるのは「通知先」と「知らせる日 → 件数」だけ。登録の中身は送らない。
@@ -5606,7 +5670,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-13s";
+const アプリの版 = "2026-09-13t";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
