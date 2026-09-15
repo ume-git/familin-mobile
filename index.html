@@ -69,7 +69,8 @@
     --pastel:hsl(var(--hue) 78% 91%);
     --pastel-2:hsl(var(--hue2) 78% 90%);
     --on-accent:#fff;
-    --hero-a:var(--grad-a); --hero-b:var(--grad-b); --on-hero:#fff;
+    /* 「撮って登録する」だけはアプリのアイコンと同じコーラル（テーマ色に関わらず） */
+    --hero-a:#ff8a5b; --hero-b:#ff5e7e; --on-hero:#fff;
     --bad:#b13a3a; --bad-soft:#fbe9e9;
     --warn:#a8721f; --warn-soft:#faf1e0;
     --good:#2f7d4f; --good-soft:#e6f3ea;
@@ -102,7 +103,7 @@
       --pastel-2:hsl(var(--hue2) 34% 16%);
       --on-accent:hsl(var(--hue) 42% 10%);
       --grad-a:hsl(var(--hue) calc(var(--sat) * .9) 70%); --grad-b:hsl(var(--hue2) calc(var(--sat) * .9) 62%);
-      --hero-a:hsl(var(--hue) calc(var(--sat) * .8) 44%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .8) 36%); --on-hero:#fff;
+      --hero-a:#e8704d; --hero-b:#dc4f6c; --on-hero:#fff;   /* 暗い画面では少し深いコーラル */
       --bad:#e0827c; --bad-soft:#3a2020;
       --warn:#e3b65a; --warn-soft:#3a2f14;
       --good:#6fc492; --good-soft:#173226;
@@ -133,7 +134,7 @@
     --pastel-2:hsl(var(--hue2) 34% 16%);
     --on-accent:hsl(var(--hue) 42% 10%);
     --grad-a:hsl(var(--hue) calc(var(--sat) * .9) 70%); --grad-b:hsl(var(--hue2) calc(var(--sat) * .9) 62%);
-    --hero-a:hsl(var(--hue) calc(var(--sat) * .8) 44%); --hero-b:hsl(var(--hue2) calc(var(--sat) * .8) 36%); --on-hero:#fff;
+    --hero-a:#e8704d; --hero-b:#dc4f6c; --on-hero:#fff;   /* 暗い画面では少し深いコーラル */
     --bad:#e0827c; --bad-soft:#3a2020;
     --warn:#e3b65a; --warn-soft:#3a2f14;
     --good:#6fc492; --good-soft:#173226;
@@ -163,7 +164,8 @@
     --pastel:hsl(var(--hue) 46% 82%);
     --pastel-2:hsl(var(--hue2) 46% 81%);
     --on-accent:#fff;
-    --hero-a:var(--grad-a); --hero-b:var(--grad-b); --on-hero:#fff;
+    /* 「撮って登録する」だけはアプリのアイコンと同じコーラル（テーマ色に関わらず） */
+    --hero-a:#ff8a5b; --hero-b:#ff5e7e; --on-hero:#fff;
     --bad:#a83636; --bad-soft:#f3dcdc;
     --warn:#9a6818; --warn-soft:#f1e6cf;
     --good:#2b7349; --good-soft:#dbeadf;
@@ -1825,7 +1827,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-15a"></script>
+<script src="crypto.js?v=2026-09-15b"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5783,7 +5785,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-15a";
+const アプリの版 = "2026-09-15b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -5832,6 +5834,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-15a"></script>
+<script src="native.js?v=2026-09-15b"></script>
 </body>
 </html>
