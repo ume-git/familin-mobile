@@ -1,0 +1,18 @@
+<svg id="icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="gicon" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="512" y2="512"><stop offset="0" stop-color="#ff8a5b"/><stop offset="1" stop-color="#ff5e7e"/></linearGradient></defs>
+  <rect width="512" height="512" fill="url(#gicon)"/>
+  <rect x="96" y="150" width="320" height="212" rx="26" fill="#fff"/>
+  <rect x="122" y="184" width="70" height="86" rx="12" fill="#ffd9c7"/>
+  <rect x="212" y="192" width="170" height="18" rx="9" fill="#e6e9ee"/>
+  <rect x="212" y="226" width="120" height="18" rx="9" fill="#e6e9ee"/>
+  <rect x="122" y="300" width="268" height="34" rx="10" fill="#ff5e7e"/>
+  <rect x="140" y="310" width="140" height="14" rx="7" fill="#fff" opacity=".9"/>
+  <path d="M166 360 l-18 42 l62 -42 z" fill="#fff"/>
+  <g fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round">
+    <path d="M70 130 v-40 a20 20 0 0 1 20 -20 h40"/><path d="M442 130 v-40 a20 20 0 0 0 -20 -20 h-40"/>
+    <path d="M70 382 v40 a20 20 0 0 0 20 20 h40"/><path d="M442 382 v40 a20 20 0 0 1 -20 20 h-40"/>
+  </g>
+  <circle cx="396" cy="174" r="42" fill="url(#gicon)"/>
+  <circle cx="396" cy="174" r="32" fill="#fff"/>
+  <path d="M396 174 v-17 M396 174 l-12 8" fill="none" stroke="url(#gicon)" stroke-width="11" stroke-linecap="round"/>
+</svg>
