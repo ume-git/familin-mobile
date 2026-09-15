@@ -976,6 +976,19 @@
     font-size:15px;font-weight:600;box-shadow:var(--shadow-lg);display:none;z-index:400;
     max-width:90%;text-align:center;line-height:1.5}
 
+  /* 撮ったらそのまま登録したあとに、数秒だけ出る「直す・取り消す」の札 */
+  .quick-bar{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    width:min(92%,440px);background:var(--ink);color:var(--bg);border-radius:var(--r-lg,18px);
+    padding:14px 16px;box-shadow:var(--shadow-lg);z-index:400;display:flex;align-items:center;gap:12px;
+    animation:quick-in .25s ease-out}
+  .quick-bar .quick-main{flex:1;min-width:0;line-height:1.45}
+  .quick-bar .quick-main b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .quick-bar .quick-main span{font-size:13px;opacity:.8}
+  .quick-bar button{flex:none;font:inherit;font-size:13.5px;font-weight:700;padding:9px 12px;border-radius:999px;
+    border:1.5px solid color-mix(in srgb,var(--bg) 45%,transparent);background:transparent;color:var(--bg);cursor:pointer}
+  .quick-bar button.quick-undo{background:var(--bg);color:var(--ink);border-color:var(--bg)}
+  @keyframes quick-in{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+
   #btn-stop-speech{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:var(--bad);color:#fff;border:none;border-radius:999px;padding:15px 26px;
     font-size:15px;font-weight:700;z-index:60;box-shadow:0 6px 18px rgba(0,0,0,.35);
@@ -1132,7 +1145,7 @@
   <button type="button" class="capture-hero" id="btn-photo-capture">
     <svg class="hero-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="17.6" cy="10.2" r=".9" fill="currentColor" stroke="none"/></svg>
     <span class="hero-title">撮って登録する</span>
-    <span class="hero-sub">郵便物・プリントなどを撮影するだけ</span>
+    <span class="hero-sub">郵便物・プリント・クーポン・食品の期限も、撮るだけ</span>
   </button>
   <div class="capture-links">
     <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
@@ -1277,6 +1290,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="quick-bar" id="quick-bar" hidden>
+  <div class="quick-main"><b id="quick-name"></b><span id="quick-when"></span></div>
+  <button type="button" id="quick-edit">直す</button>
+  <button type="button" class="quick-undo" id="quick-undo">取り消す</button>
+</div>
 
 <button id="btn-stop-speech" style="display:none">⏹ 読み上げを止める</button>
 
@@ -1757,7 +1775,7 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">1</div><h5>撮って登録する</h5></div>
-        <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。</p>
+        <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。<br>クーポン・ポイントの失効・食品や薬の期限・チケットは、撮った瞬間にそのまま登録されます（確認画面なし。まちがえたらその場で「取り消す」）。使い終わったら「使った」で一覧から消えます。</p>
         <div class="guide-callout warn"><b>写真は残りません</b>読み取りが終わった瞬間に写真は消え、サーバーにも保存されません。</div>
         <div class="guide-callout good"><b>きれいに読み取るコツ</b>
           <ul style="margin:6px 0 0;padding-left:18px">
@@ -1827,13 +1845,17 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-15b"></script>
+<script src="crypto.js?v=2026-09-15c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
 // ============================================================
 const 種類一覧 = ["パスポート","ビザ・在留資格","運転免許","車検","保険",
-                   "税金・納付","サブスクリプション","資格・免許更新","ドメイン","学校","その他の契約書類"];
+                   "税金・納付","サブスクリプション","資格・免許更新","ドメイン","学校",
+                   "クーポン・割引","ポイント","食品・日用品","チケット・予約","その他の契約書類"];
+// 「使い切る」もの。更新ではなく、期限までに使えば終わり。
+// 撮ったらそのまま登録し（確認画面を出さない）、完了は「使った」で一覧から消える。
+const 使い切りの種類 = new Set(["クーポン・割引","ポイント","食品・日用品","チケット・予約"]);
 
 const 種類の既定値 = {
   "パスポート": { 警告開始日数: 180, 行動: {
@@ -1895,6 +1917,30 @@ const 種類の既定値 = {
     "危険": "提出期限が近づいています。持ち物・記入内容を確認してください。",
     "注意": "提出期限が近づいています。準備を始めてください。",
     "様子見": "まだ余裕があります。",
+  }},
+  "クーポン・割引": { 警告開始日数: 7, 行動: {
+    "切れ": "期限が過ぎました。次はもっと早くお知らせしますね。",
+    "危険": "今日か明日が使いどきです。お店に行く予定があれば忘れずに。",
+    "注意": "今週中に使うとお得です。買い物のついでにどうぞ。",
+    "様子見": "まだ大丈夫。期限が近づいたらお知らせします。",
+  }},
+  "ポイント": { 警告開始日数: 14, 行動: {
+    "切れ": "ポイントが失効した可能性があります。残高を一度確かめてください。",
+    "危険": "もうすぐ失効します。少額でも今日使っておくと損をしません。",
+    "注意": "失効が近づいています。コンビニや買い物で使い切りましょう。",
+    "様子見": "まだ大丈夫。失効が近づいたらお知らせします。",
+  }},
+  "食品・日用品": { 警告開始日数: 5, 行動: {
+    "切れ": "期限が過ぎています。見た目とにおいを確かめて、無理はしないでください。",
+    "危険": "あと数日です。早めに使い切りましょう。",
+    "注意": "そろそろ食べどき・使いどきです。",
+    "様子見": "まだ大丈夫。期限が近づいたらお知らせします。",
+  }},
+  "チケット・予約": { 警告開始日数: 5, 行動: {
+    "切れ": "日にちが過ぎました。払い戻しや振り替えができるか、確かめてみてください。",
+    "危険": "いよいよです。チケットや予約番号を手元に用意しておきましょう。",
+    "注意": "もうすぐです。場所と時間をもう一度確かめておくと安心です。",
+    "様子見": "まだ先です。日にちが近づいたらお知らせします。",
   }},
   "その他の契約書類": { 警告開始日数: 30, 行動: {
     "切れ": "契約の期限が過ぎています。内容を確認し、必要な対応を取ってください。",
@@ -2815,8 +2861,8 @@ function 項目カードHTML(i){
       ${対応策のHTML(i)}
       <div class="row-btns">
         ${更新の手引き[i.category] ? `<button class="ghost guide-btn" onclick="手引きを開く('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5V3.5h6v1"/><path d="M8.5 11h7M8.5 15h5"/></svg>更新に必要なもの</button>` : ""}
-        <button class="ghost advice-btn" onclick="対応策を聞く('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.5 1 1.3 1 2.1h5c0-.8.3-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>どうすればいい？</button>
-        <button class="ghost done-btn" onclick="完了する('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>完了</button>
+        ${使い切りの種類.has(i.category) ? "" : `<button class="ghost advice-btn" onclick="対応策を聞く('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.5 1 1.3 1 2.1h5c0-.8.3-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>どうすればいい？</button>`}
+        <button class="ghost done-btn" onclick="完了する('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>${使い切りの種類.has(i.category) ? "使った" : "完了"}</button>
         <button class="ghost" onclick="編集開始('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13 7l4 4"/></svg>編集</button>
         <button class="ghost" onclick="カレンダーに登録('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>カレンダー</button>
         <button class="ghost" onclick="項目を読み上げる('${i.id}')"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>読み上げ</button>
@@ -2963,12 +3009,12 @@ function 今日やることを描画する(items){
       <button type="button" class="today-open" onclick="項目へ移動する('${i.id}')">
         <span class="today-days">${期限のHTML(i.残り日数)}</span>
         <span class="today-body">
-          <span class="today-what">${エスケープ(i.name)}<span class="today-who">${人物情報.人 ? 人物アバターHTML(人物情報.人, 18) : ""}${エスケープ(人物情報.name)}</span></span>
+          <span class="today-what">${エスケープ(i.name)}${(人物情報.name === "未設定" && 使い切りの種類.has(i.category)) ? "" : `<span class="today-who">${人物情報.人 ? 人物アバターHTML(人物情報.人, 18) : ""}${エスケープ(人物情報.name)}</span>`}</span>
           <span class="today-todo">${エスケープ(i.今やること || i.残り日数文 || "")}</span>
         </span>
       </button>
       <button type="button" class="today-done" onclick="完了する('${i.id}')"
-        aria-label="${エスケープ(i.name)}を完了にする" title="終わったら押す">✓<small>完了</small></button>
+        aria-label="${エスケープ(i.name)}を${使い切りの種類.has(i.category) ? "使った" : "完了"}にする" title="終わったら押す">✓<small>${使い切りの種類.has(i.category) ? "使った" : "完了"}</small></button>
     </div>`;
   };
 
@@ -3259,7 +3305,9 @@ function 描画する(){
 }
 
 function 緊急オーバーレイを確認する(items){
-  const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
+  // 赤い全画面は、免許や車検のように「切れると困る」ものだけ。
+  // 牛乳やクーポンの期限で毎回この画面が出ると、うるさいだけで開きたくなくなる。
+  const 緊急 = items.filter(i => (i.段階 === "切れ" || i.段階 === "危険") && !使い切りの種類.has(i.category));
   if(緊急.length === 0) return;
 
   document.getElementById("alert-sub").textContent = "今すぐ対応が必要なものが " + 緊急.length + " 件あります。";
@@ -4285,7 +4333,8 @@ async function 写真を読み取る(e){
       if(件 >= 2) まとめて登録の画面を見せる(結果);
       else if(件 === 1) 読み取り結果を見せる(Object.assign({}, 結果, 結果.items[0]));
       else throw new Error("予定表として読み取れませんでした。印刷された予定表を、真上から明るい場所で撮ってください。手書きのカレンダーは読み取りの対象外です。");
-    } else 読み取り結果を見せる(結果);
+    } else if(そのまま登録できるか(結果)) await そのまま登録する(結果);
+    else 読み取り結果を見せる(結果);
   } catch(err) {
     const 通信切れ = !navigator.onLine || (err && err.name === "TypeError" && /fetch|network/i.test(err.message || ""));
     お知らせ(通信切れ ? "インターネットにつながっていません。電波のある所で、もう一度お試しください。"
@@ -4331,6 +4380,8 @@ let 読み取った内容 = null;
 // 印字どおりの文字（令和13年06月01日 / 2027年3月20日 / R8.8.31 など）を、
 // アプリの中で YYYY-MM-DD にする。AIにも変換させているが、AIは年の算数を間違えることがある。
 // 文字が読めていれば、こちらの計算を優先する。
+// 「10.05」のような月日だけの数字を「2010年5月」と読まないための歯止め。去年から15年先までだけ年とみなす
+function 下2桁の年らしい(y){ const 今 = new Date().getFullYear(); return y >= 今 - 1 && y <= 今 + 15; }
 function 印字から日付を作る(文){
   if(!文) return null;
   const t = String(文).replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
@@ -4341,6 +4392,10 @@ function 印字から日付を作る(文){
   else if((r = t.match(/(平成|H|Ｈ)\.?(\d{1,2})[年.\/-](\d{1,2})[月.\/-](\d{1,2})/))) { y = 1988 + +r[2]; m = +r[3]; d = +r[4]; }
   else if((r = t.match(/(昭和|S|Ｓ)\.?(\d{1,2})[年.\/-](\d{1,2})[月.\/-](\d{1,2})/))) { y = 1925 + +r[2]; m = +r[3]; d = +r[4]; }
   else if((r = t.match(/(20\d{2})[年.\/-](\d{1,2})[月.\/-](\d{1,2})/)))               { y = +r[1]; m = +r[2]; d = +r[3]; }
+  // 食品の「26.10.05」（西暦の下2桁・月・日）。元号の表記は上で先に拾っているので、ここに来るのは西暦だけ
+  else if((r = t.match(/(?:^|[^\d])(\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})(?!\d)/)))       { y = 2000 + +r[1]; m = +r[2]; d = +r[3]; if(!下2桁の年らしい(y)) return null; }
+  // 年月だけ（26.10 / 2026.10 / 2026年10月）は、その月の末日にする
+  else if((r = t.match(/(?:^|[^\d])(20\d{2}|\d{2})[年.\/-](\d{1,2})月?(?![\d日])/)))      { y = (r[1].length === 2 ? 2000 : 0) + +r[1]; m = +r[2]; d = new Date(y, m, 0).getDate(); if(r[1].length === 2 && !下2桁の年らしい(y)) return null; }
   if(!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 31) return null;
   const 確認 = new Date(y, m - 1, d);
   if(確認.getMonth() !== m - 1) return null;
@@ -4713,7 +4768,9 @@ document.getElementById("ask-input").addEventListener("keydown", (e) => {
   if(e.key === "Enter") トルマモに聞く();
 });
 
-document.getElementById("btn-save").addEventListener("click", async () => {
+document.getElementById("btn-save").addEventListener("click", 保存ボタンを押した);
+let そのまま登録中 = false;
+async function 保存ボタンを押した(){
   const id = document.getElementById("edit-id").value;
   const name = document.getElementById("f-name").value.trim();
   const category = document.getElementById("f-category").value;
@@ -4766,7 +4823,72 @@ document.getElementById("btn-save").addEventListener("click", async () => {
   入力フォームを閉じる();
   描画する();
   window.scrollTo({top:0, behavior:"instant"});
-  お知らせ(id ? "更新できました！" : "登録できました！");
+  if(!そのまま登録中) お知らせ(id ? "更新できました！" : "登録できました！");
+}
+
+// ============================================================
+// 身近な期限（クーポン・ポイント・食品・チケット）は、撮ったらそのまま登録する。
+// 「撮る → 終わり」の1動作にするため、確認画面を挟まない。
+// そのかわり、登録直後に数秒だけ「直す」「取り消す」の札を出す。
+// 日付が読めなかった・もう過ぎている・名前が無いときは、これまで通り確認画面にする。
+// ============================================================
+function そのまま登録できるか(結果){
+  if(!結果 || !使い切りの種類.has(結果.category)) return false;
+  if(!結果.title) return false;
+  const 日 = 印字から日付を作る(結果.due_date_text) || 結果.due_date;
+  if(!日 || !/^\d{4}-\d{2}-\d{2}$/.test(String(日))) return false;
+  return 日 >= 日付の札();
+}
+let すぐ直せる札の時計 = null;
+async function そのまま登録する(結果){
+  const 日 = 印字から日付を作る(結果.due_date_text);
+  if(日) 結果.due_date = 日;
+  読み取った内容 = 結果;
+  読み取り結果を欄に入れる();
+  const 前 = 項目一覧を読む().length;
+  そのまま登録中 = true;
+  try { await 保存ボタンを押した(); } finally { そのまま登録中 = false; }
+  const items = 項目一覧を読む();
+  const 新 = items[items.length - 1];
+  if(items.length <= 前 || !新) return;
+  すぐ直せる札を出す(新);
+}
+function すぐ直せる札を出す(項目){
+  const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-name").textContent = 項目.name;
+  document.getElementById("quick-when").textContent = "登録しました。" + 見やすい日付(項目.expire_date).replace(/^\d+年/, "") + "まで見守ります";
+  札.dataset.id = 項目.id;
+  札.hidden = false;
+  if(すぐ直せる札の時計) clearTimeout(すぐ直せる札の時計);
+  すぐ直せる札の時計 = setTimeout(すぐ直せる札を消す, 8000);
+}
+function すぐ直せる札を消す(){
+  const 札 = document.getElementById("quick-bar");
+  札.hidden = true; 札.dataset.id = ""; 札.dataset.restore = "";
+  document.getElementById("quick-edit").hidden = false;
+  if(すぐ直せる札の時計){ clearTimeout(すぐ直せる札の時計); すぐ直せる札の時計 = null; }
+}
+document.getElementById("quick-edit").addEventListener("click", () => {
+  const id = document.getElementById("quick-bar").dataset.id;
+  すぐ直せる札を消す();
+  if(id) 編集開始(id);
+});
+document.getElementById("quick-undo").addEventListener("click", async () => {
+  const 札 = document.getElementById("quick-bar");
+  const id = 札.dataset.id, 戻す = 札.dataset.restore;
+  すぐ直せる札を消す();
+  if(戻す){
+    // 「使った」の取り消し：消した項目を戻す
+    let 項目 = null; try { 項目 = JSON.parse(戻す); } catch(e) {}
+    if(!項目 || !項目.id) return;
+    const items = 項目一覧を読む().filter(i => i.id !== 項目.id).concat([項目]);
+    await 項目一覧を保存する(items);
+  } else {
+    if(!id) return;
+    await 項目一覧を保存する(項目一覧を読む().filter(i => i.id !== id));
+  }
+  描画する();
+  お知らせ("取り消しました。");
 });
 
 function カスタム確認(メッセージ){
@@ -5033,6 +5155,7 @@ let 完了しようとしている項目 = null;
 function 完了する(id){
   const item = 項目一覧を読む().find(i => i.id === id);
   if(!item) return;
+  if(使い切りの種類.has(item.category)){ 使い切った(item); return; }
   完了しようとしている項目 = item;
 
   const 人物情報 = 項目の人物情報(item);
@@ -5054,6 +5177,28 @@ function 完了する(id){
     続ける.hidden = true;
   }
   document.getElementById("modal-done").classList.add("show");
+}
+
+// クーポン・ポイント・食品・チケットは「使った」で終わり。次回の期限は無いので、確認画面もなしで一覧から消す。
+// 押し間違いに備えて、数秒だけ「取り消す」を出す。
+const 使い切りのひとこと = {
+  "クーポン・割引": "お得に使えましたね！",
+  "ポイント":       "失効させずにすみました！",
+  "食品・日用品":   "むだにせず使い切れました！",
+  "チケット・予約": "楽しんできてください！",
+};
+async function 使い切った(item){
+  const 残り = 項目一覧を読む().filter(i => i.id !== item.id);
+  await 項目一覧を保存する(残り);
+  描画する();
+  const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-name").textContent = 使い切りのひとこと[item.category] || "おつかれさまでした！";
+  document.getElementById("quick-when").textContent = item.name + " を消しました";
+  札.dataset.id = ""; 札.dataset.restore = JSON.stringify(item);
+  document.getElementById("quick-edit").hidden = true;
+  札.hidden = false;
+  if(すぐ直せる札の時計) clearTimeout(すぐ直せる札の時計);
+  すぐ直せる札の時計 = setTimeout(すぐ直せる札を消す, 6000);
 }
 
 function 祝う画面を閉じる(){
@@ -5785,7 +5930,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-15b";
+const アプリの版 = "2026-09-15c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -5834,6 +5979,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-15b"></script>
+<script src="native.js?v=2026-09-15c"></script>
 </body>
 </html>
