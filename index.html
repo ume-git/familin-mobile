@@ -922,6 +922,15 @@
   .count span{font-size:11.5px;font-weight:700;letter-spacing:.02em}
   .count.bad b{color:var(--bad)} .count.warn b{color:var(--warn)}
   .count.zero b{color:var(--soft);opacity:.55}
+  /* はじめての人に見せる案内。登録が0件のときだけ */
+  .welcome{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-lg,18px);
+    padding:18px 18px 16px;margin:0 0 14px;box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge);text-align:left}
+  .welcome h4{margin:0 0 6px;font-size:18px;font-weight:800;color:var(--ink)}
+  .welcome p{margin:0;font-size:14.5px;line-height:1.8;color:var(--soft)}
+  .welcome .welcome-try{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+  .welcome .welcome-try button{font:inherit;font-size:14px;font-weight:700;padding:10px 14px;border-radius:999px;
+    border:1.5px solid color-mix(in srgb, var(--accent) 45%, transparent);background:var(--accent-soft);color:var(--accent);cursor:pointer}
+  .welcome .welcome-try small{font-size:12px;color:var(--soft)}
   .today-calm{color:var(--soft);text-align:left;padding:16px 0 20px;border:none;
     border-bottom:1px solid var(--line);border-radius:0;background:none;box-shadow:none;
     font-size:14.5px;margin-bottom:0}
@@ -1055,8 +1064,8 @@
   <div class="step show" id="screen-setup">
     <div class="auth-wrap"><div class="auth-box">
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
-      <h2>暗証番号を決めてください</h2>
-      <p class="lead">最初に1回だけ、4〜6桁の好きな数字を決めます。次にトルマモを開くときから、この番号が必要になります。</p>
+      <h2>はじめまして、トルマモです</h2>
+      <p class="lead">撮るだけで期限をおぼえて、近づいたらお知らせします。<br>はじめに1回だけ、あなただけの番号（4〜6けた）を決めてください。次からはこの番号で開きます。</p>
       <div class="security-note"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 登録した内容は、この端末の中で暗号化されたうえで保存されます。この端末の外には一切送信されません。</div>
       <div class="error" id="error-setup"></div>
       <label class="field-label">暗証番号（4〜6桁の数字）</label>
@@ -1070,13 +1079,13 @@
   <div class="step" id="screen-recovery-display">
     <div class="auth-wrap"><div class="auth-box">
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
-      <h2>回復キーを保管してください</h2>
-      <p class="lead">暗証番号を忘れてしまったときに、データを取り戻すための合言葉です。これを失くすと、データを取り戻す方法はありません（開発者にも復元できません）。</p>
+      <h2>もしもの時の合言葉です</h2>
+      <p class="lead">番号を忘れたとき、この合言葉で中身を取り戻せます。これをなくすと、取り戻す方法がありません（作った私たちにも開けません）。</p>
       <div class="auth-recovery-key" id="recovery-key-display">----</div>
-      <div class="auth-warn">紙に書き写すか、スクリーンショットを撮って、この端末とは別の安全な場所に控えておいてください。</div>
+      <div class="auth-warn">紙に書くか、スクショを撮って、このスマホとは別の安全な所に置いておいてください。</div>
       <label class="auth-check-row">
         <input type="checkbox" id="chk-saved">
-        <span>控えました（このキーはもう表示されません）</span>
+        <span>控えました（この合言葉は、もう表示されません）</span>
       </label>
       <button class="primary wide-btn" id="btn-continue" disabled>トルマモを開く</button>
     </div></div>
@@ -1085,7 +1094,7 @@
   <div class="step" id="screen-lock">
     <div class="auth-wrap"><div class="auth-box">
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></div>
-      <h2>トルマモ はロックされています</h2>
+      <h2>おかえりなさい</h2>
       <div class="error" id="error-lock"></div>
       <p class="bio-hint" id="bio-hint" hidden>次に出る画面で「パスキーを使用」を押すと、Face IDが動きます。</p>
       <button type="button" class="primary wide-btn bio-btn" id="btn-bio-unlock" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M9 9.5v1M15 9.5v1M12 9v4h-1.2"/><path d="M9 15.2a4.2 4.2 0 0 0 6 0"/></svg><span>Face ID・指紋で開く</span></button>
@@ -1585,16 +1594,16 @@
 <div class="analyzing" id="analyzing" hidden>
   <div class="analyzing-box">
     <div class="analyzing-ring"><div class="analyzing-ring-in"></div></div>
-    <div class="analyzing-title">読み取っています</div>
+    <div class="analyzing-title">読んでいます…</div>
     <div class="analyzing-step" id="analyzing-step">写真を送っています…</div>
-    <div class="analyzing-note">数秒かかります。写真はこのあと、その場で消えます。</div>
+    <div class="analyzing-note">数秒だけ待ってくださいね。写真はこのあと、その場で消えます。</div>
   </div>
 </div>
 
 <div class="modal-back" id="modal-read">
   <div class="modal-box read-box">
     <div class="read-head">
-      <span class="read-badge">読み取れました</span>
+      <span class="read-badge">読めました！</span>
       <h3 id="read-title"></h3>
       <p class="read-summary" id="read-summary"></p>
     </div>
@@ -1697,7 +1706,7 @@
 <div class="modal-back" id="modal-done">
   <div class="modal-box done-box">
     <div class="done-mark"><svg class="ic ic-done" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16.5 9.5"/></svg></div>
-    <h3>更新できました！</h3>
+    <h3>おつかれさま！ 更新できました</h3>
     <p class="done-what" id="done-what"></p>
     <div class="done-next" id="done-next" hidden>
       <div class="done-next-label">次回の期限（目安）</div>
@@ -1835,7 +1844,7 @@
 
 <div class="alert-overlay" id="alert-overlay">
   <div class="alert-box">
-    <div class="alert-head"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg> 今すぐ確認してください</div>
+    <div class="alert-head"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg> きょう、見てほしいものがあります</div>
     <div class="alert-sub" id="alert-sub"></div>
     <div id="alert-list"></div>
     <div class="alert-btns">
@@ -1845,7 +1854,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-15c"></script>
+<script src="crypto.js?v=2026-09-15d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -1858,64 +1867,65 @@ const 種類一覧 = ["パスポート","ビザ・在留資格","運転免許","
 const 使い切りの種類 = new Set(["クーポン・割引","ポイント","食品・日用品","チケット・予約"]);
 
 const 種類の既定値 = {
+  // 文は「家族が話しかける言葉」で。役所の言い回しにしない。事実は落とさない。
   "パスポート": { 警告開始日数: 180, 行動: {
-    "切れ": "海外へ渡航できない状態です。至急、パスポートセンターで更新手続きをしてください。",
-    "危険": "残存有効期間が短いと入国を拒否される国があります。早めに更新を予約してください。",
-    "注意": "更新窓口は混み合うことがあります。余裕を持って手続きの予約をしてください。",
-    "様子見": "まだ余裕があります。次の海外渡航の予定が決まったら残存期間を確認してください。",
+    "切れ": "パスポートが切れています。このままだと海外には行けないので、次の旅行が決まる前にパスポートセンターで作り直しましょう。",
+    "危険": "残りが短いと入国できない国があります。旅行の予定があるなら、早めに更新の予約をしておくと安心です。",
+    "注意": "窓口は混みやすいので、余裕をもって更新の予約をしておきましょう。",
+    "様子見": "まだ余裕があります。次に海外へ行く予定が決まったら、残りの期間だけ見ておいてください。",
   }},
   "ビザ・在留資格": { 警告開始日数: 90, 行動: {
-    "切れ": "オーバーステイの状態の可能性があります。至急、出入国在留管理庁に相談してください。",
-    "危険": "在留期間更新許可申請は満了日の3か月前から可能です。至急、申請を始めてください。",
-    "注意": "更新に必要な書類（在職証明・課税証明など）の準備を始めてください。",
-    "様子見": "まだ申請可能期間ではありません。必要書類の種類だけ確認しておくと安心です。",
+    "切れ": "在留期間が過ぎている可能性があります。急いで出入国在留管理庁に相談してください。",
+    "危険": "更新の申請は満了日の3か月前からできます。今すぐ申請を始めましょう。",
+    "注意": "更新に要る書類（在職証明・課税証明など）を、そろそろ集め始めましょう。",
+    "様子見": "まだ申請できる時期ではありません。要る書類の種類だけ見ておくと安心です。",
   }},
   "運転免許": { 警告開始日数: 60, 行動: {
-    "切れ": "運転できません。失効後6か月以内なら学科・技能試験免除で再取得できる場合があります。",
-    "危険": "更新期間（誕生日の前後1か月）です。運転免許センター・警察署で更新してください。",
-    "注意": "更新はがきの内容を確認し、更新に行く日を決めてください。",
-    "様子見": "まだ更新期間前です。更新はがきが届いたら内容を確認してください。",
+    "切れ": "免許が切れています。運転はできません。切れてから6か月以内なら、試験なしで取り直せることが多いので、早めに免許センターへ。",
+    "危険": "いま更新できる期間（誕生日の前後1か月）です。免許センターか警察署で更新しましょう。",
+    "注意": "更新のはがきを見て、行く日を決めておきましょう。",
+    "様子見": "まだ更新の期間ではありません。はがきが届いたら中身を見ておいてください。",
   }},
   "車検": { 警告開始日数: 30, 行動: {
-    "切れ": "公道を走行できません（無車検運行は違法です）。至急、車検を通してください。",
-    "危険": "車検の予約をまだしていなければ、今すぐ指定工場かディーラーに連絡してください。",
-    "注意": "車検の予約を取ってください。人気の工場は予約が埋まりやすいです。",
-    "様子見": "まだ余裕がありますが、予約枠を確認しておくと安心です。",
+    "切れ": "車検が切れています。このまま走ると違反になるので、乗らずに工場かディーラーへ連絡しましょう。",
+    "危険": "予約がまだなら、今すぐ工場かディーラーに電話を。",
+    "注意": "車検の予約を取りましょう。人気の工場は早く埋まります。",
+    "様子見": "まだ余裕があります。予約の空きだけ見ておくと安心です。",
   }},
   "保険": { 警告開始日数: 30, 行動: {
-    "切れ": "補償が切れている可能性があります。至急、保険会社に確認・更新してください。",
-    "危険": "更新案内が来ているはずです。内容を確認し、継続するか見直すか決めてください。",
-    "注意": "更新の時期です。補償内容や保険料を見直す良い機会でもあります。",
-    "様子見": "まだ余裕があります。更新案内が届くのを待ってください。",
+    "切れ": "保険が切れているかもしれません。急いで保険会社に確かめましょう。",
+    "危険": "更新の案内が来ているはずです。続けるか、見直すか、決めましょう。",
+    "注意": "更新の時期です。保険料や中身を見直すいい機会でもあります。",
+    "様子見": "まだ余裕があります。更新の案内が届くのを待っていて大丈夫です。",
   }},
   "税金・納付": { 警告開始日数: 14, 行動: {
-    "切れ": "納期限を過ぎています。延滞金が付くことがあります。納付書はしばらく使えることが多いので、金融機関の窓口やスマホ決済で早めに納めてください。",
-    "危険": "納期限が目前です。コンビニ・スマホ決済（納付書のバーコードやQR）・銀行のどれかで、今日中に納めてください。",
-    "注意": "納期限が近づいています。納付書を手元に用意し、支払う方法を決めてください。",
-    "様子見": "まだ余裕があります。納付書をなくさない場所に置いておいてください。",
+    "切れ": "納める期限が過ぎています。延滞金が付くことがあるので、早めに。納付書は銀行の窓口やスマホ決済でまだ使えることが多いです。",
+    "危険": "期限は目前です。コンビニ・スマホ決済（バーコードやQR）・銀行のどれかで、今日中に納めましょう。",
+    "注意": "期限が近づいています。納付書を手元に出して、払い方を決めておきましょう。",
+    "様子見": "まだ余裕があります。納付書をなくさない所に置いておいてください。",
   }},
   "サブスクリプション": { 警告開始日数: 7, 行動: {
-    "切れ": "既に自動更新され、請求が発生している可能性があります。明細を確認してください。",
-    "危険": "もうすぐ自動更新されます。継続するか解約するか、今日中に決めてください。",
-    "注意": "自動更新日が近づいています。使っていないなら解約手続きを検討してください。",
+    "切れ": "もう自動で更新され、請求が来ているかもしれません。明細を見てみましょう。",
+    "危険": "もうすぐ自動で更新されます。続けるか、やめるか、今日中に決めましょう。",
+    "注意": "自動更新の日が近づいています。使っていないなら、解約を考えてもいい頃です。",
     "様子見": "まだ余裕があります。",
   }},
   "資格・免許更新": { 警告開始日数: 60, 行動: {
-    "切れ": "資格が失効している可能性があります。所轄団体・機関に確認してください。",
-    "危険": "更新講習の予約や必要書類の準備を、今すぐ始めてください。",
-    "注意": "更新に必要な手続き（講習・書類提出など）を調べ始めてください。",
-    "様子見": "まだ余裕があります。更新方法だけ確認しておくと安心です。",
+    "切れ": "資格が切れているかもしれません。発行している団体に確かめましょう。",
+    "危険": "更新の講習の予約や、書類の用意を、今すぐ始めましょう。",
+    "注意": "更新に何が要るか（講習・書類など）を、そろそろ調べ始めましょう。",
+    "様子見": "まだ余裕があります。更新のやり方だけ見ておくと安心です。",
   }},
   "ドメイン": { 警告開始日数: 14, 行動: {
-    "切れ": "ドメインが失効し、第三者に取得される恐れがあります。至急、更新してください。",
-    "危険": "自動更新の設定と支払い方法（カードの有効期限など）を今すぐ確認してください。",
-    "注意": "更新時期が近づいています。自動更新設定を確認してください。",
+    "切れ": "ドメインが切れています。他の人に取られることがあるので、急いで更新しましょう。",
+    "危険": "自動更新の設定と、支払いのカードの期限を、今すぐ確かめましょう。",
+    "注意": "更新の時期が近づいています。自動更新になっているか見ておきましょう。",
     "様子見": "まだ余裕があります。",
   }},
   "学校": { 警告開始日数: 14, 行動: {
-    "切れ": "提出期限が過ぎています。学校に確認し、早めに提出してください。",
-    "危険": "提出期限が近づいています。持ち物・記入内容を確認してください。",
-    "注意": "提出期限が近づいています。準備を始めてください。",
+    "切れ": "提出の期限が過ぎています。学校に一言伝えて、早めに出しましょう。",
+    "危険": "提出の期限が近いです。持ち物と記入を確かめておきましょう。",
+    "注意": "提出の期限が近づいています。そろそろ用意を。",
     "様子見": "まだ余裕があります。",
   }},
   "クーポン・割引": { 警告開始日数: 7, 行動: {
@@ -1925,27 +1935,27 @@ const 種類の既定値 = {
     "様子見": "まだ大丈夫。期限が近づいたらお知らせします。",
   }},
   "ポイント": { 警告開始日数: 14, 行動: {
-    "切れ": "ポイントが失効した可能性があります。残高を一度確かめてください。",
-    "危険": "もうすぐ失効します。少額でも今日使っておくと損をしません。",
-    "注意": "失効が近づいています。コンビニや買い物で使い切りましょう。",
-    "様子見": "まだ大丈夫。失効が近づいたらお知らせします。",
+    "切れ": "ポイントが消えてしまったかもしれません。残高を一度見てみましょう。",
+    "危険": "もうすぐ消えます。少しでも今日使っておくと損しません。",
+    "注意": "そろそろ消える時期です。コンビニや買い物で使い切りましょう。",
+    "様子見": "まだ大丈夫。近づいたらお知らせします。",
   }},
   "食品・日用品": { 警告開始日数: 5, 行動: {
     "切れ": "期限が過ぎています。見た目とにおいを確かめて、無理はしないでください。",
     "危険": "あと数日です。早めに使い切りましょう。",
     "注意": "そろそろ食べどき・使いどきです。",
-    "様子見": "まだ大丈夫。期限が近づいたらお知らせします。",
+    "様子見": "まだ大丈夫。近づいたらお知らせします。",
   }},
   "チケット・予約": { 警告開始日数: 5, 行動: {
     "切れ": "日にちが過ぎました。払い戻しや振り替えができるか、確かめてみてください。",
     "危険": "いよいよです。チケットや予約番号を手元に用意しておきましょう。",
-    "注意": "もうすぐです。場所と時間をもう一度確かめておくと安心です。",
-    "様子見": "まだ先です。日にちが近づいたらお知らせします。",
+    "注意": "もうすぐです。場所と時間をもう一度見ておくと安心です。",
+    "様子見": "まだ先です。近づいたらお知らせします。",
   }},
   "その他の契約書類": { 警告開始日数: 30, 行動: {
-    "切れ": "契約の期限が過ぎています。内容を確認し、必要な対応を取ってください。",
-    "危険": "契約更新の条件を確認し、必要な手続きを今すぐ始めてください。",
-    "注意": "契約の更新時期です。内容を確認してください。",
+    "切れ": "期限が過ぎています。中身を見て、要ることがあれば早めに。",
+    "危険": "更新の条件を確かめて、要る手続きを今すぐ始めましょう。",
+    "注意": "更新の時期です。中身を一度見ておきましょう。",
     "様子見": "まだ余裕があります。",
   }},
 };
@@ -2121,22 +2131,22 @@ document.getElementById("btn-guidebook-close").addEventListener("click", () => {
 });
 
 const 段階の表示 = {
-  "切れ":   { ラベル: "超重要", 色: "bad" },
-  "危険":   { ラベル: "重要", 色: "bad" },
-  "注意":   { ラベル: "まあまあ重要", 色: "warn" },
-  "様子見": { ラベル: "余裕あり", 色: "good" },
+  "切れ":   { ラベル: "切れています", 色: "bad" },
+  "危険":   { ラベル: "急いで", 色: "bad" },
+  "注意":   { ラベル: "そろそろ", 色: "warn" },
+  "様子見": { ラベル: "だいじょうぶ", 色: "good" },
 };
 
 const 免許色の説明 = {
-  "ゴールド": "有効期間は5年です（更新期間満了時に70歳以上の場合は短くなります）。更新時講習は「優良運転者講習」で、時間は約30分です。",
-  "ブルー":   "有効期間は3年または5年です（初めての更新、または軽微な違反がある場合は3年）。更新時講習は「一般運転者講習」（約1時間）または「違反運転者講習」（約2時間）です。どちらに該当するかは、届いた更新案内はがきで確認してください。",
-  "グリーン": "初めての免許のため有効期間は3年です。更新時講習は「初回更新者講習」で、時間は約2時間です。",
+  "ゴールド": "ゴールドなので講習は約30分（優良運転者講習）で済みます。次の免許も5年です（70歳以上は短くなります）。",
+  "ブルー":   "ブルーの講習は約1時間（一般）か約2時間（違反あり）。どちらかは、届いたはがきに書いてあります。次の免許は3年か5年です。",
+  "グリーン": "初めての更新なので、講習は約2時間（初回更新者講習）。次の免許はブルーになり、3年です。",
 };
-const 高齢者講習の説明 = "更新期間満了日（誕生日の1か月後）に70歳以上になる方は、更新の前に「高齢者講習」を受ける必要があります（75歳以上はさらに「認知機能検査」も必要です）。会場の予約が混み合うため、更新案内が届いたら早めに予約してください。";
+const 高齢者講習の説明 = "70歳以上の方は、更新の前に「高齢者講習」を受けます（75歳以上は「認知機能検査」も）。会場の予約が混むので、はがきが届いたらすぐ予約するのがコツです。";
 
 function 残り日数を表す文章(残り日数){
   if(残り日数 === null || 残り日数 === undefined) return "不明";
-  if(残り日数 < 0) return (-残り日数) + "日 超過";
+  if(残り日数 < 0) return (-残り日数) + "日 過ぎています";
   if(残り日数 === 0) return "今日が期限";
   return "あと " + 残り日数 + "日";
 }
@@ -2985,10 +2995,24 @@ function 今日やることを描画する(items){
     if("setAppBadge" in navigator){ 急ぎ > 0 ? navigator.setAppBadge(急ぎ) : navigator.clearAppBadge(); }
   } catch(e) {}
 
+  // 登録が0件＝はじめての人。「確認済み」ではなく、最初の1枚に誘う。
+  if(items.length === 0){
+    el.innerHTML = `<div class="welcome">
+      <h4>はじめまして、トルマモです</h4>
+      <p>撮るだけで期限をおぼえて、近づいたらお知らせします。<br>まず1つ、撮ってみませんか？ 冷蔵庫の牛乳、財布のクーポン、机の上のはがき、なんでも大丈夫。</p>
+      <div class="welcome-try">
+        <button type="button" onclick="おためしで登録する()">まずは おためしで1つ入れてみる</button>
+        <small>写真なしで、見本が1つ入ります。あとで消せます</small>
+      </div>
+    </div>`;
+    マスコットを更新する();
+    return;
+  }
   if(緊急.length === 0 && 注意.length === 0){
+    const 見守り = items.length;
     el.innerHTML = `<div class="today-calm">
-      <div class="calm-head"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>すべて確認済み</div>
-      <div class="calm-body">今日やることはありません。<br>ゆっくりお過ごしください。</div>
+      <div class="calm-head"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>今日は だいじょうぶ</div>
+      <div class="calm-body">${見守り}件を見守っています。近いものはありません。<br>ゆっくりどうぞ。</div>
     </div>`;
     マスコットを更新する();
     return;
@@ -3289,7 +3313,7 @@ function 描画する(){
       : items.length ? `すべての登録（${items.length}件）` : "すべての登録";
 
   if(items.length === 0){
-    list.innerHTML = '<div class="empty">まだ何も登録されていません。上のフォームから、登録してみませんか？</div>';
+    list.innerHTML = '<div class="empty">まだ何もありません。ホームの「撮って登録する」で、1つ入れてみませんか？</div>';
   } else {
     const モード = document.getElementById("list-view-mode").value;
     if(モード === "category") list.innerHTML = カテゴリー別に描画する(items);
@@ -3310,7 +3334,7 @@ function 緊急オーバーレイを確認する(items){
   const 緊急 = items.filter(i => (i.段階 === "切れ" || i.段階 === "危険") && !使い切りの種類.has(i.category));
   if(緊急.length === 0) return;
 
-  document.getElementById("alert-sub").textContent = "今すぐ対応が必要なものが " + 緊急.length + " 件あります。";
+  document.getElementById("alert-sub").textContent = "急ぎのものが " + 緊急.length + " 件あります。";
   document.getElementById("alert-list").innerHTML = 緊急.map(i => `
     <div class="alert-item">
       <div class="name">${エスケープ(i.name)}</div>
@@ -3323,7 +3347,7 @@ function 緊急オーバーレイを確認する(items){
   document.getElementById("btn-alert-read").onclick = () => {
     const 数詞 = ["1つ目","2つ目","3つ目","4つ目","5つ目","6つ目","7つ目","8つ目"];
     const 文章 = 緊急.map((i, idx) => (数詞[idx] || (idx+1)+"つ目") + "、" + i.name + "。" + i.今やること).join(" ");
-    読み上げる("今すぐ対応が必要なものが" + 緊急.length + "件あります。" + 文章);
+    読み上げる("急ぎのものが" + 緊急.length + "件あります。" + 文章);
   };
 }
 document.getElementById("btn-alert-ok").addEventListener("click", () => {
@@ -4776,7 +4800,7 @@ async function 保存ボタンを押した(){
   const category = document.getElementById("f-category").value;
   const expire_date = 選択中の期限日();
   const memo = document.getElementById("f-memo").value.trim();
-  if(!name || !expire_date){ お知らせ("名称と期限日を、教えてくださいね。", true); return; }
+  if(!name || !expire_date){ お知らせ("名前と期限の日だけ、教えてくださいね。", true); return; }
   if(!id && expire_date < 日付の札()){
     const ok = await カスタム確認("期限（" + 見やすい日付(expire_date) + "）はもう過ぎています。このまま「期限切れ」として登録しますか？");
     if(!ok) return;
@@ -4823,7 +4847,7 @@ async function 保存ボタンを押した(){
   入力フォームを閉じる();
   描画する();
   window.scrollTo({top:0, behavior:"instant"});
-  if(!そのまま登録中) お知らせ(id ? "更新できました！" : "登録できました！");
+  if(!そのまま登録中) お知らせ(id ? "直せました！" : "登録できました！ これで安心ですね。");
 }
 
 // ============================================================
@@ -4852,6 +4876,20 @@ async function そのまま登録する(結果){
   const 新 = items[items.length - 1];
   if(items.length <= 前 || !新) return;
   すぐ直せる札を出す(新);
+}
+// はじめての人向けの見本。写真もAIも使わず、その場で1つ入れて「登録→見守り→使った」の流れを体験してもらう
+async function おためしで登録する(){
+  const 日 = new Date(); 日.setDate(日.getDate() + 3);
+  const iso = 日.getFullYear() + "-" + String(日.getMonth() + 1).padStart(2, "0") + "-" + String(日.getDate()).padStart(2, "0");
+  const items = 項目一覧を読む();
+  const 見本 = { id: "it_" + Date.now() + "_sample", name: "牛乳（おためし）", category: "食品・日用品", expire_date: iso,
+    memo: "これは見本です。本物は「撮って登録する」で。使い終わったら「使った」を押すと消えます。", cost: null, sub_type: "", is_senior: false, person_id: "",
+    読み取り要約: "牛乳の賞味期限です（見本）" };
+  items.push(見本);
+  await 項目一覧を保存する(items);
+  描画する();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  すぐ直せる札を出す(見本);
 }
 function すぐ直せる札を出す(項目){
   const 札 = document.getElementById("quick-bar");
@@ -5242,7 +5280,7 @@ document.getElementById("done-finish").addEventListener("click", async () => {
   const items = 項目一覧を読む().filter(i => i.id !== 元.id);
   await 項目一覧を保存する(items);
   描画する();
-  お知らせ("おつかれさまでした。", true);
+  お知らせ("おつかれさまでした。ひとつ片づきましたね。", true);
 });
 
 function お知らせ(文章, 長め){
@@ -5930,7 +5968,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-15c";
+const アプリの版 = "2026-09-15d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -5979,6 +6017,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-15c"></script>
+<script src="native.js?v=2026-09-15d"></script>
 </body>
 </html>
