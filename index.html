@@ -970,6 +970,8 @@
   .voice-btn.icon-only{margin:0;padding:0 12px}
   .voice-btn.listening{background:var(--bad);border-color:transparent;color:#fff;animation:voice-pulse 1.2s ease-in-out infinite}
   .voice-btn.listening .ic{color:#fff}
+  .voice-inline-hint{margin:-6px 0 14px;padding:10px 14px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink);
+    font-size:14px;font-weight:700;line-height:1.6}
   @keyframes voice-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--bad) 45%, transparent)}50%{box-shadow:0 0 0 8px transparent}}
   .voice-hint{font-size:12.5px;color:var(--soft);margin-top:6px;line-height:1.6}
   .fb-tools{display:flex;gap:8px;flex-wrap:wrap}
@@ -1854,7 +1856,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-17c"></script>
+<script src="crypto.js?v=2026-09-17d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5477,9 +5479,15 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
     今のボタン = null;
   }
   function 案内(ボタン, 文){
-    const id = ボタン.id === "btn-fb-voice" ? "fb-voice-hint" : null;
-    if(id){ const h = document.getElementById(id); h.textContent = 文; h.hidden = false; setTimeout(() => { h.hidden = true; }, 6000); }
-    else お知らせ(文, true);
+    // 案内は欄のすぐ下に出す。画面下の吹き出しだと、キーボードに隠れて見えない（iPhoneで実際に「反応がない」と見えた）
+    let h = ボタン.id === "btn-fb-voice" ? document.getElementById("fb-voice-hint") : null;
+    if(!h){
+      const 親 = ボタン.parentElement;
+      h = 親.nextElementSibling && 親.nextElementSibling.classList.contains("voice-inline-hint") ? 親.nextElementSibling : null;
+      if(!h){ h = document.createElement("div"); h.className = "voice-inline-hint"; 親.insertAdjacentElement("afterend", h); }
+    }
+    h.textContent = 文; h.hidden = false;
+    clearTimeout(h.__t); h.__t = setTimeout(() => { h.hidden = true; }, 8000);
   }
 
   document.querySelectorAll(".voice-btn").forEach(ボタン => {
@@ -5490,7 +5498,7 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
       止める();
       if(!認識クラス){
         欄.focus();
-        案内(ボタン, iPhone系 ? "キーボード右下のマイクの記号を押して、話してください。" : "この機種では、キーボードのマイクの記号を押すと声で入力できます。");
+        案内(ボタン, iPhone系 ? "↓ キーボードの右下にあるマイク 🎤 を押して、話してください。話し終わったら「聞く」。" : "この機種では、キーボードのマイクの記号を押すと声で入力できます。");
         return;
       }
       const r = new 認識クラス();
@@ -6020,7 +6028,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-17c";
+const アプリの版 = "2026-09-17d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6069,6 +6077,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-17c"></script>
+<script src="native.js?v=2026-09-17d"></script>
 </body>
 </html>
