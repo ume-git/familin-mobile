@@ -1854,7 +1854,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-17b"></script>
+<script src="crypto.js?v=2026-09-17c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3347,6 +3347,14 @@ function 緊急オーバーレイを確認する(items){
   // 牛乳やクーポンの期限で毎回この画面が出ると、うるさいだけで開きたくなくなる。
   const 緊急 = items.filter(i => (i.段階 === "切れ" || i.段階 === "危険") && !使い切りの種類.has(i.category));
   if(緊急.length === 0) return;
+  // 同じ顔ぶれなら、1日に1回だけ。開くたびに赤い画面で迎えられると、開くのが嫌になる。
+  // 新しく急ぎになったものが増えたときは、その日でももう一度出す。
+  const 顔ぶれ = 緊急.map(i => i.id + ":" + i.expire_date).sort().join(",");
+  try {
+    const 前回 = JSON.parse(localStorage.getItem("torumamo_alert_seen") || "null");
+    if(前回 && 前回.日 === 日付の札() && 前回.顔ぶれ === 顔ぶれ) return;
+  } catch(e) {}
+  window.__alert顔ぶれ = 顔ぶれ;
 
   document.getElementById("alert-sub").textContent = "急ぎのものが " + 緊急.length + " 件あります。";
   document.getElementById("alert-list").innerHTML = 緊急.map(i => `
@@ -3367,6 +3375,7 @@ function 緊急オーバーレイを確認する(items){
 document.getElementById("btn-alert-ok").addEventListener("click", () => {
   try { speechSynthesis.cancel(); } catch(e) {}
   document.getElementById("alert-overlay").classList.remove("show");
+  try { localStorage.setItem("torumamo_alert_seen", JSON.stringify({ 日: 日付の札(), 顔ぶれ: window.__alert顔ぶれ || "" })); } catch(e) {}
 });
 
 // ---- 読み上げ ----
@@ -6011,7 +6020,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-17b";
+const アプリの版 = "2026-09-17c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6060,6 +6069,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-17b"></script>
+<script src="native.js?v=2026-09-17c"></script>
 </body>
 </html>
