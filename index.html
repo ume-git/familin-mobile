@@ -960,9 +960,20 @@
   .search-row input::-webkit-search-cancel-button{display:none}
   .search-row button{flex:none;width:28px;height:28px;padding:0;border-radius:50%;
     background:var(--line);color:var(--ink);border:none;box-shadow:none;font-size:16px;line-height:1}
-  .ask-row{display:flex;gap:8px;margin-bottom:24px}
-  .ask-row input{flex:1;font-size:15px}
-  .ask-row button{flex:none;font-size:13.5px;padding:0 16px;white-space:nowrap}
+  .ask-box{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-lg,18px);padding:14px 14px 12px;
+    margin-bottom:14px;box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
+  .ask-label{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:var(--soft);margin:0 2px 10px}
+  .ask-voice-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;margin:0 0 10px;
+    padding:16px 14px 14px;border-radius:var(--r-md);background:var(--accent-soft);
+    border:1.5px solid color-mix(in srgb, var(--accent) 45%, transparent);color:var(--ink);box-shadow:none;cursor:pointer}
+  .ask-voice-big .ic{width:28px;height:28px;color:var(--accent);margin-bottom:4px}
+  .ask-voice-big span{font-size:18px;font-weight:800;line-height:1.2}
+  .ask-voice-big small{font-size:12.5px;color:var(--soft);font-weight:600}
+  .ask-voice-big.listening small, .ask-voice-big.sending small{color:rgba(255,255,255,.85)}
+  .ask-voice-big.listening span{font-size:16px}
+  .ask-row{display:flex;gap:8px}
+  .ask-row input{flex:1;font-size:15px;min-width:0}
+  .ask-row button{flex:none;font-size:14px;padding:0 18px;white-space:nowrap}
   .ask-answer .ask-read{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:9px 14px;font-size:13.5px}
   .ask-answer .ask-read .ic{width:18px;height:18px}
   /* 声で入れる */
@@ -984,7 +995,7 @@
   .fb-shot .text-link{width:auto;padding:6px 8px;font-size:13px}
   .fb-shot-note{font-size:12px;color:var(--soft);line-height:1.6;margin:8px 0 0}
   .ask-answer{background:var(--accent-soft);border-radius:var(--r-md);
-    padding:16px 18px;margin:-14px 0 24px;font-size:14.5px;line-height:1.8;color:var(--ink)}
+    padding:16px 18px;margin:0 0 24px;font-size:14.5px;line-height:1.8;color:var(--ink)}
 
   .toast{position:fixed;bottom:calc(92px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--bg);padding:14px 22px;border-radius:var(--r-full);
@@ -1188,10 +1199,18 @@
   <div class="view" id="view-list" hidden>
   <div class="topbar"><h1 class="app-title">一覧</h1></div>
 
-  <div class="ask-row">
-    <input type="text" id="ask-input" placeholder="例: 今月やることは？">
-    <button type="button" class="voice-btn icon-only" id="btn-ask-voice" data-for="ask-input" aria-label="声で質問する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg><span>声で聞く</span></button>
-    <button type="button" class="ghost" id="btn-ask">聞く</button>
+  <!-- トルマモに聞く。声が主役：大きなボタン1つ。文字で聞きたい人は下の欄。答えはその下に出る -->
+  <div class="ask-box">
+    <div class="ask-label">トルマモに聞く</div>
+    <button type="button" class="voice-btn ask-voice-big" id="btn-ask-voice" data-for="ask-input">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
+      <span>声で聞く</span>
+      <small>押して話すだけ。答えも声で返します</small>
+    </button>
+    <div class="ask-row">
+      <input type="text" id="ask-input" placeholder="文字で聞く（例: 今月やることは？）">
+      <button type="button" class="ghost" id="btn-ask">聞く</button>
+    </div>
   </div>
   <div id="ask-answer" class="ask-answer" style="display:none">
     <div id="ask-answer-text"></div>
@@ -1863,7 +1882,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-17f"></script>
+<script src="crypto.js?v=2026-09-17g"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4824,6 +4843,7 @@ async function トルマモに聞く(){
   const btn = document.getElementById("btn-ask");
   const answerEl = document.getElementById("ask-answer");
   btn.disabled = true;
+  input.blur();   // キーボードを閉じて、答えが隠れないようにする
   const 答え欄 = document.getElementById("ask-answer-text");
   const 読むボタン = document.getElementById("btn-ask-read");
   answerEl.style.display = "block";
@@ -4840,6 +4860,7 @@ async function トルマモに聞く(){
     if(データ.error) throw new Error(応答失敗の文);
     答え欄.textContent = データ.answer || "うまく答えられませんでした。";
     読むボタン.hidden = !データ.answer;
+    try { answerEl.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch(e) {}
     // 声で聞かれたら、声で答える
     if(声で聞いた && データ.answer) 読み上げる(データ.answer);
   } catch(err) {
@@ -5509,7 +5530,8 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
     if(静けさの時計){ clearInterval(静けさの時計); 静けさの時計 = null; }
     if(音源){ try { 音源.getTracks().forEach(t => t.stop()); } catch(e) {} 音源 = null; }
     if(音の文脈){ try { 音の文脈.close(); } catch(e) {} 音の文脈 = null; }
-    if(今のボタン){ 今のボタン.classList.remove("listening"); 今のボタン.classList.remove("sending"); ラベル(今のボタン, null); }
+    if(今のボタン){ 今のボタン.classList.remove("listening"); 今のボタン.classList.remove("sending"); ラベル(今のボタン, null);
+      const 補足 = 今のボタン.querySelector("small"); if(補足 && 補足.dataset.元) 補足.textContent = 補足.dataset.元; }
     録音機 = null; 今のボタン = null; 片々 = [];
   }
   function 止める(送る){
@@ -5520,6 +5542,7 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
 
   async function 文字にして入れる(blob, 型, 欄, ボタン){
     ボタン.classList.remove("listening"); ボタン.classList.add("sending"); ラベル(ボタン, "文字にしています…");
+    { const 補足 = ボタン.querySelector("small"); if(補足){ if(!補足.dataset.元) 補足.dataset.元 = 補足.textContent; 補足.textContent = "少しだけ待ってください"; } }
     try {
       if(!blob || blob.size < 1500) throw new Error("声が聞き取れませんでした。もう一度押して、話してください。");
       const base64 = await new Promise((ok, ng) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => ng(new Error("録音を読めませんでした")); r.readAsDataURL(blob); });
@@ -5538,6 +5561,7 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
       案内(ボタン, (err && err.message) ? err.message : "声を文字にできませんでした。");
     } finally {
       ボタン.classList.remove("sending"); ラベル(ボタン, null);
+      const 補足 = ボタン.querySelector("small"); if(補足 && 補足.dataset.元) 補足.textContent = 補足.dataset.元;
     }
   }
 
@@ -5565,7 +5589,8 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
       if(送る) 文字にして入れる(blob, 実際の型, 欄, ボタン);
     };
     rec.start(250);
-    ボタン.classList.add("listening"); ラベル(ボタン, "聞いています… 話し終わったら押す");
+    ボタン.classList.add("listening"); ラベル(ボタン, "聞いています…");
+    const 補足 = ボタン.querySelector("small"); if(補足){ if(!補足.dataset.元) 補足.dataset.元 = 補足.textContent; 補足.textContent = "話し終わったら黙るか、もう一度押す"; }
     // 黙ったら自動で止める：声が出始めてから 1.6秒 静かなら送る。音量が取れない機種は 20秒で止める
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -6102,7 +6127,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-17f";
+const アプリの版 = "2026-09-17g";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6151,6 +6176,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-17f"></script>
+<script src="native.js?v=2026-09-17g"></script>
 </body>
 </html>
