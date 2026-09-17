@@ -973,6 +973,7 @@
   .voice-btn.icon-only span{font-size:12.5px}
   .voice-btn.listening{background:var(--bad);border-color:transparent;color:#fff;animation:voice-pulse 1.2s ease-in-out infinite}
   .voice-btn.listening .ic{color:#fff}
+  .voice-btn.sending{opacity:.7;pointer-events:none}
   .voice-inline-hint{margin:-6px 0 14px;padding:10px 14px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink);
     font-size:14px;font-weight:700;line-height:1.6}
   @keyframes voice-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--bad) 45%, transparent)}50%{box-shadow:0 0 0 8px transparent}}
@@ -1189,7 +1190,7 @@
 
   <div class="ask-row">
     <input type="text" id="ask-input" placeholder="例: 今月やることは？">
-    <button type="button" class="voice-btn icon-only" id="btn-ask-voice" data-for="ask-input" aria-label="声で質問する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg><span>声で</span></button>
+    <button type="button" class="voice-btn icon-only" id="btn-ask-voice" data-for="ask-input" aria-label="声で質問する"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg><span>声で聞く</span></button>
     <button type="button" class="ghost" id="btn-ask">聞く</button>
   </div>
   <div id="ask-answer" class="ask-answer" style="display:none">
@@ -1862,7 +1863,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-17e"></script>
+<script src="crypto.js?v=2026-09-17f"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4815,6 +4816,7 @@ document.getElementById("photo-input-album").addEventListener("change", 写真�
 // ============================================================
 const 応答失敗の文 = "今は答えられませんでした。少し時間をおいて、もう一度お試しください。";
 
+let 声で聞いた = false;
 async function トルマモに聞く(){
   const input = document.getElementById("ask-input");
   const 質問 = input.value.trim();
@@ -4838,10 +4840,13 @@ async function トルマモに聞く(){
     if(データ.error) throw new Error(応答失敗の文);
     答え欄.textContent = データ.answer || "うまく答えられませんでした。";
     読むボタン.hidden = !データ.answer;
+    // 声で聞かれたら、声で答える
+    if(声で聞いた && データ.answer) 読み上げる(データ.answer);
   } catch(err) {
     答え欄.textContent = (err && err.message) ? err.message : 応答失敗の文;
   } finally {
     btn.disabled = false;
+    声で聞いた = false;
   }
 }
 document.getElementById("btn-ask").addEventListener("click", トルマモに聞く);
@@ -5471,29 +5476,19 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
 });
 
 // ---- 声で入れる（音声入力） ----
-// iPhoneのSafari・AndroidのChromeが持つ音声認識を使う。声はブラウザ（OS）が処理し、トルマモのサーバーには送らない。
-// 使えない機種では、ボタンを押すとキーボードのマイクの案内を出す。
+// マイクで短く録って、トルマモの窓口（transcribe.php）で文字にする。
+// 以前はブラウザの音声認識（webkitSpeechRecognition）を使っていたが、iPhoneの「ホーム画面に追加」版で
+// 許可ダイアログのあと画面が固まる不具合があった（2026-09-17 実機）。録音→文字起こしなら、
+// iPhone・Android・ストア版のどれでも同じ動きになり、聞き取りの質も上がる。
+// 音声はその場で文字にするだけで、保存しない。
+// 使い方：押す → 話す → 黙ると自動で止まる（または もう一度押す） → 文字が入る。質問欄なら、そのまま聞いて答えを読み上げる。
 (function 声で入れるを配線する(){
-  // iPhoneの「ホーム画面に追加」版（standalone）では、音声認識の許可ダイアログが出たあと画面が一切反応しなくなり、
-  // アプリを上スワイプで終了するしかなくなる（2026-09-17 実機で発生。WebKitの不具合）。
-  // そこで iPhone のホーム画面版だけは、ブラウザの音声認識を使わず、キーボードのマイク（音声入力）に案内する。
+  const 録音できる = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
   const iPhone系 = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const ホーム画面版 = navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
-  const ストア版 = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-  const 認識クラス = (iPhone系 && (ホーム画面版 || ストア版)) ? null : (window.SpeechRecognition || window.webkitSpeechRecognition);
-  let 今の認識 = null, 今のボタン = null;
-  // マイクの絵だけのボタンは「答えを話してくれる」と取り違えられる（2026-09-17 実際にそう思われた）。
-  // ブラウザの音声認識が使えない環境では、このボタンは出さない。声で聞きたい人はキーボードのマイクで足りる。
-  if(!認識クラス){ const b = document.getElementById("btn-ask-voice"); if(b) b.hidden = true; }
+  let 今のボタン = null, 録音機 = null, 音源 = null, 片々 = [], 上限の時計 = null, 静けさの時計 = null, 音の文脈 = null, 送るつもり = true;
 
-  function 止める(){
-    if(今の認識){ try { 今の認識.stop(); } catch(e) {} }
-    今の認識 = null;
-    if(今のボタン){ 今のボタン.classList.remove("listening"); const 文 = 今のボタン.querySelector("span"); if(文) 文.textContent = 文.dataset.元 || "声で入れる"; }
-    今のボタン = null;
-  }
   function 案内(ボタン, 文){
-    // 案内は欄のすぐ下に出す。画面下の吹き出しだと、キーボードに隠れて見えない（iPhoneで実際に「反応がない」と見えた）
+    // 案内は欄のすぐ下に出す。画面下の吹き出しだと、キーボードに隠れて見えない
     let h = ボタン.id === "btn-fb-voice" ? document.getElementById("fb-voice-hint") : null;
     if(!h){
       const 親 = ボタン.parentElement;
@@ -5503,43 +5498,108 @@ document.getElementById("fb-shot-file").addEventListener("change", async e => {
     h.textContent = 文; h.hidden = false;
     clearTimeout(h.__t); h.__t = setTimeout(() => { h.hidden = true; }, 8000);
   }
+  function ラベル(ボタン, 文){
+    const 文字 = ボタン.querySelector("span");
+    if(!文字) return;
+    if(!文字.dataset.元) 文字.dataset.元 = 文字.textContent;
+    文字.textContent = 文 === null ? 文字.dataset.元 : 文;
+  }
+  function 片付ける(){
+    if(上限の時計){ clearTimeout(上限の時計); 上限の時計 = null; }
+    if(静けさの時計){ clearInterval(静けさの時計); 静けさの時計 = null; }
+    if(音源){ try { 音源.getTracks().forEach(t => t.stop()); } catch(e) {} 音源 = null; }
+    if(音の文脈){ try { 音の文脈.close(); } catch(e) {} 音の文脈 = null; }
+    if(今のボタン){ 今のボタン.classList.remove("listening"); 今のボタン.classList.remove("sending"); ラベル(今のボタン, null); }
+    録音機 = null; 今のボタン = null; 片々 = [];
+  }
+  function 止める(送る){
+    送るつもり = 送る !== false;
+    if(録音機 && 録音機.state !== "inactive"){ try { 録音機.stop(); } catch(e) { 片付ける(); } }
+    else 片付ける();
+  }
+
+  async function 文字にして入れる(blob, 型, 欄, ボタン){
+    ボタン.classList.remove("listening"); ボタン.classList.add("sending"); ラベル(ボタン, "文字にしています…");
+    try {
+      if(!blob || blob.size < 1500) throw new Error("声が聞き取れませんでした。もう一度押して、話してください。");
+      const base64 = await new Promise((ok, ng) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = () => ng(new Error("録音を読めませんでした")); r.readAsDataURL(blob); });
+      const res = await fetch(API_BASE + "/transcribe.php", { method: "POST", headers: AIの見出し, body: JSON.stringify({ audio: base64, mimeType: 型 }) });
+      if(!res.ok) throw new Error(await 断られた理由(res, "声を文字にできませんでした。もう一度お試しください。"));
+      const j = await res.json();
+      const 文 = (j && j.text) ? String(j.text).trim() : "";
+      if(!文) throw new Error("声が聞き取れませんでした。もう少し近くで、はっきり話してみてください。");
+      const 元 = 欄.value;
+      const つなぎ = 元 && !/[\s\n]$/.test(元) ? (欄.tagName === "TEXTAREA" ? "\n" : " ") : "";
+      欄.value = (欄.id === "ask-input") ? 文 : 元 + つなぎ + 文;
+      欄.dispatchEvent(new Event("input", { bubbles: true }));
+      // 質問欄なら、声で聞いた → そのまま聞いて、答えも声で返す
+      if(欄.id === "ask-input" && typeof トルマモに聞く === "function"){ 声で聞いた = true; トルマモに聞く(); }
+    } catch(err) {
+      案内(ボタン, (err && err.message) ? err.message : "声を文字にできませんでした。");
+    } finally {
+      ボタン.classList.remove("sending"); ラベル(ボタン, null);
+    }
+  }
+
+  async function 録音を始める(ボタン, 欄){
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch(e) {
+      const 拒否 = e && (e.name === "NotAllowedError" || e.name === "SecurityError");
+      案内(ボタン, 拒否 ? (iPhone系 ? "マイクが許可されていません。iPhoneの 設定 → トルマモ（またはSafari） → マイク を許可にしてください。" : "マイクが許可されていません。ブラウザの設定でマイクを許可してください。")
+                      : "マイクを使えませんでした。キーボードのマイクからも入力できます。");
+      欄.focus();
+      return;
+    }
+    const 型 = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", ""].find(t => t === "" || (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)));
+    let rec;
+    try { rec = 型 ? new MediaRecorder(stream, { mimeType: 型 }) : new MediaRecorder(stream); }
+    catch(e) { stream.getTracks().forEach(t => t.stop()); 案内(ボタン, "この機種では録音できませんでした。キーボードのマイクからも入力できます。"); 欄.focus(); return; }
+    音源 = stream; 録音機 = rec; 今のボタン = ボタン; 片々 = []; 送るつもり = true;
+    const 実際の型 = rec.mimeType || 型 || "audio/mp4";
+    rec.ondataavailable = e => { if(e.data && e.data.size) 片々.push(e.data); };
+    rec.onstop = () => {
+      const blob = new Blob(片々, { type: 実際の型 });
+      const 送る = 送るつもり;
+      片付ける();
+      if(送る) 文字にして入れる(blob, 実際の型, 欄, ボタン);
+    };
+    rec.start(250);
+    ボタン.classList.add("listening"); ラベル(ボタン, "聞いています… 話し終わったら押す");
+    // 黙ったら自動で止める：声が出始めてから 1.6秒 静かなら送る。音量が取れない機種は 20秒で止める
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      音の文脈 = new AC();
+      const 入口 = 音の文脈.createMediaStreamSource(stream);
+      const 分析 = 音の文脈.createAnalyser(); 分析.fftSize = 512;
+      入口.connect(分析);
+      const 束 = new Uint8Array(分析.frequencyBinCount);
+      let 話し始めた = false, 静かになった時 = 0;
+      静けさの時計 = setInterval(() => {
+        分析.getByteTimeDomainData(束);
+        let 最大 = 0; for(let i = 0; i < 束.length; i++){ const v = Math.abs(束[i] - 128); if(v > 最大) 最大 = v; }
+        const 声あり = 最大 > 10;
+        const 今 = Date.now();
+        if(声あり){ 話し始めた = true; 静かになった時 = 0; }
+        else if(話し始めた){ if(!静かになった時) 静かになった時 = 今; else if(今 - 静かになった時 > 1600) 止める(true); }
+      }, 100);
+    } catch(e) {}
+    上限の時計 = setTimeout(() => 止める(true), 20000);
+  }
 
   document.querySelectorAll(".voice-btn").forEach(ボタン => {
+    if(!ボタン.dataset.for) return;
     ボタン.addEventListener("click", () => {
       const 欄 = document.getElementById(ボタン.dataset.for);
       if(!欄) return;
-      if(今のボタン === ボタン){ 止める(); return; }
-      止める();
-      if(!認識クラス){
+      if(今のボタン === ボタン){ 止める(true); return; }   // もう一度押した → 送る
+      if(今のボタン) 止める(false);
+      if(!録音できる){
         欄.focus();
-        案内(ボタン, iPhone系 ? "↓ キーボードの右下にあるマイク 🎤 を押して、話してください。話し終わったら「聞く」。" : "この機種では、キーボードのマイクの記号を押すと声で入力できます。");
+        案内(ボタン, iPhone系 ? "↓ キーボードの右下にあるマイク 🎤 を押して、話してください。" : "この機種では、キーボードのマイクの記号を押すと声で入力できます。");
         return;
       }
-      const r = new 認識クラス();
-      r.lang = "ja-JP"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
-      const 元の文 = 欄.value;
-      let 確定 = "";
-      r.onresult = e => {
-        let 途中 = "";
-        for(let i = e.resultIndex; i < e.results.length; i++){
-          const t = e.results[i][0].transcript;
-          if(e.results[i].isFinal) 確定 += t; else 途中 += t;
-        }
-        const つなぎ = 元の文 && !/[\s\n]$/.test(元の文) ? "\n" : "";
-        欄.value = 元の文 + つなぎ + 確定 + 途中;
-        欄.dispatchEvent(new Event("input", { bubbles: true }));
-      };
-      r.onerror = e => {
-        止める();
-        if(e.error === "not-allowed" || e.error === "service-not-allowed") 案内(ボタン, "マイクの使用が許可されていません。iPhoneの設定 → Safari → マイク を「許可」にしてください。");
-        else if(e.error === "no-speech") 案内(ボタン, "声が聞き取れませんでした。もう一度押して、話してください。");
-        else 案内(ボタン, "音声入力が使えませんでした。キーボードのマイクからも入力できます。");
-      };
-      r.onend = () => { if(今の認識 === r) 止める(); };
-      今の認識 = r; 今のボタン = ボタン;
-      ボタン.classList.add("listening");
-      const 文 = ボタン.querySelector("span"); if(文){ if(!文.dataset.元) 文.dataset.元 = 文.textContent; 文.textContent = ボタン.classList.contains("icon-only") ? "止める" : "聞いています… 押すと止まる"; }
-      try { r.start(); } catch(e){ 止める(); 案内(ボタン, "音声入力を始められませんでした。"); }
+      録音を始める(ボタン, 欄);
     });
   });
 })();
@@ -6042,7 +6102,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-17e";
+const アプリの版 = "2026-09-17f";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6091,6 +6151,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-17e"></script>
+<script src="native.js?v=2026-09-17f"></script>
 </body>
 </html>
