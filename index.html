@@ -229,6 +229,12 @@
     /* 色つきの大きな影は下側がにじんで見えた（実機）。無彩色で短く */
     box-shadow:0 1px 2px rgba(16,24,32,.10), 0 6px 14px rgba(16,24,32,.14)}
   .capture-hero:active{box-shadow:var(--press);transform:translateY(1px)}
+  .capture-hero-wrap{position:relative}
+  /* 右上の「?」：写真の扱いを知りたい人だけが押す。ボタンの上に重ねて、次の行動の邪魔をしない */
+  .capture-hero-wrap .hero-tip{position:absolute;top:10px;right:10px;margin:0;width:26px;height:26px;font-size:14px;
+    background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:#fff;z-index:1}
+  .capture-hero-wrap .hero-tip[aria-expanded="true"]{background:#fff;color:var(--hero-b);border-color:#fff}
+  .capture-hero-wrap + .tip-body{margin-top:10px}
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
@@ -1194,11 +1200,15 @@
     <div id="today-summary"></div>
   </section>
 
+  <div class="capture-hero-wrap">
   <button type="button" class="capture-hero" id="btn-photo-capture">
     <svg class="hero-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="17.6" cy="10.2" r=".9" fill="currentColor" stroke="none"/></svg>
     <span class="hero-title">撮って登録する</span>
     <span class="hero-sub">郵便物・プリント・クーポン・食品の期限も、撮るだけ</span>
   </button>
+  <button type="button" class="tip-btn hero-tip" data-tip="tip-photo" aria-expanded="false" aria-label="写真の扱いについて">?</button>
+  </div>
+  <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。心配な書類は「顔や番号を隠して撮る」か「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
   <div class="capture-links">
     <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
     <span class="dot">・</span>
@@ -1212,8 +1222,6 @@
   <input type="file" id="photo-input-album" accept="image/*" style="display:none">
   <input type="file" id="photo-input-mask" accept="image/*" capture="environment" style="display:none">
   <div id="photo-analyzing" style="display:none"></div>
-  <p class="capture-safe"><span>写真は読み取りが終わったら消えます<button type="button" class="tip-btn" data-tip="tip-photo" aria-expanded="false" aria-label="くわしく">?</button></span></p>
-  <div class="tip-body" id="tip-photo" hidden>写真は文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。トルマモのサーバーには残しません。AI側では不正利用の監視のため最長30日で消され、学習には使われません。心配な書類は「顔や番号を隠して撮る」か「手で入力する」を使ってください。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
 
   <button type="button" class="trip-entry" id="btn-open-trip">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg>
@@ -1930,7 +1938,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19a"></script>
+<script src="crypto.js?v=2026-09-19b"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -6290,7 +6298,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19a";
+const アプリの版 = "2026-09-19b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6339,6 +6347,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19a"></script>
+<script src="native.js?v=2026-09-19b"></script>
 </body>
 </html>
