@@ -233,7 +233,34 @@
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
   .hero-sub{font-size:14.5px;font-weight:600;opacity:.88;line-height:1.5}
+  /* 文字を減らす：短い一言＋「?」。押した人にだけ説明を見せる */
+  .tip-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;padding:0;
+    border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);color:var(--soft);font:inherit;font-size:12px;font-weight:800;
+    vertical-align:middle;cursor:pointer;line-height:1}
+  .tip-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tip-body{margin:8px 0 0;padding:10px 14px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink);
+    font-size:13px;line-height:1.7;text-align:left}
   .capture-links{display:flex;justify-content:center;align-items:center;gap:6px;margin:12px 0 2px}
+  /* 顔や番号を隠して撮る */
+  .mask-entry{display:flex;align-items:center;gap:12px;width:100%;margin:10px 0 0;padding:12px 14px;text-align:left;
+    border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);cursor:pointer;font:inherit}
+  .mask-entry .ic{flex:none;width:26px;height:26px;color:var(--accent)}
+  .mask-entry span{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .mask-entry b{font-size:14.5px;font-weight:800}
+  .mask-entry small{font-size:12px;color:var(--soft);line-height:1.5}
+  .mask-screen{position:fixed;inset:0;z-index:450;background:#0b0f14;color:#fff;display:flex;flex-direction:column;
+    padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom))}
+  .mask-head{flex:none;padding:4px 4px 10px}
+  .mask-title{font-size:18px;font-weight:800}
+  .mask-sub{font-size:13px;line-height:1.6;color:rgba(255,255,255,.75);margin-top:4px}
+  .mask-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;touch-action:none;overflow:hidden}
+  .mask-stage canvas{border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.6);touch-action:none;cursor:crosshair;max-width:100%;max-height:100%}
+  .mask-foot{flex:none;padding-top:10px}
+  .mask-count{font-size:13px;color:rgba(255,255,255,.75);text-align:center;margin-bottom:8px}
+  .mask-btns{display:flex;gap:8px}
+  .mask-btns button{flex:1;font:inherit;font-size:14px;font-weight:700;padding:13px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff}
+  .mask-btns button:disabled{opacity:.4}
+  .mask-btns button.primary{flex:1.6;background:linear-gradient(135deg,#ff8a5b,#ff5e7e);border:none;color:#fff}
   .capture-links .text-link{display:inline;width:auto;margin:0;padding:8px 2px;font-size:15px}
   .capture-links .text-link.strong{color:var(--accent);text-decoration:none;font-weight:800}
   .capture-links .dot{color:var(--soft);font-size:13px}
@@ -963,14 +990,13 @@
   .ask-box{background:var(--grad-card);border:1px solid var(--line);border-radius:var(--r-lg,18px);padding:14px 14px 12px;
     margin-bottom:14px;box-shadow:var(--shadow-sm), inset 0 1px 0 var(--edge)}
   .ask-label{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:var(--soft);margin:0 2px 10px}
-  .ask-voice-big{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;margin:0 0 10px;
-    padding:16px 14px 14px;border-radius:var(--r-md);background:var(--accent-soft);
-    border:1.5px solid color-mix(in srgb, var(--accent) 45%, transparent);color:var(--ink);box-shadow:none;cursor:pointer}
-  .ask-voice-big .ic{width:28px;height:28px;color:var(--accent);margin-bottom:4px}
-  .ask-voice-big span{font-size:18px;font-weight:800;line-height:1.2}
-  .ask-voice-big small{font-size:12.5px;color:var(--soft);font-weight:600}
+  .ask-voice-big{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 10px;
+    padding:11px 14px;border-radius:var(--r-full);background:var(--accent-soft);
+    border:1.5px solid color-mix(in srgb, var(--accent) 55%, transparent);color:var(--ink);box-shadow:none;cursor:pointer}
+  .ask-voice-big .ic{width:20px;height:20px;color:var(--accent)}
+  .ask-voice-big span{font-size:15px;font-weight:800;line-height:1.2}
+  .ask-voice-big small{font-size:12px;color:var(--soft);font-weight:600}
   .ask-voice-big.listening small, .ask-voice-big.sending small{color:rgba(255,255,255,.85)}
-  .ask-voice-big.listening span{font-size:16px}
   .ask-row{display:flex;gap:8px}
   .ask-row input{flex:1;font-size:15px;min-width:0}
   .ask-row button{flex:none;font-size:14px;padding:0 18px;white-space:nowrap}
@@ -1178,10 +1204,16 @@
     <span class="dot">・</span>
     <button type="button" class="text-link" id="btn-open-form">手で入力する</button>
   </div>
+  <button type="button" class="mask-entry" id="btn-photo-mask">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
+    <span><b>顔や番号を隠して撮る</b><small>免許証・保険証・マイナンバーカード向け。黒く塗った写真だけを送ります</small></span>
+  </button>
   <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="photo-input-album" accept="image/*" style="display:none">
+  <input type="file" id="photo-input-mask" accept="image/*" capture="environment" style="display:none">
   <div id="photo-analyzing" style="display:none"></div>
-  <p class="capture-safe"><span>写真は読み取りのあと、その場で消えます。<br>保存も共有もされません。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">詳しく</button></span></p>
+  <p class="capture-safe"><span>写真は読み取りが終わったら消えます<button type="button" class="tip-btn" data-tip="tip-photo" aria-expanded="false" aria-label="くわしく">?</button></span></p>
+  <div class="tip-body" id="tip-photo" hidden>写真は文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。トルマモのサーバーには残しません。AI側では不正利用の監視のため最長30日で消され、学習には使われません。心配な書類は「顔や番号を隠して撮る」か「手で入力する」を使ってください。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
 
   <button type="button" class="trip-entry" id="btn-open-trip">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg>
@@ -1205,7 +1237,7 @@
     <button type="button" class="voice-btn ask-voice-big" id="btn-ask-voice" data-for="ask-input">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg>
       <span>声で聞く</span>
-      <small>押して話すだけ。答えも声で返します</small>
+      <small>押して話すだけ</small>
     </button>
     <div class="ask-row">
       <input type="text" id="ask-input" placeholder="文字で聞く（例: 今月やることは？）">
@@ -1326,6 +1358,21 @@
   </div>
 </div>
 
+<div class="mask-screen" id="mask-screen" hidden>
+  <div class="mask-head">
+    <div class="mask-title">隠したい所を、指でなぞる</div>
+    <div class="mask-sub">顔写真・番号・住所などを黒く塗ります。<b>期限の欄は残してください。</b>押すだけでも小さく隠せます。</div>
+  </div>
+  <div class="mask-stage"><canvas id="mask-canvas"></canvas></div>
+  <div class="mask-foot">
+    <div class="mask-count" id="mask-count">まだ何も隠していません</div>
+    <div class="mask-btns">
+      <button type="button" class="ghost" id="mask-undo" disabled>ひとつ戻す</button>
+      <button type="button" class="ghost" id="mask-cancel">やめる</button>
+      <button type="button" class="primary" id="mask-send">この写真を送る</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="quick-bar" id="quick-bar" hidden>
   <div class="quick-main"><b id="quick-name"></b><span id="quick-when"></span></div>
@@ -1484,8 +1531,8 @@
       </div>
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">2</div><h5>写真は、読み取った直後に消えます</h5></div>
-        <p>撮った写真は、文字を読み取るあいだだけサーバーを通ります。読み取りが終わった時点で消え、保存もしません。写真そのものがどこかに残ることはありません。</p>
-        <div class="guide-callout warn"><b>正直にお伝えすること</b>この読み取りの一瞬だけは、写真がインターネットを通ります（AIが文字を読むため）。気になる書類は、写真を使わず「手で入力して登録する」から登録してください。それなら一切外に出ません。</div>
+        <p>撮った写真は、文字を読み取るあいだだけトルマモのサーバーを通り、AI（OpenAI）に送られます。トルマモのサーバーには残しません。</p>
+        <div class="guide-callout warn"><b>正直にお伝えすること</b>AI側では、不正利用がないかを調べるために写真が最長30日間保管されたあと消されます。学習には使われません。免許証・保険証のように気になる書類は「顔や番号を隠して撮る」で顔と番号を黒く塗ってから送るか、「手で入力する」で写真を使わずに登録してください。</div>
       </div>
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">3</div><h5>家族の誰かに見られることもありません</h5></div>
@@ -1624,7 +1671,7 @@
     <div class="analyzing-ring"><div class="analyzing-ring-in"></div></div>
     <div class="analyzing-title">読んでいます…</div>
     <div class="analyzing-step" id="analyzing-step">写真を送っています…</div>
-    <div class="analyzing-note">数秒だけ待ってくださいね。写真はこのあと、その場で消えます。</div>
+    <div class="analyzing-note">数秒だけ待ってくださいね。写真はトルマモには残しません。</div>
   </div>
 </div>
 
@@ -1704,7 +1751,8 @@
       <small>月がちがうときは、ここで全部まとめて直せます</small>
     </div>
     <div class="multi-list" id="multi-list"></div>
-    <p class="multi-hint"><b>印刷された予定表向けの試験的な機能です。</b>手書きの予定は読めなかったり、読み違えたりします。<b>日付と名前を確かめてから</b>登録してください。チェックを外したものは登録しません。過ぎた日付は最初から外してあります。日付や名前は登録後に「編集」で直せます。</p>
+    <p class="multi-hint"><b>日付と名前を確かめてから</b>登録してください（試験的な機能です）<button type="button" class="tip-btn" data-tip="tip-multi" aria-expanded="false" aria-label="くわしく">?</button></p>
+    <div class="tip-body" id="tip-multi" hidden>印刷された予定表向けです。手書きは読めなかったり、読み違えたりします。チェックを外したものは登録しません。過ぎた日付は最初から外してあります。登録後に「編集」で直せます。</div>
     <p class="multi-hint" id="multi-retake" hidden>読み取りが合わないときは、<b>真上から、予定表の全体が入るように</b>、明るい場所で撮り直してください。</p>
     <button class="primary" id="multi-ok">選んだものを登録する</button>
     <div class="btnrow">
@@ -1882,7 +1930,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-17g"></script>
+<script src="crypto.js?v=2026-09-19a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3041,11 +3089,12 @@ function 今日やることを描画する(items){
   if(items.length === 0){
     el.innerHTML = `<div class="welcome">
       <h4>はじめまして、トルマモです</h4>
-      <p>撮るだけで期限をおぼえて、近づいたらお知らせします。<br>まず1つ、撮ってみませんか？ 冷蔵庫の牛乳、財布のクーポン、机の上のはがき、なんでも大丈夫。</p>
+      <p>撮るだけで、期限をおぼえて、知らせます。<br>まず1つ、撮ってみませんか？</p>
       <div class="welcome-try">
-        <button type="button" onclick="おためしで登録する()">まずは おためしで1つ入れてみる</button>
-        <small>写真なしで、見本が1つ入ります。あとで消せます</small>
+        <button type="button" onclick="おためしで登録する()">おためしで1つ入れてみる</button>
+        <button type="button" class="tip-btn" data-tip="tip-welcome" aria-expanded="false" aria-label="くわしく">?</button>
       </div>
+      <div class="tip-body" id="tip-welcome" hidden>牛乳・クーポン・はがき・免許証、期限のあるものなら何でも。「おためし」は写真なしで見本が1つ入るだけで、あとで消せます。</div>
     </div>`;
     マスコットを更新する();
     return;
@@ -4338,15 +4387,28 @@ const 読み取り失敗の文 = "読み取れませんでした。お手数で�
 
 async function 写真を読み取る(e){
   const file = e.target.files[0];
+  const 隠してから = e.target.id === "photo-input-mask";
   e.target.value = "";
   if(!file) return;
+  let 元画像;
+  try { 元画像 = await 画像を読み込む(file); }
+  catch(err){ お知らせ("この写真は読み込めませんでした。", true); return; }
+  if(隠してから){
+    // 顔写真・番号などを黒く塗ってから送る（免許証・保険証・マイナンバーカード向け）
+    const 塗った = await 隠す画面を出す(元画像);
+    if(元画像.close) 元画像.close();
+    if(!塗った) return;
+    元画像 = 塗った;
+  }
+  await 画像を読み取って登録する(元画像);
+}
 
-  const ボタン一覧 = [document.getElementById("btn-photo-capture"), document.getElementById("btn-photo-album")];
+async function 画像を読み取って登録する(元画像){
+  const ボタン一覧 = [document.getElementById("btn-photo-capture"), document.getElementById("btn-photo-album"), document.getElementById("btn-photo-mask")].filter(Boolean);
   ボタン一覧.forEach(b => b.disabled = true);
   読み取り中を見せる(true);
 
   try {
-    const 元画像 = await 画像を読み込む(file);
     const base64 = 画像をbase64にする(元画像, 0, 1600);
     const res = await fetch(API_BASE + "/analyze.php", {
       method: "POST",
@@ -4829,6 +4891,97 @@ document.getElementById("read-ok").addEventListener("click", () => {
 
 document.getElementById("photo-input").addEventListener("change", 写真を読み取る);
 document.getElementById("photo-input-album").addEventListener("change", 写真を読み取る);
+document.getElementById("photo-input-mask").addEventListener("change", 写真を読み取る);
+document.getElementById("btn-photo-mask").addEventListener("click", () => {
+  document.getElementById("photo-input-mask").click();
+});
+
+// ============================================================
+// 隠してから送る
+// 免許証・保険証・マイナンバーカードは「顔写真と番号を撮られる」ことへの抵抗が大きい。
+// 読み取りに要るのは期限の欄（免許証なら帯の日付と「優良」の文字）だけなので、
+// 送る前に、指でなぞった所を黒く塗りつぶせるようにする。塗った画像だけがサーバーに行く。
+// ============================================================
+function 隠す画面を出す(元画像){
+  return new Promise(resolve => {
+    const 画面 = document.getElementById("mask-screen");
+    const canvas = document.getElementById("mask-canvas");
+    const ctx = canvas.getContext("2d");
+    // 表示用は画面に収まる大きさ、送る用は元の大きさ（最大1600）で別に描く
+    const 元W = 元画像.width, 元H = 元画像.height;
+    const 黒塗り = [];   // 元画像の座標系で {x,y,w,h}
+    let 描き始め = null, 描き中 = null;
+
+    function 描く(){
+      const 箱 = canvas.parentElement.getBoundingClientRect();
+      const 比 = Math.min((箱.width - 8) / 元W, (箱.height - 8) / 元H, 1) || 1;
+      const w = Math.max(1, Math.round(元W * 比)), h = Math.max(1, Math.round(元H * 比));
+      if(canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+      canvas.style.width = w + "px"; canvas.style.height = h + "px";
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(元画像, 0, 0, w, h);
+      ctx.fillStyle = "#000";
+      黒塗り.forEach(r => ctx.fillRect(r.x * 比, r.y * 比, r.w * 比, r.h * 比));
+      if(描き始め && 描き中){
+        const r = 四角(描き始め, 描き中);
+        ctx.fillStyle = "rgba(0,0,0,.75)";
+        ctx.fillRect(r.x * 比, r.y * 比, r.w * 比, r.h * 比);
+        ctx.strokeStyle = "#ff5e7e"; ctx.lineWidth = 2; ctx.strokeRect(r.x * 比, r.y * 比, r.w * 比, r.h * 比);
+      }
+      document.getElementById("mask-undo").disabled = 黒塗り.length === 0;
+      document.getElementById("mask-count").textContent = 黒塗り.length ? 黒塗り.length + "か所を隠しました" : "まだ何も隠していません";
+      return 比;
+    }
+    function 四角(a, b){ return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; }
+    function 元の座標(ev){
+      const 箱 = canvas.getBoundingClientRect();
+      const p = ev.touches ? ev.touches[0] : ev;
+      const 比 = canvas.width / 元W;
+      return { x: Math.max(0, Math.min(元W, (p.clientX - 箱.left) / 比)), y: Math.max(0, Math.min(元H, (p.clientY - 箱.top) / 比)) };
+    }
+    const 始め = ev => { ev.preventDefault(); 描き始め = 元の座標(ev); 描き中 = 描き始め; 描く(); };
+    const 動き = ev => { if(!描き始め) return; ev.preventDefault(); 描き中 = 元の座標(ev); 描く(); };
+    const 終わり = ev => {
+      if(!描き始め) return; ev.preventDefault();
+      const r = 四角(描き始め, 描き中 || 描き始め);
+      // 指が少し動いただけの点は、指先ぶん（元画像の6%）の四角にして塗る。塗りたい所を「押す」だけでも隠せる
+      const 最小 = Math.round(Math.min(元W, 元H) * 0.06);
+      if(r.w < 最小 || r.h < 最小){ r.x = Math.max(0, r.x + r.w / 2 - 最小 / 2); r.y = Math.max(0, r.y + r.h / 2 - 最小 / 2); r.w = 最小; r.h = 最小; }
+      黒塗り.push(r);
+      描き始め = null; 描き中 = null; 描く();
+    };
+    canvas.addEventListener("touchstart", 始め, { passive: false });
+    canvas.addEventListener("touchmove", 動き, { passive: false });
+    canvas.addEventListener("touchend", 終わり, { passive: false });
+    canvas.addEventListener("mousedown", 始め);
+    canvas.addEventListener("mousemove", 動き);
+    canvas.addEventListener("mouseup", 終わり);
+    window.addEventListener("resize", 描く);
+
+    function 片付ける(){
+      canvas.removeEventListener("touchstart", 始め); canvas.removeEventListener("touchmove", 動き); canvas.removeEventListener("touchend", 終わり);
+      canvas.removeEventListener("mousedown", 始め); canvas.removeEventListener("mousemove", 動き); canvas.removeEventListener("mouseup", 終わり);
+      window.removeEventListener("resize", 描く);
+      送る.onclick = null; やめる.onclick = null; 戻す.onclick = null;
+      画面.hidden = true;
+    }
+    const 送る = document.getElementById("mask-send"), やめる = document.getElementById("mask-cancel"), 戻す = document.getElementById("mask-undo");
+    戻す.onclick = () => { 黒塗り.pop(); 描く(); };
+    やめる.onclick = () => { 片付ける(); resolve(null); };
+    送る.onclick = () => {
+      // 送る用：元の大きさで塗って、キャンバスをそのまま画像として渡す（幅・高さ・drawImage が使えればよい）
+      const 出 = document.createElement("canvas");
+      出.width = 元W; 出.height = 元H;
+      const g = 出.getContext("2d");
+      g.drawImage(元画像, 0, 0);
+      g.fillStyle = "#000";
+      黒塗り.forEach(r => g.fillRect(r.x, r.y, r.w, r.h));
+      片付ける(); resolve(出);
+    };
+    画面.hidden = false;
+    requestAnimationFrame(描く);
+  });
+}
 
 // ============================================================
 // トルマモに聞く（登録済みデータへの質問応答のみ。前面に出るAIチャットにはしない）
@@ -4871,6 +5024,16 @@ async function トルマモに聞く(){
   }
 }
 document.getElementById("btn-ask").addEventListener("click", トルマモに聞く);
+// 「?」を押したときだけ説明を出す
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest(".tip-btn");
+  if(!b) return;
+  const 本文 = document.getElementById(b.dataset.tip);
+  if(!本文) return;
+  const 開く = 本文.hidden;
+  本文.hidden = !開く;
+  b.setAttribute("aria-expanded", 開く ? "true" : "false");
+});
 document.getElementById("btn-ask-read").addEventListener("click", () => 読み上げる(document.getElementById("ask-answer-text").textContent));
 document.getElementById("ask-input").addEventListener("keydown", (e) => {
   if(e.key === "Enter") トルマモに聞く();
@@ -6127,7 +6290,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-17g";
+const アプリの版 = "2026-09-19a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6176,6 +6339,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-17g"></script>
+<script src="native.js?v=2026-09-19a"></script>
 </body>
 </html>
