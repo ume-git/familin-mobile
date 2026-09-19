@@ -244,7 +244,9 @@
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
-  .hero-sub{font-size:14.5px;font-weight:600;opacity:.88;line-height:1.5}
+  .hero-sub{display:flex;flex-direction:column;gap:3px;line-height:1.45}
+  .hero-sub-what{font-size:12.5px;font-weight:700;opacity:.82;letter-spacing:.01em}
+  .hero-sub-promise{font-size:15px;font-weight:800;opacity:.97}
   /* 文字を減らす：短い一言＋「?」。押した人にだけ説明を見せる */
   .tip-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;padding:0;
     border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);color:var(--soft);font:inherit;font-size:12px;font-weight:800;
@@ -1226,7 +1228,7 @@
   <button type="button" class="capture-hero" id="btn-photo-capture">
     <svg class="hero-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="17.6" cy="10.2" r=".9" fill="currentColor" stroke="none"/></svg>
     <span class="hero-title">撮って登録する</span>
-    <span class="hero-sub">郵便物・プリント・クーポン・食品の期限も、撮るだけ</span>
+    <span class="hero-sub"><span class="hero-sub-what">はがき・学校のお便り・サブスク・クーポン・食品も</span><span class="hero-sub-promise">撮るだけで おぼえて、期限まで見守ります</span></span>
   </button>
   <button type="button" class="tip-btn hero-tip" data-tip="tip-photo" aria-expanded="false" aria-label="写真の扱いについて">?</button>
   <button type="button" class="hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（免許証・保険証向け）">
@@ -1969,7 +1971,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19j"></script>
+<script src="crypto.js?v=2026-09-19k"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -6555,7 +6557,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19j";
+const アプリの版 = "2026-09-19k";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6604,6 +6606,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19j"></script>
+<script src="native.js?v=2026-09-19k"></script>
 </body>
 </html>
