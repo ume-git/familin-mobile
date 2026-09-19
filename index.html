@@ -265,6 +265,9 @@
   .mask-head{flex:none;padding:4px 4px 10px}
   .mask-title{font-size:18px;font-weight:800}
   .mask-sub{font-size:13px;line-height:1.6;color:rgba(255,255,255,.75);margin-top:4px}
+  .mask-keep{display:flex;align-items:flex-start;gap:8px;margin-top:8px;padding:8px 12px;border-radius:10px;
+    background:rgba(255,94,126,.18);border:1px solid rgba(255,94,126,.55);color:#ffd2db;font-size:13px;line-height:1.55}
+  .mask-keep .ic{flex:none;width:18px;height:18px;margin-top:1px;color:#ff8fa6;stroke-width:2.2}
   .mask-stage{flex:1;min-height:0;position:relative;touch-action:none;overflow:hidden;border-radius:10px;background:#000}
   .mask-stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
   .mask-zoom-reset{position:absolute;right:10px;bottom:10px;font:inherit;font-size:12.5px;font-weight:700;padding:8px 12px;border-radius:999px;
@@ -1387,6 +1390,7 @@
   <div class="mask-head">
     <div class="mask-title">隠したい所に、四角や丸を置く</div>
     <div class="mask-sub" id="mask-hint">下の「四角を置く」「丸を置く」を押してから、隠したい所を押す</div>
+    <div class="mask-keep"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4.5M12 17.2v.3"/></svg><span><b>期限の日付は隠さないでください。</b>隠すと読み取れません。顔・番号・住所だけを。</span></div>
   </div>
   <div class="mask-stage"><canvas id="mask-canvas"></canvas><button type="button" class="mask-zoom-reset" id="mask-reset-zoom" hidden>全体を見る</button></div>
   <div class="mask-foot">
@@ -1962,7 +1966,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19g"></script>
+<script src="crypto.js?v=2026-09-19h"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4422,6 +4426,7 @@ const 読み取り失敗の文 = "読み取れませんでした。お手数で�
 async function 写真を読み取る(e){
   const file = e.target.files[0];
   const 隠してから = e.target.id === "photo-input-mask";
+  window.__最後は隠して送った = 隠してから;
   e.target.value = "";
   if(!file) return;
   let 元画像;
@@ -4642,6 +4647,9 @@ function 読み取り結果を見せる(結果){
     出し入れ("read-row-when", false);
     出し入れ("read-past", false);
     出し入れ("read-nodate", true);
+    document.getElementById("read-nodate").innerHTML = window.__最後は隠して送った
+      ? "<b>期限の日付が読み取れませんでした。</b>黒く塗った所に期限が入っていたかもしれません。もう一度「隠して撮る」で、<b>期限の日付は残して</b>顔・番号・住所だけを隠すか、「直してから登録」で日付を選んでください。"
+      : "<b>期限の日付が読み取れませんでした。</b>影・ぼけ・見切れが原因のことが多いです。期限の部分がはっきり写るように<b>真上から明るい所で</b>撮り直すか、「直してから登録」で日付を選んでください。";
   }
 
   // やること
@@ -6516,7 +6524,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19g";
+const アプリの版 = "2026-09-19h";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6565,6 +6573,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19g"></script>
+<script src="native.js?v=2026-09-19h"></script>
 </body>
 </html>
