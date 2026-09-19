@@ -1380,7 +1380,7 @@
 <div class="mask-screen" id="mask-screen" hidden>
   <div class="mask-head">
     <div class="mask-title">隠したい所に、四角や丸を置く</div>
-    <div class="mask-sub">押した所に置かれます。<b>角や辺の○をつまんで</b>広げる・伸ばす、中を押して動かす。二本指で拡大。</div>
+    <div class="mask-sub" id="mask-hint">下の「四角を置く」「丸を置く」を押してから、隠したい所を押す</div>
   </div>
   <div class="mask-stage"><canvas id="mask-canvas"></canvas><button type="button" class="mask-zoom-reset" id="mask-reset-zoom" hidden>全体を見る</button></div>
   <div class="mask-foot">
@@ -1956,7 +1956,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19d"></script>
+<script src="crypto.js?v=2026-09-19f"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4941,6 +4941,13 @@ function 隠す画面を出す(元画像){
     const 図形 = [];               // [{形:"四角"|"丸", x,y,w,h}]  元画像の座標
     let 選択 = -1;
     let 形 = "四角";
+    let 待機 = false;             // 図形のボタンを押したあと、置く場所を待っている
+    const 案内 = document.getElementById("mask-hint");
+    function 案内を更新(){
+      if(待機) 案内.textContent = (形 === "丸" ? "丸" : "四角") + "を置きたい所を押してください（押したまま引っ張ると、その大きさで置けます）";
+      else if(選択 >= 0) 案内.textContent = "○をつまんで広げる・伸ばす。中を押して動かす。二本指で拡大";
+      else 案内.textContent = "下の「四角を置く」「丸を置く」を押してから、隠したい所を押す";
+    }
     let 倍率 = 1, ずれX = 0, ずれY = 0, 基準倍率 = 1;
     let 二本指 = null, つかみ = null, 描画予約 = false;
     const つまみ半径 = 22;         // 画面px。指で狙える大きさ
@@ -4970,6 +4977,14 @@ function 隠す画面を出す(元画像){
         { 名: "n", x: z.x + z.w / 2, y: z.y }, { 名: "s", x: z.x + z.w / 2, y: z.y + z.h }, { 名: "w", x: z.x, y: z.y + z.h / 2 }, { 名: "e", x: z.x + z.w, y: z.y + z.h / 2 },
       ];
     }
+    // つまみの画面上の位置。辺・角から外側へ 16px 出す。細い図形でも、本体（動かす）とつまみ（広げる）が重ならない
+    function つまみの画面位置(t){
+      const q = 画面へ(t);
+      const 外 = 16;
+      const dx = t.名.includes("w") ? -外 : t.名.includes("e") ? 外 : 0;
+      const dy = t.名.includes("n") ? -外 : t.名.includes("s") ? 外 : 0;
+      return { x: q.x + dx, y: q.y + dy };
+    }
     function 描く(){
       描画予約 = false;
       const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -4992,13 +5007,18 @@ function 隠す画面を出す(元画像){
         ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
         ctx.setLineDash([]);
         つまみ一覧(z).forEach(t => {
-          const q = 画面へ(t);
+          const q = つまみの画面位置(t);
           const 角 = t.名.length === 2;
-          ctx.beginPath(); ctx.arc(q.x, q.y, 角 ? 11 : 8, 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(q.x, q.y, 角 ? 13 : 10, 0, Math.PI * 2);
           ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#ff5e7e"; ctx.lineWidth = 2.5; ctx.stroke();
         });
+        // 中央の「動かす」印（十字の矢印）
+        const c = 画面へ({ x: z.x + z.w / 2, y: z.y + z.h / 2 });
+        ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 2; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(c.x - 9, c.y); ctx.lineTo(c.x + 9, c.y); ctx.moveTo(c.x, c.y - 9); ctx.lineTo(c.x, c.y + 9); ctx.stroke();
         ctx.restore();
       }
+      案内を更新();
       document.getElementById("mask-undo").disabled = 図形.length === 0;
       document.getElementById("mask-delete").hidden = 選択 < 0;
       document.getElementById("mask-count").textContent = 図形.length ? 図形.length + "か所を隠しています" : "まだ何も隠していません";
@@ -5017,16 +5037,28 @@ function 隠す画面を出す(元画像){
       const h = 形の名 === "丸" ? 短辺 * 0.28 : 短辺 * 0.09;
       const c = 中心 || { x: (canvas.clientWidth / 2 - ずれX) / 倍率, y: (canvas.clientHeight / 2 - ずれY) / 倍率 };
       const z = { 形: 形の名, x: c.x - w / 2, y: c.y - h / 2, w, h };
-      図形.push(z); 選択 = 図形.length - 1; 描き直す();
+      図形.push(z); 選択 = 図形.length - 1;
+      document.querySelectorAll("#mask-shapes button").forEach(b => b.classList.remove("on"));
+      描き直す();
     }
     // 画面の点が、何をつかんだか
     function 何をつかんだ(cx, cy){
       const 箱 = canvas.getBoundingClientRect(); const sx = cx - 箱.left, sy = cy - 箱.top;
-      if(選択 >= 0 && 図形[選択]){
-        for(const t of つまみ一覧(図形[選択])){ const q = 画面へ(t); if(Math.hypot(q.x - sx, q.y - sy) <= つまみ半径) return { 種: "つまみ", 番: 選択, 名: t.名 }; }
-      }
       const p = 画像へ(cx, cy);
-      for(let i = 図形.length - 1; i >= 0; i--){ const z = 図形[i]; if(p.x >= z.x && p.x <= z.x + z.w && p.y >= z.y && p.y <= z.y + z.h) return { 種: "中", 番: i }; }
+      if(選択 >= 0 && 図形[選択]){
+        const z = 図形[選択];
+        const 中に = p.x >= z.x && p.x <= z.x + z.w && p.y >= z.y && p.y <= z.y + z.h;
+        // つまみは図形の外側に出してあるので、○の近く（26px）ならつまみ。角を先に見る
+        const 一覧 = つまみ一覧(z);
+        let 近い = null, 近さ = 1e9;
+        for(const t of 一覧){ const q = つまみの画面位置(t); const d = Math.hypot(q.x - sx, q.y - sy) - (t.名.length === 2 ? 4 : 0); if(d < 近さ){ 近さ = d; 近い = t; } }
+        if(近い && 近さ <= 26 && !(中に && 近さ > 14)) return { 種: "つまみ", 番: 選択, 名: 近い.名 };
+        if(中に) return { 種: "中", 番: 選択 };
+      }
+      for(let i = 図形.length - 1; i >= 0; i--){ const z = 図形[i];
+        // 細い図形でも指で押せるように、当たり判定は画面で最低 36px の高さ・幅にふくらませる
+        const ゆとりX = Math.max(0, (36 / 倍率 - z.w) / 2), ゆとりY = Math.max(0, (36 / 倍率 - z.h) / 2);
+        if(p.x >= z.x - ゆとりX && p.x <= z.x + z.w + ゆとりX && p.y >= z.y - ゆとりY && p.y <= z.y + z.h + ゆとりY) return { 種: "中", 番: i }; }
       return { 種: "外" };
     }
     function つまみを動かす(z, 名, dx, dy){
@@ -5039,8 +5071,17 @@ function 隠す画面を出す(元画像){
 
     // ---- 1本指：置く・選ぶ・動かす・広げる。2本指：拡大・移動 ----
     function 始まり(cx, cy){
-      const 当たり = 何をつかんだ(cx, cy);
       const p = 画像へ(cx, cy);
+      if(待機){
+        // 置く場所を待っていた：押した所に置く。そのまま引っ張れば、その大きさになる
+        if(p.x < 0 || p.y < 0 || p.x > 元W || p.y > 元H) return;
+        待機 = false;
+        図形を置く(形, p);
+        つかみ = { 当たり: { 種: "新規", 番: 選択 }, 始点: p, 前: p, 動いた: false, 画面始点: { x: cx, y: cy } };
+        描き直す();
+        return;
+      }
+      const 当たり = 何をつかんだ(cx, cy);
       つかみ = { 当たり, 始点: p, 前: p, 動いた: false, 画面始点: { x: cx, y: cy } };
       if(当たり.種 === "中" && 選択 !== 当たり.番){ 選択 = 当たり.番; 描き直す(); }
     }
@@ -5050,22 +5091,21 @@ function 隠す画面を出す(元画像){
       if(Math.hypot(cx - つかみ.画面始点.x, cy - つかみ.画面始点.y) > 6) つかみ.動いた = true;
       const dx = p.x - つかみ.前.x, dy = p.y - つかみ.前.y;
       const 当 = つかみ.当たり;
-      if(当.種 === "つまみ"){ つまみを動かす(図形[当.番], 当.名, dx, dy); }
+      if(当.種 === "新規"){
+        // 押したまま引っ張っている：始点と今の点を対角にした大きさにする
+        if(つかみ.動いた){ const z = 図形[当.番]; const a = つかみ.始点;
+          z.x = Math.min(a.x, p.x); z.y = Math.min(a.y, p.y); z.w = Math.max(短辺 * 0.02, Math.abs(p.x - a.x)); z.h = Math.max(短辺 * 0.02, Math.abs(p.y - a.y)); }
+      }
+      else if(当.種 === "つまみ"){ つまみを動かす(図形[当.番], 当.名, dx, dy); }
       else if(当.種 === "中"){ const z = 図形[当.番]; z.x += dx; z.y += dy; }
       else if(つかみ.動いた && 倍率 > 基準倍率 * 1.01){ ずれX += dx * 倍率; ずれY += dy * 倍率; 倍率を収める(); }
       つかみ.前 = 画像へ(cx, cy);
-      描き直す();
+      描く();
     }
     function 終わり(){
       if(!つかみ) return;
       const 当 = つかみ.当たり;
-      if(!つかみ.動いた){
-        if(当.種 === "外"){
-          const p = つかみ.始点;
-          if(p.x >= 0 && p.y >= 0 && p.x <= 元W && p.y <= 元H){ 図形を置く(形, p); }   // 何もない所を押す → そこに置く
-          else { 選択 = -1; 描き直す(); }
-        }
-      }
+      if(!つかみ.動いた && 当.種 === "外"){ 選択 = -1; 描き直す(); }   // 何もない所を押した → 選択を外すだけ（勝手に置かない）
       つかみ = null; 描き直す();
     }
     function 指が置かれた(ev){
@@ -5121,8 +5161,12 @@ function 隠す画面を出す(元画像){
     window.addEventListener("resize", 画面に合わせる);
 
     const 形ボタン = [...document.querySelectorAll("#mask-shapes button")];
-    const 形を置く = ev => { 形 = ev.currentTarget.dataset.shape; 形ボタン.forEach(b => b.classList.toggle("on", b === ev.currentTarget)); 図形を置く(形, null); };
-    形ボタン.forEach(b => { b.addEventListener("click", 形を置く); b.classList.toggle("on", b.dataset.shape === 形); });
+    const 形を置く = ev => {
+      形 = ev.currentTarget.dataset.shape; 待機 = true; 選択 = -1;
+      形ボタン.forEach(b => b.classList.toggle("on", b === ev.currentTarget));
+      描き直す();
+    };
+    形ボタン.forEach(b => { b.addEventListener("click", 形を置く); b.classList.remove("on"); });
 
     const 送る = document.getElementById("mask-send"), やめる = document.getElementById("mask-cancel"),
           戻す = document.getElementById("mask-undo"), 消す = document.getElementById("mask-delete"), 拡大戻す = document.getElementById("mask-reset-zoom");
@@ -5149,6 +5193,8 @@ function 隠す画面を出す(元画像){
       片付ける(); resolve(出);
     };
     画面.hidden = false;
+    // 表示した直後に大きさを測る（rAF 待ちにすると、裏に回っている間は動かないことがある）
+    画面に合わせる();
     requestAnimationFrame(画面に合わせる);
   });
 }
@@ -6460,7 +6506,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19d";
+const アプリの版 = "2026-09-19f";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6509,6 +6555,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19d"></script>
+<script src="native.js?v=2026-09-19f"></script>
 </body>
 </html>
