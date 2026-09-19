@@ -301,7 +301,9 @@
   .trip-entry > .ic{width:26px;height:26px;color:var(--accent);flex:none}
   .trip-entry-text{flex:1;min-width:0}
   .trip-entry-text b{display:block;font-size:15.5px;line-height:1.4}
-  .trip-entry-text small{display:block;font-size:12.5px;color:var(--soft);line-height:1.55;margin-top:2px}
+  .trip-entry-text small{display:block;font-size:12px;color:var(--soft);line-height:1.5;margin-top:6px}
+  .trip-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .trip-chips span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
   .trip-entry-arrow{flex:none;font-size:22px;color:var(--soft)}
   .trip-dates{display:flex;gap:10px;margin-bottom:12px}
   .trip-dates .field{flex:1;min-width:0}
@@ -1249,7 +1251,9 @@
 
   <button type="button" class="trip-entry" id="btn-open-trip">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg>
-    <span class="trip-entry-text"><b>旅行・出発前チェック</b><small>出発日を入れると、切れているもの・旅行中に切れるもの・パスポートの残りを一度に確認</small></span>
+    <span class="trip-entry-text"><b>旅行に行く前に、これ大丈夫？</b>
+      <span class="trip-chips"><span>パスポートの残り</span><span>旅行中に切れるもの</span><span>もう切れているもの</span></span>
+      <small>出発日と帰る日を入れるだけ</small></span>
     <span class="trip-entry-arrow">›</span>
   </button>
 
@@ -1806,7 +1810,7 @@
 <div class="modal-back" id="modal-trip">
   <div class="modal-box guide-box">
     <div class="guide-head">
-      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg> 旅行・出発前チェック</h3>
+      <h3><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg> 旅行に行く前に、これ大丈夫？</h3>
       <button class="ghost" id="btn-trip-close">閉じる</button>
     </div>
     <div class="guide-body">
@@ -1932,7 +1936,7 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">4</div><h5>見逃さないための工夫</h5></div>
-        <p>ホームの <b>旅行・出発前チェック</b> に出発日と帰る日を入れると、切れているもの・旅行中に切れるもの・パスポートの残り（6か月ルール）を一度に確かめられます。</p>
+        <p>ホームの <b>旅行に行く前に、これ大丈夫？</b> に出発日と帰る日を入れると、パスポートの残り（6か月ルール）・旅行中に切れるもの・もう切れているものを一度に確かめられます。</p>
         <p style="margin-top:8px">今すぐ対応が必要なものがあると、開いた瞬間に全画面の知らせが出ます。ホームの「期限切れ・今日まで・7日以内」の数と、アプリの右上の数字（対応機種）でも分かります。</p>
       </div>
 
@@ -1971,7 +1975,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19k"></script>
+<script src="crypto.js?v=2026-09-19l"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -6557,7 +6561,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19k";
+const アプリの版 = "2026-09-19l";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6606,6 +6610,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19k"></script>
+<script src="native.js?v=2026-09-19l"></script>
 </body>
 </html>
