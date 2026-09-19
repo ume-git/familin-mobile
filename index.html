@@ -1008,6 +1008,8 @@
     border-radius:var(--r-md);padding:14px 16px 12px;margin-bottom:24px;font-size:13.5px;
     text-align:left;box-shadow:var(--shadow-sm)}
   .budget-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .budget-hide{font:inherit;font-size:11.5px;font-weight:700;margin-left:8px;padding:2px 8px;border-radius:999px;
+    border:1px solid var(--line);background:transparent;color:var(--soft);cursor:pointer;vertical-align:middle}
   .budget-total{font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
   .budget-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
   .budget-name{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:14.5px;font-weight:700;color:var(--ink)}
@@ -1455,6 +1457,10 @@
       <div class="settings-label">テーマカラー</div>
       <div class="color-grid" id="color-grid"></div>
       <p class="settings-hint">どの色も、ライトとダークの両方で使えます。</p>
+    </div>
+    <div class="settings-row">
+      <label for="budget-select">ホームの「払うお金」</label>
+      <select id="budget-select"><option value="on">表示する</option><option value="off">表示しない</option></select>
     </div>
     <div class="settings-row">
       <label for="voice-select">読み上げの声</label>
@@ -1982,7 +1988,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19m"></script>
+<script src="crypto.js?v=2026-09-19n"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3204,8 +3210,10 @@ function 今日やることを描画する(items){
   マスコットを更新する();
 }
 
+function お金を見せるか(){ try { return localStorage.getItem("torumamo_budget") !== "off"; } catch(e){ return true; } }
 function 出費予告を描画する(items){
   const el = document.getElementById("budget-forecast");
+  if(!お金を見せるか()){ el.innerHTML = ""; return; }
   const 今日 = new Date(); 今日.setHours(0,0,0,0);
   const 対象 = items.filter(i => {
     if(!i.cost || i.cost <= 0) return false;
@@ -3217,7 +3225,7 @@ function 出費予告を描画する(items){
   const 合計 = 対象.reduce((sum, i) => sum + i.cost, 0);
   // 「¥805,010 2件」だけでは何のお金か分からない。何に・いつ・いくら、を並べて、合計は最後に
   el.innerHTML = `<div class="budget-note">
-    <div class="budget-head"><span class="budget-label">この1か月で払うお金（目安）</span><span class="budget-total">¥${合計.toLocaleString()}</span></div>
+    <div class="budget-head"><span class="budget-label">この1か月で払うお金（目安）<button type="button" class="budget-hide" onclick="お金の表示を切り替える(false)" aria-label="この枠を隠す">隠す</button></span><span class="budget-total">¥${合計.toLocaleString()}</span></div>
     ${対象.map(i => `<div class="budget-row" onclick="項目へ移動する('${i.id}')">
       <span class="budget-name">${エスケープ(i.name)}<small>${i.残り日数 === 0 ? "今日" : "あと" + i.残り日数 + "日"}</small></span>
       <span class="budget-cost">¥${Number(i.cost).toLocaleString()}</span>
@@ -3225,6 +3233,16 @@ function 出費予告を描画する(items){
     <div class="budget-foot">金額は登録したときの目安です。実際の額は届いた案内で確かめてください</div>
   </div>`;
 }
+
+// ホームの「払うお金」を出すかどうか。設定と、枠の「隠す」の両方から変えられる
+function お金の表示を切り替える(見せる){
+  try { localStorage.setItem("torumamo_budget", 見せる ? "on" : "off"); } catch(e) {}
+  const sel = document.getElementById("budget-select"); if(sel) sel.value = 見せる ? "on" : "off";
+  描画する();
+  if(!見せる) お知らせ("「払うお金」を隠しました。設定からいつでも戻せます。", true);
+}
+document.getElementById("budget-select").addEventListener("change", e => お金の表示を切り替える(e.target.value !== "off"));
+try { document.getElementById("budget-select").value = お金を見せるか() ? "on" : "off"; } catch(e) {}
 
 // ============================================================
 // 旅行・出発前チェック
@@ -6576,7 +6594,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19m";
+const アプリの版 = "2026-09-19n";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6625,6 +6643,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19m"></script>
+<script src="native.js?v=2026-09-19n"></script>
 </body>
 </html>
