@@ -1008,6 +1008,11 @@
     border-radius:var(--r-md);padding:14px 16px 12px;margin-bottom:24px;font-size:13.5px;
     text-align:left;box-shadow:var(--shadow-sm)}
   .budget-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .list-scope{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:10px 14px;
+    border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink);font-size:13.5px;font-weight:700}
+  .list-scope button{font:inherit;font-size:13px;font-weight:800;padding:7px 12px;border-radius:999px;border:none;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap}
+  .count{cursor:pointer}
+  .count:active{transform:translateY(1px)}
   .budget-hide{font:inherit;font-size:11.5px;font-weight:700;margin-left:8px;padding:2px 8px;border-radius:999px;
     border:1px solid var(--line);background:transparent;color:var(--soft);cursor:pointer;vertical-align:middle}
   .budget-total{font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -1307,6 +1312,10 @@
     <button class="danger" id="btn-delete-person"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg> この人を削除</button>
   </div>
 
+  <div class="list-scope" id="list-scope" hidden>
+    <span id="list-scope-text"></span>
+    <button type="button" onclick="期間で絞る(null)">すべて見る</button>
+  </div>
   <div class="list-head">
     <h2 class="section-title" id="list-title">すべての登録</h2>
     <select id="list-view-mode">
@@ -1988,7 +1997,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19n"></script>
+<script src="crypto.js?v=2026-09-19o"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3440,6 +3449,17 @@ function 人物別に描画する(items){
   return html;
 }
 
+let 期間の絞り込み = null;   // null | "expired" | "today" | "week"
+function 期間で絞る(範囲){
+  期間の絞り込み = 範囲 || null;
+  if(範囲){ タブを切り替える("list"); const s = document.getElementById("search-input"); if(s) s.value = ""; }
+  描画する();
+  if(範囲) window.scrollTo({ top: 0, behavior: "instant" });
+}
+document.querySelectorAll(".count[data-scope]").forEach(b => b.addEventListener("click", () => {
+  if(Number(b.querySelector("b").textContent) === 0){ お知らせ(b.querySelector("span").textContent + "のものは、今はありません。"); return; }
+  期間で絞る(b.dataset.scope);
+}));
 function 描画する(){
   人物タブを描画する();
   人物選択欄を更新する();
@@ -3477,14 +3497,32 @@ function 描画する(){
     items = items.filter(i => [i.name, i.category, i.memo, 項目の人物名(i), i.読み取り要約, i.sub_type]
       .filter(Boolean).some(t => String(t).toLowerCase().includes(語)));
   }
+  // ホームの3つの数字（期限切れ／今日まで／7日以内）を押したときの絞り込み
+  const 範囲の名 = { expired: "期限切れ", today: "今日まで", week: "7日以内" };
+  if(期間の絞り込み){
+    items = items.filter(i => {
+      if(i.残り日数 == null) return false;
+      if(期間の絞り込み === "expired") return i.残り日数 < 0;
+      if(期間の絞り込み === "today") return i.残り日数 === 0;
+      return i.残り日数 > 0 && i.残り日数 <= 7;
+    });
+  }
+  const 帯 = document.getElementById("list-scope");
+  if(帯){
+    帯.hidden = !期間の絞り込み;
+    if(期間の絞り込み) document.getElementById("list-scope-text").textContent = 範囲の名[期間の絞り込み] + "のものだけ見ています（" + items.length + "件）";
+  }
 
   const list = document.getElementById("list");
   document.getElementById("list-title").textContent =
-    語 ? `「${検索語.trim()}」の検索（${items.length}件）`
+    期間の絞り込み ? `${範囲の名[期間の絞り込み]}（${items.length}件）`
+      : 語 ? `「${検索語.trim()}」の検索（${items.length}件）`
       : items.length ? `すべての登録（${items.length}件）` : "すべての登録";
 
   if(items.length === 0){
-    list.innerHTML = '<div class="empty">まだ何もありません。ホームの「撮って登録する」で、1つ入れてみませんか？</div>';
+    list.innerHTML = 期間の絞り込み
+      ? '<div class="empty">' + 範囲の名[期間の絞り込み] + 'のものはありません。</div>'
+      : '<div class="empty">まだ何もありません。ホームの「撮って登録する」で、1つ入れてみませんか？</div>';
   } else {
     const モード = document.getElementById("list-view-mode").value;
     if(モード === "category") list.innerHTML = カテゴリー別に描画する(items);
@@ -6594,7 +6632,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19n";
+const アプリの版 = "2026-09-19o";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6643,6 +6681,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19n"></script>
+<script src="native.js?v=2026-09-19o"></script>
 </body>
 </html>
