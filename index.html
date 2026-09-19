@@ -268,10 +268,12 @@
   .mask-sizes{display:flex;gap:6px}
   .mask-sizes button{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:700;padding:7px 11px;border-radius:999px;
     border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff}
-  .mask-sizes button i{display:inline-block;border-radius:50%;background:#fff}
+  .mask-sizes button i{display:inline-block;width:14px;height:10px;background:#fff}
+  .mask-sizes button i.ci{width:12px;height:12px;border-radius:50%}
   .mask-sizes button.on{background:#fff;color:#0b0f14}
   .mask-sizes button.on i{background:#0b0f14}
-  .mask-count{font-size:12.5px;color:rgba(255,255,255,.75);text-align:right}
+  .mask-del{font:inherit;font-size:13px;font-weight:700;padding:7px 11px;border-radius:999px;border:1px solid #ff5e7e;background:transparent;color:#ff9db0}
+  .mask-count{font-size:12.5px;color:rgba(255,255,255,.6);text-align:center;margin-top:8px}
   .mask-btns{display:flex;gap:8px}
   .mask-btns button{flex:1;font:inherit;font-size:14px;font-weight:700;padding:13px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff}
   .mask-btns button:disabled{opacity:.4}
@@ -1377,24 +1379,24 @@
 
 <div class="mask-screen" id="mask-screen" hidden>
   <div class="mask-head">
-    <div class="mask-title">隠したい所を、マーカーで塗る</div>
-    <div class="mask-sub">顔・番号・住所を黒く。<b>期限の欄は残す。</b>二本指で拡大すると細い行も塗れます。</div>
+    <div class="mask-title">隠したい所に、四角や丸を置く</div>
+    <div class="mask-sub">押した所に置かれます。<b>角や辺の○をつまんで</b>広げる・伸ばす、中を押して動かす。二本指で拡大。</div>
   </div>
   <div class="mask-stage"><canvas id="mask-canvas"></canvas><button type="button" class="mask-zoom-reset" id="mask-reset-zoom" hidden>全体を見る</button></div>
   <div class="mask-foot">
     <div class="mask-row">
-      <div class="mask-sizes" id="mask-sizes" aria-label="マーカーの太さ">
-        <button type="button" data-size="細"><i style="width:6px;height:6px"></i>細</button>
-        <button type="button" data-size="中"><i style="width:11px;height:11px"></i>中</button>
-        <button type="button" data-size="太"><i style="width:18px;height:18px"></i>太</button>
+      <div class="mask-sizes" id="mask-shapes" aria-label="置く図形">
+        <button type="button" data-shape="四角"><i class="sq"></i>四角を置く</button>
+        <button type="button" data-shape="丸"><i class="ci"></i>丸を置く</button>
       </div>
-      <div class="mask-count" id="mask-count">まだ何も隠していません</div>
+      <button type="button" class="mask-del" id="mask-delete" hidden>この図形を消す</button>
     </div>
     <div class="mask-btns">
       <button type="button" class="ghost" id="mask-undo" disabled>ひとつ戻す</button>
       <button type="button" class="ghost" id="mask-cancel">やめる</button>
       <button type="button" class="primary" id="mask-send">この写真を送る</button>
     </div>
+    <div class="mask-count" id="mask-count">まだ何も隠していません</div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1954,7 +1956,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19c"></script>
+<script src="crypto.js?v=2026-09-19d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4927,22 +4929,21 @@ document.getElementById("btn-photo-mask").addEventListener("click", () => {
 // 送る前に、指でなぞった所を黒く塗りつぶせるようにする。塗った画像だけがサーバーに行く。
 // ============================================================
 function 隠す画面を出す(元画像){
-  // 太いマーカーで塗る。二本指で拡大・移動できるので、住所のような細い行も狙える。
-  // 前の版は「四角を対角に引く」方式で、指がすべって日付まで消える・細い行が消せないと言われた。
+  // 図形（四角・丸）を置いて、角や辺をつまんで広げる・伸ばす方式。
+  // マーカー方式は「指の下が見えず、狙った所より下に塗れる」「日付まで消える」と言われた。
+  // 図形なら、置いてから見ながら直せる。選んでいる間は半透明なので、下の文字が見える。
   return new Promise(resolve => {
     const 画面 = document.getElementById("mask-screen");
     const canvas = document.getElementById("mask-canvas");
     const ctx = canvas.getContext("2d");
     const 元W = 元画像.width, 元H = 元画像.height;
     const 短辺 = Math.min(元W, 元H);
-    const 太さ表 = { 細: 短辺 * 0.028, 中: 短辺 * 0.055, 太: 短辺 * 0.11 };   // 元画像の座標での線の幅
-    let 太さ = "中";
-    const 筆跡 = [];            // [{幅, 点:[{x,y}]}]  元画像の座標
-    let 今の筆 = null;
-    // 表示の変換：画面px = 画像px * 倍率 + ずれ
+    const 図形 = [];               // [{形:"四角"|"丸", x,y,w,h}]  元画像の座標
+    let 選択 = -1;
+    let 形 = "四角";
     let 倍率 = 1, ずれX = 0, ずれY = 0, 基準倍率 = 1;
-    let 二本指 = null;          // {距離, 中点, 倍率, ずれX, ずれY}
-    let 描画予約 = false;
+    let 二本指 = null, つかみ = null, 描画予約 = false;
+    const つまみ半径 = 22;         // 画面px。指で狙える大きさ
 
     function 画面に合わせる(){
       const 箱 = canvas.parentElement.getBoundingClientRect();
@@ -4955,6 +4956,20 @@ function 隠す画面を出す(元画像){
       倍率 = 基準倍率; ずれX = (w - 元W * 倍率) / 2; ずれY = (h - 元H * 倍率) / 2;
       描く();
     }
+    const 画面へ = p => ({ x: p.x * 倍率 + ずれX, y: p.y * 倍率 + ずれY });
+    const 画像へ = (cx, cy) => { const 箱 = canvas.getBoundingClientRect(); return { x: (cx - 箱.left - ずれX) / 倍率, y: (cy - 箱.top - ずれY) / 倍率 }; };
+    function 図形の道(g, z){
+      g.beginPath();
+      if(z.形 === "丸") g.ellipse(z.x + z.w / 2, z.y + z.h / 2, Math.max(1, z.w / 2), Math.max(1, z.h / 2), 0, 0, Math.PI * 2);
+      else g.rect(z.x, z.y, z.w, z.h);
+    }
+    // つまみ：角4つ＋辺の真ん中4つ（画像の座標）
+    function つまみ一覧(z){
+      return [
+        { 名: "nw", x: z.x, y: z.y }, { 名: "ne", x: z.x + z.w, y: z.y }, { 名: "sw", x: z.x, y: z.y + z.h }, { 名: "se", x: z.x + z.w, y: z.y + z.h },
+        { 名: "n", x: z.x + z.w / 2, y: z.y }, { 名: "s", x: z.x + z.w / 2, y: z.y + z.h }, { 名: "w", x: z.x, y: z.y + z.h / 2 }, { 名: "e", x: z.x + z.w, y: z.y + z.h / 2 },
+      ];
+    }
     function 描く(){
       描画予約 = false;
       const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -4962,51 +4977,106 @@ function 隠す画面を出す(元画像){
       ctx.save();
       ctx.translate(ずれX, ずれY); ctx.scale(倍率, 倍率);
       ctx.drawImage(元画像, 0, 0);
-      ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#000"; ctx.fillStyle = "#000";
-      筆跡.concat(今の筆 ? [今の筆] : []).forEach(f => {
-        if(f.点.length === 1){ ctx.beginPath(); ctx.arc(f.点[0].x, f.点[0].y, f.幅 / 2, 0, Math.PI * 2); ctx.fill(); return; }
-        ctx.lineWidth = f.幅; ctx.beginPath(); ctx.moveTo(f.点[0].x, f.点[0].y);
-        for(let i = 1; i < f.点.length; i++) ctx.lineTo(f.点[i].x, f.点[i].y);
-        ctx.stroke();
+      図形.forEach((z, i) => {
+        図形の道(ctx, z);
+        ctx.fillStyle = i === 選択 ? "rgba(0,0,0,.55)" : "#000";   // 選んでいる間は下が透けて見える
+        ctx.fill();
       });
       ctx.restore();
-      document.getElementById("mask-undo").disabled = 筆跡.length === 0;
-      document.getElementById("mask-count").textContent = 筆跡.length ? 筆跡.length + "か所を隠しました" : "まだ何も隠していません";
+      // 選んだ図形の枠とつまみは、拡大に関係なく同じ太さで描く
+      if(選択 >= 0 && 図形[選択]){
+        const z = 図形[選択];
+        const a = 画面へ({ x: z.x, y: z.y }), b = 画面へ({ x: z.x + z.w, y: z.y + z.h });
+        ctx.save();
+        ctx.strokeStyle = "#ff5e7e"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+        ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+        ctx.setLineDash([]);
+        つまみ一覧(z).forEach(t => {
+          const q = 画面へ(t);
+          const 角 = t.名.length === 2;
+          ctx.beginPath(); ctx.arc(q.x, q.y, 角 ? 11 : 8, 0, Math.PI * 2);
+          ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#ff5e7e"; ctx.lineWidth = 2.5; ctx.stroke();
+        });
+        ctx.restore();
+      }
+      document.getElementById("mask-undo").disabled = 図形.length === 0;
+      document.getElementById("mask-delete").hidden = 選択 < 0;
+      document.getElementById("mask-count").textContent = 図形.length ? 図形.length + "か所を隠しています" : "まだ何も隠していません";
       document.getElementById("mask-reset-zoom").hidden = Math.abs(倍率 - 基準倍率) < 0.01;
     }
     function 描き直す(){ if(!描画予約){ 描画予約 = true; requestAnimationFrame(描く); } }
-    function 画像の座標(clientX, clientY){
-      const 箱 = canvas.getBoundingClientRect();
-      return { x: (clientX - 箱.left - ずれX) / 倍率, y: (clientY - 箱.top - ずれY) / 倍率 };
-    }
-    function 範囲内(p){ return p.x >= -短辺 * 0.05 && p.y >= -短辺 * 0.05 && p.x <= 元W + 短辺 * 0.05 && p.y <= 元H + 短辺 * 0.05; }
     function 倍率を収める(){
       倍率 = Math.max(基準倍率, Math.min(基準倍率 * 8, 倍率));
-      // 画像が画面の外に逃げすぎないように
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      const 画W = 元W * 倍率, 画H = 元H * 倍率;
-      if(画W <= w) ずれX = (w - 画W) / 2; else ずれX = Math.min(0, Math.max(w - 画W, ずれX));
-      if(画H <= h) ずれY = (h - 画H) / 2; else ずれY = Math.min(0, Math.max(h - 画H, ずれY));
+      const w = canvas.clientWidth, h = canvas.clientHeight, 画W = 元W * 倍率, 画H = 元H * 倍率;
+      ずれX = 画W <= w ? (w - 画W) / 2 : Math.min(0, Math.max(w - 画W, ずれX));
+      ずれY = 画H <= h ? (h - 画H) / 2 : Math.min(0, Math.max(h - 画H, ずれY));
+    }
+    function 図形を置く(形の名, 中心){
+      // 住所や番号の「1行」を想定した横長を既定に。丸は顔写真向けに縦長
+      const w = 形の名 === "丸" ? 短辺 * 0.22 : 元W * 0.34;
+      const h = 形の名 === "丸" ? 短辺 * 0.28 : 短辺 * 0.09;
+      const c = 中心 || { x: (canvas.clientWidth / 2 - ずれX) / 倍率, y: (canvas.clientHeight / 2 - ずれY) / 倍率 };
+      const z = { 形: 形の名, x: c.x - w / 2, y: c.y - h / 2, w, h };
+      図形.push(z); 選択 = 図形.length - 1; 描き直す();
+    }
+    // 画面の点が、何をつかんだか
+    function 何をつかんだ(cx, cy){
+      const 箱 = canvas.getBoundingClientRect(); const sx = cx - 箱.left, sy = cy - 箱.top;
+      if(選択 >= 0 && 図形[選択]){
+        for(const t of つまみ一覧(図形[選択])){ const q = 画面へ(t); if(Math.hypot(q.x - sx, q.y - sy) <= つまみ半径) return { 種: "つまみ", 番: 選択, 名: t.名 }; }
+      }
+      const p = 画像へ(cx, cy);
+      for(let i = 図形.length - 1; i >= 0; i--){ const z = 図形[i]; if(p.x >= z.x && p.x <= z.x + z.w && p.y >= z.y && p.y <= z.y + z.h) return { 種: "中", 番: i }; }
+      return { 種: "外" };
+    }
+    function つまみを動かす(z, 名, dx, dy){
+      const 最小 = 短辺 * 0.02;
+      if(名.includes("w")){ const nx = Math.min(z.x + dx, z.x + z.w - 最小); z.w += z.x - nx; z.x = nx; }
+      if(名.includes("e")){ z.w = Math.max(最小, z.w + dx); }
+      if(名.includes("n")){ const ny = Math.min(z.y + dy, z.y + z.h - 最小); z.h += z.y - ny; z.y = ny; }
+      if(名.includes("s")){ z.h = Math.max(最小, z.h + dy); }
     }
 
-    // ---- 指 ----
+    // ---- 1本指：置く・選ぶ・動かす・広げる。2本指：拡大・移動 ----
+    function 始まり(cx, cy){
+      const 当たり = 何をつかんだ(cx, cy);
+      const p = 画像へ(cx, cy);
+      つかみ = { 当たり, 始点: p, 前: p, 動いた: false, 画面始点: { x: cx, y: cy } };
+      if(当たり.種 === "中" && 選択 !== 当たり.番){ 選択 = 当たり.番; 描き直す(); }
+    }
+    function 動き(cx, cy){
+      if(!つかみ) return;
+      const p = 画像へ(cx, cy);
+      if(Math.hypot(cx - つかみ.画面始点.x, cy - つかみ.画面始点.y) > 6) つかみ.動いた = true;
+      const dx = p.x - つかみ.前.x, dy = p.y - つかみ.前.y;
+      const 当 = つかみ.当たり;
+      if(当.種 === "つまみ"){ つまみを動かす(図形[当.番], 当.名, dx, dy); }
+      else if(当.種 === "中"){ const z = 図形[当.番]; z.x += dx; z.y += dy; }
+      else if(つかみ.動いた && 倍率 > 基準倍率 * 1.01){ ずれX += dx * 倍率; ずれY += dy * 倍率; 倍率を収める(); }
+      つかみ.前 = 画像へ(cx, cy);
+      描き直す();
+    }
+    function 終わり(){
+      if(!つかみ) return;
+      const 当 = つかみ.当たり;
+      if(!つかみ.動いた){
+        if(当.種 === "外"){
+          const p = つかみ.始点;
+          if(p.x >= 0 && p.y >= 0 && p.x <= 元W && p.y <= 元H){ 図形を置く(形, p); }   // 何もない所を押す → そこに置く
+          else { 選択 = -1; 描き直す(); }
+        }
+      }
+      つかみ = null; 描き直す();
+    }
     function 指が置かれた(ev){
       ev.preventDefault();
       if(ev.touches.length >= 2){
-        // 塗っている途中で2本目が来たら、その筆は無かったことにする（拡大しようとした指が線を引かないように）
-        今の筆 = null;
+        つかみ = null;
         const a = ev.touches[0], b = ev.touches[1];
-        二本指 = { 距離: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-                   中点: { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 },
-                   倍率, ずれX, ずれY };
-        描き直す();
+        二本指 = { 距離: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), 中点: { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 }, 倍率, ずれX, ずれY };
         return;
       }
-      const t = ev.touches[0];
-      const p = 画像の座標(t.clientX, t.clientY);
-      if(!範囲内(p)) return;
-      今の筆 = { 幅: 太さ表[太さ], 点: [p] };
-      描き直す();
+      始まり(ev.touches[0].clientX, ev.touches[0].clientY);
     }
     function 指が動いた(ev){
       ev.preventDefault();
@@ -5015,48 +5085,32 @@ function 隠す画面を出す(元画像){
         const 距離 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
         const 中点 = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
         const 箱 = canvas.getBoundingClientRect();
-        const k = 距離 / (二本指.距離 || 1);
-        倍率 = 二本指.倍率 * k;
-        // 最初の中点の下にあった画像の点が、今の中点の下に来るようにずらす
+        倍率 = 二本指.倍率 * (距離 / (二本指.距離 || 1));
         const 元点 = { x: (二本指.中点.x - 箱.left - 二本指.ずれX) / 二本指.倍率, y: (二本指.中点.y - 箱.top - 二本指.ずれY) / 二本指.倍率 };
-        ずれX = 中点.x - 箱.left - 元点.x * 倍率;
-        ずれY = 中点.y - 箱.top - 元点.y * 倍率;
-        倍率を収める();
-        描き直す();
+        ずれX = 中点.x - 箱.left - 元点.x * 倍率; ずれY = 中点.y - 箱.top - 元点.y * 倍率;
+        倍率を収める(); 描き直す();
         return;
       }
-      if(!今の筆 || ev.touches.length !== 1) return;
-      const t = ev.touches[0];
-      const p = 画像の座標(t.clientX, t.clientY);
-      const 前 = 今の筆.点[今の筆.点.length - 1];
-      if(Math.hypot(p.x - 前.x, p.y - 前.y) > 1) 今の筆.点.push(p);
-      描き直す();
+      if(ev.touches.length === 1) 動き(ev.touches[0].clientX, ev.touches[0].clientY);
     }
     function 指が離れた(ev){
       ev.preventDefault();
-      if(ev.touches.length === 0){
-        二本指 = null;
-        if(今の筆){ 筆跡.push(今の筆); 今の筆 = null; }
-        描き直す();
-      } else if(ev.touches.length === 1){
-        // 2本→1本になったときは、残った指で塗り始めないで、次に置き直してもらう
-        二本指 = null;
-      }
+      if(ev.touches.length === 0){ 二本指 = null; 終わり(); }
+      else if(ev.touches.length === 1){ 二本指 = null; つかみ = null; }
     }
-    // ---- マウス（PCで試すとき） ----
+    // マウス（PCで試すとき）
     let マウス中 = false;
-    function マウス下(ev){ const p = 画像の座標(ev.clientX, ev.clientY); if(!範囲内(p)) return; マウス中 = true; 今の筆 = { 幅: 太さ表[太さ], 点: [p] }; 描き直す(); }
-    function マウス動(ev){ if(!マウス中 || !今の筆) return; 今の筆.点.push(画像の座標(ev.clientX, ev.clientY)); 描き直す(); }
-    function マウス上(){ if(!マウス中) return; マウス中 = false; if(今の筆){ 筆跡.push(今の筆); 今の筆 = null; } 描き直す(); }
-    function ホイール(ev){
+    const マウス下 = ev => { マウス中 = true; 始まり(ev.clientX, ev.clientY); };
+    const マウス動 = ev => { if(マウス中) 動き(ev.clientX, ev.clientY); };
+    const マウス上 = () => { if(!マウス中) return; マウス中 = false; 終わり(); };
+    const ホイール = ev => {
       ev.preventDefault();
-      const 箱 = canvas.getBoundingClientRect();
-      const 前 = 倍率; 倍率 *= ev.deltaY < 0 ? 1.15 : 1 / 1.15;
-      倍率 = Math.max(基準倍率, Math.min(基準倍率 * 8, 倍率));
+      const 箱 = canvas.getBoundingClientRect(); const 前 = 倍率;
+      倍率 = Math.max(基準倍率, Math.min(基準倍率 * 8, 倍率 * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)));
       const px = ev.clientX - 箱.left, py = ev.clientY - 箱.top;
       ずれX = px - (px - ずれX) * (倍率 / 前); ずれY = py - (py - ずれY) * (倍率 / 前);
       倍率を収める(); 描き直す();
-    }
+    };
 
     canvas.addEventListener("touchstart", 指が置かれた, { passive: false });
     canvas.addEventListener("touchmove", 指が動いた, { passive: false });
@@ -5066,37 +5120,32 @@ function 隠す画面を出す(元画像){
     canvas.addEventListener("wheel", ホイール, { passive: false });
     window.addEventListener("resize", 画面に合わせる);
 
-    const 太さボタン = [...document.querySelectorAll("#mask-sizes button")];
-    const 太さを選ぶ = ev => { 太さ = ev.currentTarget.dataset.size; 太さボタン.forEach(b => b.classList.toggle("on", b === ev.currentTarget)); };
-    太さボタン.forEach(b => { b.addEventListener("click", 太さを選ぶ); b.classList.toggle("on", b.dataset.size === 太さ); });
+    const 形ボタン = [...document.querySelectorAll("#mask-shapes button")];
+    const 形を置く = ev => { 形 = ev.currentTarget.dataset.shape; 形ボタン.forEach(b => b.classList.toggle("on", b === ev.currentTarget)); 図形を置く(形, null); };
+    形ボタン.forEach(b => { b.addEventListener("click", 形を置く); b.classList.toggle("on", b.dataset.shape === 形); });
 
+    const 送る = document.getElementById("mask-send"), やめる = document.getElementById("mask-cancel"),
+          戻す = document.getElementById("mask-undo"), 消す = document.getElementById("mask-delete"), 拡大戻す = document.getElementById("mask-reset-zoom");
     function 片付ける(){
       canvas.removeEventListener("touchstart", 指が置かれた); canvas.removeEventListener("touchmove", 指が動いた);
       canvas.removeEventListener("touchend", 指が離れた); canvas.removeEventListener("touchcancel", 指が離れた);
       canvas.removeEventListener("mousedown", マウス下); canvas.removeEventListener("mousemove", マウス動); window.removeEventListener("mouseup", マウス上);
       canvas.removeEventListener("wheel", ホイール); window.removeEventListener("resize", 画面に合わせる);
-      太さボタン.forEach(b => b.removeEventListener("click", 太さを選ぶ));
-      送る.onclick = null; やめる.onclick = null; 戻す.onclick = null; 拡大戻す.onclick = null;
+      形ボタン.forEach(b => b.removeEventListener("click", 形を置く));
+      送る.onclick = null; やめる.onclick = null; 戻す.onclick = null; 消す.onclick = null; 拡大戻す.onclick = null;
       画面.hidden = true;
     }
-    const 送る = document.getElementById("mask-send"), やめる = document.getElementById("mask-cancel"),
-          戻す = document.getElementById("mask-undo"), 拡大戻す = document.getElementById("mask-reset-zoom");
-    戻す.onclick = () => { 筆跡.pop(); 描き直す(); };
+    戻す.onclick = () => { 図形.pop(); 選択 = Math.min(選択, 図形.length - 1); 描き直す(); };
+    消す.onclick = () => { if(選択 >= 0){ 図形.splice(選択, 1); 選択 = -1; 描き直す(); } };
     拡大戻す.onclick = () => { 画面に合わせる(); };
     やめる.onclick = () => { 片付ける(); resolve(null); };
     送る.onclick = () => {
-      // 送る用：元の大きさで塗る。塗った画像だけがサーバーに行く
       const 出 = document.createElement("canvas");
       出.width = 元W; 出.height = 元H;
       const g = 出.getContext("2d");
       g.drawImage(元画像, 0, 0);
-      g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#000"; g.fillStyle = "#000";
-      筆跡.forEach(f => {
-        if(f.点.length === 1){ g.beginPath(); g.arc(f.点[0].x, f.点[0].y, f.幅 / 2, 0, Math.PI * 2); g.fill(); return; }
-        g.lineWidth = f.幅; g.beginPath(); g.moveTo(f.点[0].x, f.点[0].y);
-        for(let i = 1; i < f.点.length; i++) g.lineTo(f.点[i].x, f.点[i].y);
-        g.stroke();
-      });
+      g.fillStyle = "#000";
+      図形.forEach(z => { 図形の道(g, z); g.fill(); });
       片付ける(); resolve(出);
     };
     画面.hidden = false;
@@ -6411,7 +6460,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19c";
+const アプリの版 = "2026-09-19d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6460,6 +6509,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19c"></script>
+<script src="native.js?v=2026-09-19d"></script>
 </body>
 </html>
