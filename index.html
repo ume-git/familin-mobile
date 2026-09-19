@@ -1414,6 +1414,7 @@
   <div class="quick-main"><b id="quick-name"></b><span id="quick-when"></span></div>
   <button type="button" id="quick-edit">直す</button>
   <button type="button" class="quick-undo" id="quick-undo">取り消す</button>
+  <button type="button" class="quick-undo" id="quick-list" hidden>一覧を見る</button>
 </div>
 
 <button id="btn-stop-speech" style="display:none">⏹ 読み上げを止める</button>
@@ -1966,7 +1967,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19h"></script>
+<script src="crypto.js?v=2026-09-19i"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5315,12 +5316,15 @@ async function 保存ボタンを押した(){
       }
       items[idx] = Object.assign({}, items[idx], 更新);
     }
-  } else {
+  }
+  let 新しい項目 = null;
+  if(!id){
     const 新規 = { id: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
       name, category, expire_date, memo, cost, sub_type, is_senior, person_id };
     if(要約) 新規.読み取り要約 = 要約;
     if(やること && やること.length) 新規.読み取りやること = やること;
     items.push(新規);
+    新しい項目 = 新規;
   }
   読み取った内容 = null;
   await 項目一覧を保存する(items);
@@ -5328,7 +5332,9 @@ async function 保存ボタンを押した(){
   入力フォームを閉じる();
   描画する();
   window.scrollTo({top:0, behavior:"instant"});
-  if(!そのまま登録中) お知らせ(id ? "直せました！" : "登録できました！ これで安心ですね。");
+  if(そのまま登録中) return;
+  if(id) お知らせ("直せました！");
+  else 登録後の札を出す(新しい項目);   // 「一覧で確認できます」の札。どこに入ったか分からない、を防ぐ
 }
 
 // ============================================================
@@ -5385,8 +5391,29 @@ function すぐ直せる札を消す(){
   const 札 = document.getElementById("quick-bar");
   札.hidden = true; 札.dataset.id = ""; 札.dataset.restore = "";
   document.getElementById("quick-edit").hidden = false;
+  document.getElementById("quick-undo").hidden = false;
+  document.getElementById("quick-list").hidden = true;
   if(すぐ直せる札の時計){ clearTimeout(すぐ直せる札の時計); すぐ直せる札の時計 = null; }
 }
+// ふつうの登録のあと：「一覧で確認できます」＋一覧へ飛ぶボタン
+function 登録後の札を出す(項目){
+  if(!項目) return;
+  const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-name").textContent = "登録できました！";
+  document.getElementById("quick-when").textContent = "「" + 項目.name + "」は一覧で確認できます";
+  札.dataset.id = 項目.id; 札.dataset.restore = "";
+  document.getElementById("quick-edit").hidden = true;
+  document.getElementById("quick-undo").hidden = true;
+  document.getElementById("quick-list").hidden = false;
+  札.hidden = false;
+  if(すぐ直せる札の時計) clearTimeout(すぐ直せる札の時計);
+  すぐ直せる札の時計 = setTimeout(すぐ直せる札を消す, 9000);
+}
+document.getElementById("quick-list").addEventListener("click", () => {
+  const id = document.getElementById("quick-bar").dataset.id;
+  すぐ直せる札を消す();
+  if(id) 項目へ移動する(id);
+});
 document.getElementById("quick-edit").addEventListener("click", () => {
   const id = document.getElementById("quick-bar").dataset.id;
   すぐ直せる札を消す();
@@ -6524,7 +6551,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19h";
+const アプリの版 = "2026-09-19i";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6573,6 +6600,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19h"></script>
+<script src="native.js?v=2026-09-19i"></script>
 </body>
 </html>
