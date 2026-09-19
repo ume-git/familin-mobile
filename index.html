@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>トルマモ — 家族のお守り</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
@@ -235,6 +235,12 @@
     background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:#fff;z-index:1}
   .capture-hero-wrap .hero-tip[aria-expanded="true"]{background:#fff;color:var(--hero-b);border-color:#fff}
   .capture-hero-wrap + .tip-body{margin-top:10px}
+  /* 左上の「隠して撮る」：免許証・保険証の人のための入口。「?」と同じ場所・同じ見た目の作法 */
+  .capture-hero-wrap .hero-mask{position:absolute;top:10px;left:10px;z-index:1;display:inline-flex;align-items:center;gap:5px;
+    padding:5px 11px 5px 8px;border-radius:999px;font:inherit;font-size:12.5px;font-weight:800;color:#fff;
+    background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.55);cursor:pointer}
+  .capture-hero-wrap .hero-mask .ic{width:16px;height:16px;stroke-width:2}
+  .capture-hero-wrap .hero-mask:active{background:rgba(255,255,255,.4)}
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
@@ -1218,17 +1224,17 @@
     <span class="hero-sub">郵便物・プリント・クーポン・食品の期限も、撮るだけ</span>
   </button>
   <button type="button" class="tip-btn hero-tip" data-tip="tip-photo" aria-expanded="false" aria-label="写真の扱いについて">?</button>
+  <button type="button" class="hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（免許証・保険証向け）">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
+    <span>隠して撮る</span>
+  </button>
   </div>
-  <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。心配な書類は「顔や番号を隠して撮る」か「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
+  <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。免許証・保険証は左上の「隠して撮る」で、顔や番号を黒く塗ってから送れます（黒く塗った画像だけが送られます）。写真を使いたくないときは「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
   <div class="capture-links">
     <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
     <span class="dot">・</span>
     <button type="button" class="text-link" id="btn-open-form">手で入力する</button>
   </div>
-  <button type="button" class="mask-entry" id="btn-photo-mask">
-    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
-    <span><b>顔や番号を隠して撮る</b><small>免許証・保険証・マイナンバーカード向け。黒く塗った写真だけを送ります</small></span>
-  </button>
   <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="photo-input-album" accept="image/*" style="display:none">
   <input type="file" id="photo-input-mask" accept="image/*" capture="environment" style="display:none">
@@ -1956,7 +1962,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19f"></script>
+<script src="crypto.js?v=2026-09-19g"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3894,19 +3900,21 @@ async function 断られた理由(res, 既定文){
 // createImageBitmap の imageOrientation:"from-image" を使うと、その向きを反映して
 // 正しい向きに直してくれる（対応していない古い端末では従来のImageで読み込む）。
 async function 画像を読み込む(file){
-  if(typeof createImageBitmap === "function"){
-    try { return await createImageBitmap(file, { imageOrientation: "from-image" }); }
-    catch(e) { /* 未対応の場合は下のやり方にする */ }
-  }
-  return await new Promise((resolve, reject) => {
+  // <img> は今のブラウザなら EXIF の向きを自動で反映し、naturalWidth/Height も向きを直した後の値になる。
+  // createImageBitmap は機種によって「大きさ」と「描かれる中身」が食い違うことがあり、iPhoneで右側が欠けて見えた。
+  // ここで一度キャンバスに描き直して返す。以後はどこでも、幅・高さと中身が必ず一致する。
+  const url = URL.createObjectURL(file);
+  try {
     const img = new Image();
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("読み込みに失敗しました"));
-    reader.onload = () => { img.src = reader.result; };
-    img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
-    img.onload = () => resolve(img);
-    reader.readAsDataURL(file);
-  });
+    await new Promise((ok, ng) => { img.onload = ok; img.onerror = () => ng(new Error("画像の読み込みに失敗しました")); img.src = url; });
+    if(img.decode){ try { await img.decode(); } catch(e) {} }
+    const 最大 = 2400;
+    const 比 = Math.min(1, 最大 / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round((img.naturalWidth || 1) * 比)); c.height = Math.max(1, Math.round((img.naturalHeight || 1) * 比));
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return c;
+  } finally { URL.revokeObjectURL(url); }
 }
 
 // 画像を（必要なら時計回りに回してから）縮めて base64 にする
@@ -4950,7 +4958,9 @@ function 隠す画面を出す(元画像){
     }
     let 倍率 = 1, ずれX = 0, ずれY = 0, 基準倍率 = 1;
     let 二本指 = null, つかみ = null, 描画予約 = false;
-    const つまみ半径 = 22;         // 画面px。指で狙える大きさ
+    const つまみ半径 = 30;         // 画面px。指で狙える大きさ
+    // iPhoneは指の腹の中心を「触った点」として報告するので、狙った所より下にずれる。指先のぶん少し上を見る（指のときだけ）
+    const 指のずれY = -10;
 
     function 画面に合わせる(){
       const 箱 = canvas.parentElement.getBoundingClientRect();
@@ -5009,7 +5019,7 @@ function 隠す画面を出す(元画像){
         つまみ一覧(z).forEach(t => {
           const q = つまみの画面位置(t);
           const 角 = t.名.length === 2;
-          ctx.beginPath(); ctx.arc(q.x, q.y, 角 ? 13 : 10, 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(q.x, q.y, 角 ? 15 : 12, 0, Math.PI * 2);
           ctx.fillStyle = "#fff"; ctx.fill(); ctx.strokeStyle = "#ff5e7e"; ctx.lineWidth = 2.5; ctx.stroke();
         });
         // 中央の「動かす」印（十字の矢印）
@@ -5052,7 +5062,7 @@ function 隠す画面を出す(元画像){
         const 一覧 = つまみ一覧(z);
         let 近い = null, 近さ = 1e9;
         for(const t of 一覧){ const q = つまみの画面位置(t); const d = Math.hypot(q.x - sx, q.y - sy) - (t.名.length === 2 ? 4 : 0); if(d < 近さ){ 近さ = d; 近い = t; } }
-        if(近い && 近さ <= 26 && !(中に && 近さ > 14)) return { 種: "つまみ", 番: 選択, 名: 近い.名 };
+        if(近い && 近さ <= つまみ半径 && !(中に && 近さ > 16)) return { 種: "つまみ", 番: 選択, 名: 近い.名 };
         if(中に) return { 種: "中", 番: 選択 };
       }
       for(let i = 図形.length - 1; i >= 0; i--){ const z = 図形[i];
@@ -5116,7 +5126,7 @@ function 隠す画面を出す(元画像){
         二本指 = { 距離: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), 中点: { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 }, 倍率, ずれX, ずれY };
         return;
       }
-      始まり(ev.touches[0].clientX, ev.touches[0].clientY);
+      始まり(ev.touches[0].clientX, ev.touches[0].clientY + 指のずれY);
     }
     function 指が動いた(ev){
       ev.preventDefault();
@@ -5131,7 +5141,7 @@ function 隠す画面を出す(元画像){
         倍率を収める(); 描き直す();
         return;
       }
-      if(ev.touches.length === 1) 動き(ev.touches[0].clientX, ev.touches[0].clientY);
+      if(ev.touches.length === 1) 動き(ev.touches[0].clientX, ev.touches[0].clientY + 指のずれY);
     }
     function 指が離れた(ev){
       ev.preventDefault();
@@ -6506,7 +6516,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19f";
+const アプリの版 = "2026-09-19g";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6555,6 +6565,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19f"></script>
+<script src="native.js?v=2026-09-19g"></script>
 </body>
 </html>
