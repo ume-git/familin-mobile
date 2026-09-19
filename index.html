@@ -755,7 +755,9 @@
   .today-head{display:flex;align-items:center;gap:10px;
     margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--line)}
   .today-title{flex:1;font-size:20px;font-weight:700;margin:0;color:var(--ink);letter-spacing:.02em}
-  .today-date{flex:none;font-size:13px;font-weight:700;color:var(--soft)}
+  .today-date{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-size:13px;font-weight:700;color:var(--soft);line-height:1.25}
+  .today-date b{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+  .today-date small{font-size:11.5px;font-weight:700}
 
   /* トルマモ（キャラクター）。期限の状態で表情が変わる＝見ただけで様子が分かる。 */
   .mascot{display:block;color:var(--accent)}
@@ -1967,7 +1969,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-19i"></script>
+<script src="crypto.js?v=2026-09-19j"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3101,8 +3103,10 @@ function 今日やることを描画する(items){
 
   const 曜日名 = ["日", "月", "火", "水", "木", "金", "土"];
   const 今日 = new Date();
-  document.getElementById("today-date").textContent =
-    `${今日.getMonth() + 1}月${今日.getDate()}日（${曜日名[今日.getDay()]}）`;
+  // 西暦と令和を並べる。書類は令和で書かれていることが多いので、今が令和何年かが見えると照らし合わせやすい
+  const 令和 = 今日.getFullYear() - 2018;
+  document.getElementById("today-date").innerHTML =
+    `<b>${今日.getFullYear()}年${今日.getMonth() + 1}月${今日.getDate()}日（${曜日名[今日.getDay()]}）</b><small>令和${令和}年</small>`;
   const 緊急 = items.filter(i => i.段階 === "切れ" || i.段階 === "危険");
   const 注意 = items.filter(i => i.段階 === "注意");
 
@@ -6551,7 +6555,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-19i";
+const アプリの版 = "2026-09-19j";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -6600,6 +6604,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-19i"></script>
+<script src="native.js?v=2026-09-19j"></script>
 </body>
 </html>
