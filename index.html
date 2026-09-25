@@ -236,17 +236,21 @@
   .capture-hero-wrap .hero-tip[aria-expanded="true"]{background:#fff;color:var(--hero-b);border-color:#fff}
   .capture-hero-wrap + .tip-body{margin-top:10px}
   /* 左上の「隠して撮る」：免許証・保険証の人のための入口。「?」と同じ場所・同じ見た目の作法 */
-  .capture-hero-wrap .hero-mask{position:absolute;top:10px;left:10px;z-index:1;display:inline-flex;align-items:center;gap:5px;
-    padding:5px 11px 5px 8px;border-radius:999px;font:inherit;font-size:12.5px;font-weight:800;color:#fff;
-    background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.55);cursor:pointer}
-  .capture-hero-wrap .hero-mask .ic{width:16px;height:16px;stroke-width:2}
-  .capture-hero-wrap .hero-mask:active{background:rgba(255,255,255,.4)}
+  /* 小さな丸いボタン（隠して撮る・アルバム・手で入力）は同じ形。50代でも読める 15px の太字 */
+  .pill-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px 8px 11px;border-radius:999px;
+    font:inherit;font-size:15px;font-weight:800;line-height:1.2;cursor:pointer;
+    background:var(--surface);color:var(--ink);border:1.5px solid var(--line);box-shadow:var(--shadow-sm)}
+  .pill-btn .ic{width:19px;height:19px;stroke-width:2;color:var(--accent);flex:none}
+  .pill-btn:active{transform:translateY(1px)}
+  .capture-hero-wrap .hero-mask{position:absolute;top:10px;left:10px;z-index:1;
+    background:#fff;color:var(--hero-b);border-color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .capture-hero-wrap .hero-mask .ic{color:var(--hero-b)}
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:31px;font-weight:900;letter-spacing:.02em;line-height:1.2}
   .hero-sub{display:flex;flex-direction:column;gap:3px;line-height:1.45}
   .hero-sub-what{font-size:12.5px;font-weight:700;opacity:.82;letter-spacing:.01em}
-  .hero-sub-promise{font-size:15px;font-weight:800;opacity:.97}
+  .hero-sub-promise{font-size:17px;font-weight:800;opacity:.97}
   /* 文字を減らす：短い一言＋「?」。押した人にだけ説明を見せる */
   .tip-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;padding:0;
     border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);color:var(--soft);font:inherit;font-size:12px;font-weight:800;
@@ -254,7 +258,7 @@
   .tip-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
   .tip-body{margin:8px 0 0;padding:10px 14px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--ink);
     font-size:13px;line-height:1.7;text-align:left}
-  .capture-links{display:flex;justify-content:center;align-items:center;gap:6px;margin:12px 0 2px}
+  .capture-links{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 2px}
   /* 顔や番号を隠して撮る */
   .mask-entry{display:flex;align-items:center;gap:12px;width:100%;margin:10px 0 0;padding:12px 14px;text-align:left;
     border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--line);color:var(--ink);cursor:pointer;font:inherit}
@@ -299,9 +303,16 @@
   .cc-stage{flex:1;min-height:0;position:relative;overflow:hidden}
   .cc-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .cc-stage canvas{position:absolute;inset:0;width:100%;height:100%}
-  .cc-close{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:2;width:42px;height:42px;border-radius:50%;border:none;
-    background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;padding:0}
-  .cc-close .ic{width:22px;height:22px;stroke-width:2}
+  /* 閉じる「×」：カメラ・隠す画面・手で入力、どれも左上の同じ位置・同じ形 */
+  .x-close{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:2;width:44px;height:44px;border-radius:50%;border:none;
+    background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;padding:0;cursor:pointer}
+  .x-close .ic{width:24px;height:24px;stroke-width:2.2}
+  .mask-screen .x-close{background:rgba(255,255,255,.14)}
+  .mask-head{padding-left:56px !important;min-height:44px}
+  /* 手で入力の「×」も、画面の左上の同じ位置に浮かせる（スクロールしても押せる） */
+  .panel .x-close{position:fixed;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+  .panel-top{margin:0 0 18px;padding-top:34px}
+  .panel-top h2{margin:0}
   .cc-status{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:2;white-space:nowrap;
     font-size:16px;font-weight:800;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.55);transition:background .2s,color .2s}
   .cc-status.ok{background:#5CF2A0;color:#0b0f14}
@@ -1275,19 +1286,18 @@
   <button type="button" class="capture-hero" id="btn-photo-capture">
     <svg class="hero-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="17.6" cy="10.2" r=".9" fill="currentColor" stroke="none"/></svg>
     <span class="hero-title">撮って登録する</span>
-    <span class="hero-sub"><span class="hero-sub-what">はがき・学校のお便り・サブスク・クーポン・食品も</span><span class="hero-sub-promise">撮るだけで おぼえて、期限まで見守ります</span></span>
+    <span class="hero-sub"><span class="hero-sub-promise">期限が近づいたら、お知らせします</span></span>
   </button>
   <button type="button" class="tip-btn hero-tip" data-tip="tip-photo" aria-expanded="false" aria-label="写真の扱いについて">?</button>
-  <button type="button" class="hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（運転免許証・マイナンバーカード）">
+  <button type="button" class="pill-btn hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（運転免許証・マイナンバーカード）">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
     <span>隠して撮る</span>
   </button>
   </div>
   <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。運転免許証・マイナンバーカードは、左上の「隠して撮る」なら、顔・名前・住所・番号を自動で黒く塗ってから送ります。写真を使いたくないときは「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
   <div class="capture-links">
-    <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
-    <span class="dot">・</span>
-    <button type="button" class="text-link" id="btn-open-form">手で入力する</button>
+    <button type="button" class="pill-btn" id="btn-photo-album"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg><span>アルバム・スクショ</span></button>
+    <button type="button" class="pill-btn" id="btn-open-form"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>手で入力</span></button>
   </div>
   <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="photo-input-album" accept="image/*" style="display:none">
@@ -1360,7 +1370,10 @@
   <div class="list" id="list"></div>
 
   <div class="panel" id="form-panel" style="display:none">
-    <h2 id="form-title">＋ 新しく登録する</h2>
+    <div class="panel-top">
+      <button type="button" class="x-close" id="form-x" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <h2 id="form-title">＋ 新しく登録する</h2>
+    </div>
     <input type="hidden" id="edit-id" value="">
     <div class="row">
       <div class="field">
@@ -1444,6 +1457,7 @@
 </div>
 
 <div class="mask-screen" id="mask-screen" hidden>
+  <button type="button" class="x-close" id="mask-x" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="mask-head">
     <div class="mask-title">隠したい所に、四角や丸を置く</div>
     <div class="mask-sub" id="mask-hint">下の「四角を置く」「丸を置く」を押してから、隠したい所を押す</div>
@@ -1471,7 +1485,7 @@
   <div class="cc-stage" id="cc-stage">
     <video id="cc-video" playsinline muted autoplay></video>
     <canvas id="cc-overlay"></canvas>
-    <button type="button" class="cc-close" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button type="button" class="x-close" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="cc-status" id="cc-status">カードを わくに合わせてください</div>
     <div class="cc-check" id="cc-check" hidden>
       <img id="cc-check-img" alt="黒く塗った写真">
@@ -2044,7 +2058,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-25b"></script>
+<script src="crypto.js?v=2026-09-25c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3997,6 +4011,13 @@ document.getElementById("btn-cancel").addEventListener("click", () => {
   編集終了();
   入力フォームを閉じる();
 });
+// 左上の「×」：入力をやめて、開く前の画面（ふつうはホーム）へ戻る
+document.getElementById("form-x").addEventListener("click", () => {
+  const 編集中だった = !!document.getElementById("edit-id").value;
+  編集終了();
+  入力フォームを閉じる();
+  if(!編集中だった) タブを切り替える("home");
+});
 
 // ============================================================
 // 写真を撮って登録する（AIによる自動読み取り）
@@ -5157,9 +5178,10 @@ const カード撮影 = (() => {
   const 画面 = $("card-cam"), video = $("cc-video"), 重ね = $("cc-overlay"), 状態 = $("cc-status");
   const 確認 = $("cc-check"), 確認画像 = $("cc-check-img"), 確認バー = $("cc-check-bar");
   const 解析 = document.createElement("canvas"), 解析g = 解析.getContext("2d", { willReadFrequently: true });
-  const 必要な回数 = 6;       // 約0.7秒、カードが止まっていたら撮る
+  const 必要な回数 = 14;      // 約1.5秒、カードが止まっていたら撮る（0.7秒では「合った」と思った瞬間に撮れてしまった）
   let stream = null, 縦 = false, わく = null, 見つけた = null, 実際 = null, 続けて = 0;
   let タイマー = null, 送信タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false, 撮った = null;
+  let 別向きの回数 = 0;      // もう一方の向きでだけカードが見つかった回数
 
   // 案内のわく。横向き（カードを横に置く）と縦向き（スマホを横にして撮った）の2通り
   function わくを計算(v){
@@ -5259,12 +5281,22 @@ const カード撮影 = (() => {
     if(video.readyState >= 2 && video.videoWidth){
       // 横・縦の両方で毎回探し、カードの形（横長か縦長か）で向きを決める
       const 横 = カードを探す(わくを計算(false), false), 縦長 = カードを探す(わくを計算(true), true);
-      let 結果 = null, 向き = 縦;
-      if(横 && 縦長) 結果 = 縦 ? 縦長 : 横;
-      else if(横){ 結果 = 横; 向き = false; }
-      else if(縦長){ 結果 = 縦長; 向き = true; }
+      // 縦に置いたカードの中の帯などを「横長のカード」と見間違えることがある。
+      // 両方見つかったときは大きい方（外側＝本物のふち）を選ぶ
+      const 面積 = r => r ? r.w * r.h : 0;
+      let 候補 = null, 向き = 縦;
+      if(横 && 縦長){ 向き = 面積(縦長) > 面積(横) * 1.15 ? true : 面積(横) > 面積(縦長) * 1.15 ? false : 縦; }
+      else if(横) 向き = false;
+      else if(縦長) 向き = true;
+      候補 = 向き ? 縦長 : 横;
+      // 向きを変えるのは、別の向きで続けて見つかったときだけ（一瞬の見間違いで切り替わらない）
+      let 結果 = null;
+      if(候補 && 向き !== 縦){
+        別向きの回数++;
+        if(別向きの回数 >= 4){ 縦 = 向き; わく = わくを計算(縦); 続けて = 0; 別向きの回数 = 0; 結果 = 候補; }
+        else 結果 = (縦 ? 縦長 : 横);
+      } else { 別向きの回数 = 0; 結果 = 候補; }
       if(結果){
-        if(向き !== 縦){ 縦 = 向き; わく = わくを計算(縦); 続けて = 0; }
         const 動き = 実際 ? Math.max(Math.abs(結果.x - 実際.x), Math.abs(結果.y - 実際.y), Math.abs(結果.w - 実際.w), Math.abs(結果.h - 実際.h)) / Math.max(結果.w, 結果.h) : 1;
         続けて = 動き < 0.025 ? 続けて + 1 : 1;
         実際 = 結果; 見つけた = 画面へ(結果);
@@ -5631,6 +5663,7 @@ function 隠す画面を出す(元画像, 設定 = {}){
     消す.onclick = () => { if(選択 >= 0){ 図形.splice(選択, 1); 選択 = -1; 描き直す(); } };
     拡大戻す.onclick = () => { 画面に合わせる(); };
     やめる.onclick = () => { 片付ける(); resolve(null); };
+    document.getElementById("mask-x").onclick = () => { 片付ける(); resolve(null); };
     送る.onclick = () => {
       const 出 = document.createElement("canvas");
       出.width = 元W; 出.height = 元H;
@@ -6992,7 +7025,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-25b";
+const アプリの版 = "2026-09-25c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7041,6 +7074,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-25b"></script>
+<script src="native.js?v=2026-09-25c"></script>
 </body>
 </html>
