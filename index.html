@@ -293,30 +293,32 @@
   .mask-keep.ok .ic{color:#5CF2A0}
   .mask-switch{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
   .mask-switch button{font:inherit;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
-  /* カードを枠に合わせて撮る画面 */
+  /* カードを枠に合わせて撮る画面：わく・ひとこと・シャッターだけ */
   .card-cam{position:fixed;inset:0;z-index:440;background:#000;color:#fff;display:flex;flex-direction:column;
-    padding:calc(8px + env(safe-area-inset-top)) 0 calc(12px + env(safe-area-inset-bottom))}
-  .cc-head{flex:none;display:flex;align-items:center;gap:8px;padding:0 10px 8px}
-  .cc-round{flex:none;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;padding:0}
-  .cc-round .ic{width:22px;height:22px;stroke-width:2}
-  .cc-kinds{flex:1;display:flex;gap:6px;justify-content:center;min-width:0;overflow-x:auto}
-  .cc-kinds button{flex:none;font:inherit;font-size:12.5px;font-weight:800;padding:7px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
-  .cc-kinds button.on{background:#fff;color:#0b0f14;border-color:#fff}
+    padding:0 0 calc(14px + env(safe-area-inset-bottom))}
   .cc-stage{flex:1;min-height:0;position:relative;overflow:hidden}
   .cc-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .cc-stage canvas{position:absolute;inset:0;width:100%;height:100%}
-  .cc-foot{flex:none;padding:12px 14px 0;text-align:center}
-  .cc-status{font-size:17px;font-weight:800;min-height:25px;transition:color .2s}
-  .cc-status.ok{color:#5CF2A0}
-  .cc-note{font-size:12px;color:rgba(255,255,255,.72);margin-top:5px;line-height:1.55}
-  .cc-note i{display:inline-block;width:11px;height:11px;vertical-align:-1px;margin:0 3px 0 2px;border-radius:2px}
-  .cc-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-top:12px}
-  .cc-shutter{width:74px;height:74px;border-radius:50%;border:4px solid #fff;background:transparent;padding:0;position:relative}
+  .cc-close{position:absolute;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:2;width:42px;height:42px;border-radius:50%;border:none;
+    background:rgba(0,0,0,.45);color:#fff;display:grid;place-items:center;padding:0}
+  .cc-close .ic{width:22px;height:22px;stroke-width:2}
+  .cc-status{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:2;white-space:nowrap;
+    font-size:16px;font-weight:800;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.55);transition:background .2s,color .2s}
+  .cc-status.ok{background:#5CF2A0;color:#0b0f14}
+  .cc-foot{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:14px}
+  .cc-shutter{width:72px;height:72px;border-radius:50%;border:4px solid #fff;background:transparent;padding:0;position:relative}
   .cc-shutter::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#fff}
   .cc-shutter:active::after{inset:9px}
-  .cc-shutter.ready{border-color:#5CF2A0;animation:ccpulse 1.1s ease-in-out infinite}
-  @keyframes ccpulse{0%,100%{box-shadow:0 0 0 0 rgba(92,242,160,.55)}50%{box-shadow:0 0 0 12px rgba(92,242,160,0)}}
-  .cc-other{justify-self:start;font:inherit;font-size:12px;font-weight:700;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:8px 10px;line-height:1.35;text-align:left}
+  .cc-other{font:inherit;font-size:13px;font-weight:700;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 16px}
+  /* 撮った直後：黒く塗った写真を見せて、そのまま送る */
+  .cc-check{position:absolute;inset:0;z-index:3;background:#0b0f14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px 18px}
+  .cc-check img{max-width:100%;max-height:52vh;border-radius:12px;background:#fff}
+  .cc-check-text{font-size:17px;font-weight:800}
+  .cc-check-bar{width:min(320px,80%);height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}
+  .cc-check-bar i{display:block;height:100%;width:0;background:#5CF2A0}
+  .cc-check-bar i.go{width:100%;transition:width 2.4s linear}
+  .cc-check-btns{display:flex;gap:10px}
+  .cc-check-btns button{font:inherit;font-size:14px;font-weight:700;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff}
   .capture-links .text-link{display:inline;width:auto;margin:0;padding:8px 2px;font-size:15px}
   .capture-links .text-link.strong{color:var(--accent);text-decoration:none;font-weight:800}
   .capture-links .dot{color:var(--soft);font-size:13px}
@@ -1281,7 +1283,7 @@
     <span>隠して撮る</span>
   </button>
   </div>
-  <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。運転免許証・マイナンバーカードは、左上の「隠して撮る」でわくに合わせて撮るだけで、顔・名前・住所・番号を自動で黒く塗ってから送ります（黒く塗った画像だけが送られます）。写真を使いたくないときは「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
+  <div class="tip-body" id="tip-photo" hidden><b>写真はトルマモには残しません。</b>文字を読むためだけに、トルマモのサーバーを通ってAI（OpenAI）に送られます。AI側では不正利用の監視のため最長30日で消され、学習には使われません。運転免許証・マイナンバーカードは、左上の「隠して撮る」なら、顔・名前・住所・番号を自動で黒く塗ってから送ります。写真を使いたくないときは「手で入力する」を。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
   <div class="capture-links">
     <button type="button" class="text-link strong" id="btn-photo-album">アルバム・スクショから選ぶ</button>
     <span class="dot">・</span>
@@ -1466,27 +1468,21 @@
   </div>
 </div>
 <div class="card-cam" id="card-cam" hidden>
-  <div class="cc-head">
-    <button type="button" class="cc-round" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <div class="cc-kinds" id="cc-kinds" aria-label="カードの種類">
-      <button type="button" data-kind="自動" class="on">自動</button>
-      <button type="button" data-kind="運転免許証">運転免許証</button>
-      <button type="button" data-kind="マイナンバーカード">マイナンバー</button>
-    </div>
-    <button type="button" class="cc-round" id="cc-rotate" aria-label="わくを縦・横に回す"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4.5h-4.5"/></svg></button>
-  </div>
   <div class="cc-stage" id="cc-stage">
     <video id="cc-video" playsinline muted autoplay></video>
     <canvas id="cc-overlay"></canvas>
+    <button type="button" class="cc-close" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="cc-status" id="cc-status">カードを わくに合わせてください</div>
+    <div class="cc-check" id="cc-check" hidden>
+      <img id="cc-check-img" alt="黒く塗った写真">
+      <div class="cc-check-text">黒い所を塗りつぶして送ります</div>
+      <div class="cc-check-bar"><i id="cc-check-bar"></i></div>
+      <div class="cc-check-btns"><button type="button" id="cc-retake">撮り直す</button><button type="button" id="cc-fix">直す</button></div>
+    </div>
   </div>
   <div class="cc-foot">
-    <div class="cc-status" id="cc-status">カードを わくに合わせてください</div>
-    <div class="cc-note"><i style="background:rgba(20,24,30,.9);border:1px solid rgba(255,255,255,.5)"></i>黒くしてから送る所　<i style="border:2px solid #5CF2A0"></i>期限（見えるまま）<br>カードの表を撮ってください。映像はこのスマホの中だけで見ています</div>
-    <div class="cc-row">
-      <button type="button" class="cc-other" id="cc-other">ほかのカード<br>（自分で隠す）</button>
-      <button type="button" class="cc-shutter" id="cc-shutter" aria-label="撮る"></button>
-      <span></span>
-    </div>
+    <button type="button" class="cc-other" id="cc-other" hidden>写真を選んで、自分で隠す</button>
+    <button type="button" class="cc-shutter" id="cc-shutter" aria-label="撮る"></button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -2048,7 +2044,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-25a"></script>
+<script src="crypto.js?v=2026-09-25b"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5155,72 +5151,63 @@ function 画像を半回転(画像){
 }
 
 const カード撮影 = (() => {
+  // 1発で終わるように：わくに合ったら自動で撮り、黒く塗った写真を一瞬見せて、そのまま送る。
+  // ずれていたときだけ「直す」「撮り直す」を押せばよい。
   const $ = id => document.getElementById(id);
-  const 画面 = $("card-cam"), video = $("cc-video"), 重ね = $("cc-overlay"), 状態 = $("cc-status"), シャッター = $("cc-shutter");
+  const 画面 = $("card-cam"), video = $("cc-video"), 重ね = $("cc-overlay"), 状態 = $("cc-status");
+  const 確認 = $("cc-check"), 確認画像 = $("cc-check-img"), 確認バー = $("cc-check-bar");
   const 解析 = document.createElement("canvas"), 解析g = 解析.getContext("2d", { willReadFrequently: true });
-  let stream = null, 縦 = false, 選んだ = "自動", 見分けた = "運転免許証", わく = null;
-  let 辺 = [false, false, false, false], 最後の実際 = null, 合った回数 = 0, 回数 = 0, タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false;
+  const 必要な回数 = 6;       // 約0.7秒、カードが止まっていたら撮る
+  let stream = null, 縦 = false, わく = null, 見つけた = null, 実際 = null, 続けて = 0;
+  let タイマー = null, 送信タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false, 撮った = null;
 
-  const 種類 = () => 選んだ === "自動" ? 見分けた : 選んだ;
-  function わくを計算(){
+  // 案内のわく。横向き（カードを横に置く）と縦向き（スマホを横にして撮った）の2通り
+  function わくを計算(v){
     const w = 重ね.clientWidth, h = 重ね.clientHeight;
     let fw, fh;
-    if(!縦){ fw = Math.min(w * 0.9, h * 0.72 * カードの比); fh = fw / カードの比; }
-    else { fh = Math.min(h * 0.84, w * 0.8 * カードの比); fw = fh / カードの比; }
-    わく = { x: (w - fw) / 2, y: (h - fh) / 2, w: fw, h: fh };
+    if(!v){ fw = Math.min(w * 0.88, h * 0.7 * カードの比); fh = fw / カードの比; }
+    else { fh = Math.min(h * 0.8, w * 0.78 * カードの比); fw = fh / カードの比; }
+    return { x: (w - fw) / 2, y: (h - fh) / 2, w: fw, h: fh };
   }
   function 大きさを合わせる(){
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     重ね.width = Math.max(1, Math.round(重ね.clientWidth * dpr)); 重ね.height = Math.max(1, Math.round(重ね.clientHeight * dpr));
     重ね.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
-    わくを計算(); 描く();
+    わく = わくを計算(縦); 描く();
   }
-  // カード上の割合 → 画面の四角（縦のわくでは90度回して置く）
-  function 枠内へ(f){
-    const F = わく, [fx, fy, fw, fh] = f;
-    return 縦 ? { x: F.x + (1 - fy - fh) * F.w, y: F.y + fx * F.h, w: fh * F.w, h: fw * F.h }
-              : { x: F.x + fx * F.w, y: F.y + fy * F.h, w: fw * F.w, h: fh * F.h };
+  function 変換(){
+    const vw = video.videoWidth || 1, vh = video.videoHeight || 1, cw = 重ね.clientWidth, ch = 重ね.clientHeight;
+    const k = Math.max(cw / vw, ch / vh);
+    return { k, ox: (cw - vw * k) / 2, oy: (ch - vh * k) / 2 };
   }
+  const 映像へ = r => { const t = 変換(); return { x: (r.x - t.ox) / t.k, y: (r.y - t.oy) / t.k, w: r.w / t.k, h: r.h / t.k }; };
+  const 画面へ = r => { const t = 変換(); return { x: r.x * t.k + t.ox, y: r.y * t.k + t.oy, w: r.w * t.k, h: r.h * t.k }; };
   function 角丸(g, x, y, w, h, r){ g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
   function 描く(){
     if(!わく) return;
-    const g = 重ね.getContext("2d"), W = 重ね.clientWidth, H = 重ね.clientHeight, F = わく, r = Math.min(F.w, F.h) * 0.06;
-    const 合った = 合った回数 >= 2;
+    const g = 重ね.getContext("2d"), W = 重ね.clientWidth, H = 重ね.clientHeight;
     g.clearRect(0, 0, W, H);
-    // わくの外を暗く
-    g.fillStyle = "rgba(0,0,0,.55)"; g.beginPath(); g.rect(0, 0, W, H); 角丸(g, F.x, F.y, F.w, F.h, r); g.fill("evenodd");
-    // うっすら「仮想のカード」：黒くする所と、見えるままの期限
-    const 型 = カードの型[種類()];
-    g.save(); g.beginPath(); 角丸(g, F.x, F.y, F.w, F.h, r); g.clip();
-    g.fillStyle = 合った ? "rgba(10,14,20,.62)" : "rgba(10,14,20,.38)";
-    型.隠す.forEach(z => { const q = 枠内へ(z); g.fillRect(q.x, q.y, q.w, q.h); });
-    g.restore();
-    g.font = "800 12px system-ui, sans-serif"; g.textBaseline = "middle";
-    型.残す.forEach(z => {
-      const q = 枠内へ(z);
-      g.strokeStyle = "#5CF2A0"; g.lineWidth = 2; g.setLineDash([5, 4]); g.strokeRect(q.x, q.y, q.w, q.h); g.setLineDash([]);
-      const 文字 = z[4], tw = g.measureText(文字).width + 10;
-      g.fillStyle = "#5CF2A0"; g.fillRect(q.x, q.y - 16, tw, 16); g.fillStyle = "#0b0f14"; g.fillText(文字, q.x + 5, q.y - 8);
-    });
-    // わくの4辺：合った辺から緑になる
-    const 線 = [[F.x + r, F.y, F.x + F.w - r, F.y], [F.x + F.w, F.y + r, F.x + F.w, F.y + F.h - r], [F.x + r, F.y + F.h, F.x + F.w - r, F.y + F.h], [F.x, F.y + r, F.x, F.y + F.h - r]];
-    g.lineCap = "round";
-    g.strokeStyle = 合った ? "#5CF2A0" : "rgba(255,255,255,.9)"; g.lineWidth = 合った ? 5 : 3;
-    g.beginPath(); 角丸(g, F.x, F.y, F.w, F.h, r); g.stroke();
-    if(!合った){ g.strokeStyle = "#5CF2A0"; g.lineWidth = 5; 線.forEach((l, i) => { if(辺[i]){ g.beginPath(); g.moveTo(l[0], l[1]); g.lineTo(l[2], l[3]); g.stroke(); } }); }
-    // わくの上に、どのカードとして隠すか
-    g.font = "800 13px system-ui, sans-serif"; g.textBaseline = "bottom"; g.fillStyle = "rgba(255,255,255,.92)";
-    const 見出し = 種類() + (選んだ === "自動" ? "（自動）" : "") + "として隠します";
-    g.fillText(見出し, F.x + 2, F.y - 8);
+    // カードが見つかったら、わくはカードのふちに吸い付く（見た目と合図がずれない）
+    const F = 見つけた || わく, r = Math.min(F.w, F.h) * 0.06;
+    g.fillStyle = "rgba(0,0,0,.5)"; g.beginPath(); g.rect(0, 0, W, H); 角丸(g, F.x, F.y, F.w, F.h, r); g.fill("evenodd");
+    if(見つけた){
+      g.fillStyle = `rgba(92,242,160,${0.08 + 0.22 * Math.min(1, 続けて / 必要な回数)})`;   // 止めている間、だんだん緑に満ちる
+      g.beginPath(); 角丸(g, F.x, F.y, F.w, F.h, r); g.fill();
+      g.strokeStyle = "#5CF2A0"; g.lineWidth = 5;
+      g.beginPath(); 角丸(g, F.x, F.y, F.w, F.h, r); g.stroke();
+    } else {
+      g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 1.5;
+      g.beginPath(); 角丸(g, F.x, F.y, F.w, F.h, r); g.stroke();
+      // 四隅のかぎ
+      const L = Math.min(F.w, F.h) * 0.16;
+      g.strokeStyle = "#fff"; g.lineWidth = 5; g.lineCap = "round"; g.lineJoin = "round";
+      [[F.x, F.y, 1, 1], [F.x + F.w, F.y, -1, 1], [F.x, F.y + F.h, 1, -1], [F.x + F.w, F.y + F.h, -1, -1]].forEach(([x, y, sx, sy]) => {
+        g.beginPath(); g.moveTo(x, y + sy * L); g.lineTo(x, y + sy * r); g.arcTo(x, y, x + sx * r, y, r); g.lineTo(x + sx * L, y); g.stroke();
+      });
+    }
   }
-  function 映像へ(r){
-    const vw = video.videoWidth, vh = video.videoHeight, cw = 重ね.clientWidth, ch = 重ね.clientHeight;
-    const k = Math.max(cw / vw, ch / vh), ox = (cw - vw * k) / 2, oy = (ch - vh * k) / 2;
-    return { x: (r.x - ox) / k, y: (r.y - oy) / k, w: r.w / k, h: r.h / k };
-  }
-  // わくの辺のまわりで「カードのふち」を探す。
-  // ふちは、外（机）と内（カード）で明るさが段になって変わる所。カードに印刷された細い線は、
-  // 両側がどちらもカードの地なので段にならない。外4px・内4pxの平均の差で見る
+  // わくの辺のまわりで「カードのふち」を探す。ふちは、外（机）と内（カード）で明るさが段になって変わる所。
+  // カードに印刷された細い線は、両側がどちらもカードの地なので段にならない。外4px・内4pxの平均の差で見る
   function 辺を探す(L, W, H, 横の辺, 位置, 始, 終, 幅){
     const 厚 = 4, 最大位置 = (横の辺 ? H : W) - 厚 - 1;
     let 一番 = 0, 一番の位置 = 位置; const 値 = [];
@@ -5234,77 +5221,70 @@ const カード撮影 = (() => {
         }
         和 += (前 - 後) / 厚; n++;
       }
-      const v = Math.abs(和 / (n || 1)); 値.push(v);   // 向きのそろった段だけが大きく残る
+      const v = Math.abs(和 / (n || 1)); 値.push(v);
       if(v > 一番){ 一番 = v; 一番の位置 = p; }
     }
     値.sort((a, b) => a - b);
     const 中 = 値[値.length >> 1] || 0;
-    return { 位置: 一番の位置, 良い: 一番 >= 22 && 一番 >= 中 * 1.8 + 6 && Math.abs(一番の位置 - 位置) <= 幅 * 0.85 };
+    return { 位置: 一番の位置, 良い: 一番 >= 22 && 一番 >= 中 * 1.8 + 6 && Math.abs(一番の位置 - 位置) <= 幅 * 0.9 };
   }
-  function わくを調べる(){
-    const V = 映像へ(わく), m = 0.14 * Math.min(V.w, V.h);
+  // 案内のわく F のまわりでカードを探す。見つかれば映像上のカードの四角、なければ null
+  function カードを探す(F, v){
+    const V = 映像へ(F), m = 0.2 * Math.min(V.w, V.h);
     const E = { x: V.x - m, y: V.y - m, w: V.w + 2 * m, h: V.h + 2 * m };
     const k = 220 / Math.max(E.w, E.h), W = Math.max(8, Math.round(E.w * k)), H = Math.max(8, Math.round(E.h * k));
     解析.width = W; 解析.height = H;
     解析g.fillStyle = "#808080"; 解析g.fillRect(0, 0, W, H);
-    // 映像の外にはみ出す所は切り落として描く（はみ出した指定だと描かない端末がある）
     const sx = Math.max(0, E.x), sy = Math.max(0, E.y), ex = Math.min(video.videoWidth, E.x + E.w), ey = Math.min(video.videoHeight, E.y + E.h);
     if(ex > sx && ey > sy) 解析g.drawImage(video, sx, sy, ex - sx, ey - sy, (sx - E.x) * k, (sy - E.y) * k, (ex - sx) * k, (ey - sy) * k);
     const d = 解析g.getImageData(0, 0, W, H).data, L = new Float32Array(W * H);
     for(let i = 0; i < W * H; i++) L[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
     const a = { x0: m * k, y0: m * k, x1: (m + V.w) * k, y1: (m + V.h) * k };
-    const aw = a.x1 - a.x0, ah = a.y1 - a.y0, 幅 = 0.10 * Math.min(aw, ah);
-    const 上 = 辺を探す(L, W, H, true, a.y0, a.x0 + aw * 0.15, a.x1 - aw * 0.15, 幅);
-    const 下 = 辺を探す(L, W, H, true, a.y1, a.x0 + aw * 0.15, a.x1 - aw * 0.15, 幅);
-    const 左 = 辺を探す(L, W, H, false, a.x0, a.y0 + ah * 0.15, a.y1 - ah * 0.15, 幅);
-    const 右 = 辺を探す(L, W, H, false, a.x1, a.y0 + ah * 0.15, a.y1 - ah * 0.15, 幅);
-    const 辺 = [上.良い, 右.良い, 下.良い, 左.良い];
-    let 実際 = null;
-    if(辺.every(Boolean)){
-      const r = { x: E.x + 左.位置 / k, y: E.y + 上.位置 / k, w: (右.位置 - 左.位置) / k, h: (下.位置 - 上.位置) / k };
-      const 比 = 縦 ? r.h / r.w : r.w / r.h;
-      if(r.w > 0 && r.h > 0 && Math.abs(比 / カードの比 - 1) < 0.08) 実際 = r;
-    }
-    return { 辺, 数: 辺.filter(Boolean).length, 実際 };
+    const aw = a.x1 - a.x0, ah = a.y1 - a.y0, 幅 = 0.16 * Math.min(aw, ah);
+    const 上 = 辺を探す(L, W, H, true, a.y0, a.x0 + aw * 0.2, a.x1 - aw * 0.2, 幅);
+    const 下 = 辺を探す(L, W, H, true, a.y1, a.x0 + aw * 0.2, a.x1 - aw * 0.2, 幅);
+    const 左 = 辺を探す(L, W, H, false, a.x0, a.y0 + ah * 0.2, a.y1 - ah * 0.2, 幅);
+    const 右 = 辺を探す(L, W, H, false, a.x1, a.y0 + ah * 0.2, a.y1 - ah * 0.2, 幅);
+    if(!(上.良い && 下.良い && 左.良い && 右.良い)) return null;
+    const r = { x: E.x + 左.位置 / k, y: E.y + 上.位置 / k, w: (右.位置 - 左.位置) / k, h: (下.位置 - 上.位置) / k };
+    // 映像の端で切れているカードは「ふち」ではなく映像の端を拾っているので、合ったことにしない
+    if(r.x < 3 || r.y < 3 || r.x + r.w > video.videoWidth - 3 || r.y + r.h > video.videoHeight - 3) return null;
+    const 比 = v ? r.h / r.w : r.w / r.h;
+    return (r.w > 0 && r.h > 0 && Math.abs(比 / カードの比 - 1) < 0.08) ? r : null;
   }
-  function 状態を出す(文, ok){ 状態.textContent = 文; 状態.classList.toggle("ok", !!ok); シャッター.classList.toggle("ready", !!ok); }
+  function 状態を出す(文, ok){ 状態.textContent = 文; 状態.classList.toggle("ok", !!ok); }
   function 調べる(){
     タイマー = null;
     if(!動いている) return;
-    if(video.readyState >= 2 && video.videoWidth && わく){
-      let 結果 = わくを調べる();
-      回数++;
-      // スマホを横にしても画面が回らない（画面の向きをロックしている）人のために、縦のわくも時々試す
-      if(結果.数 <= 1 && 回数 % 5 === 0){
-        縦 = !縦; わくを計算();
-        const 別 = わくを調べる();
-        if(別.数 >= 3) 結果 = 別; else { 縦 = !縦; わくを計算(); }
-      }
-      辺 = 結果.辺;
-      const 前は合っていた = 合った回数 >= 2;
-      if(結果.実際){ 合った回数++; 最後の実際 = 結果.実際; } else { 合った回数 = 0; }
-      if(合った回数 >= 2 && 選んだ === "自動" && 回数 % 2 === 0){
-        const t = カードの種類を見分ける(カードを正位置で切り出す(video, 結果.実際 || 最後の実際, 縦, 320));
-        if(t) 見分けた = t;
-      }
-      if(合った回数 >= 2){
-        状態を出す("ぴったり！ そのまま撮ってください", true);
-        if(!前は合っていた && navigator.vibrate) try { navigator.vibrate(40); } catch(e) {}
-      } else if(結果.数 >= 2){
-        状態を出す("もう少し。カードのふちを わくの線に重ねて");
-      } else {
-        状態を出す(Date.now() - 開いた時刻 > 7000 ? "暗い色の机の上に置くと、合わせやすくなります" : "カードを わくに合わせてください");
-      }
+    if(video.readyState >= 2 && video.videoWidth){
+      // 横・縦の両方で毎回探し、カードの形（横長か縦長か）で向きを決める
+      const 横 = カードを探す(わくを計算(false), false), 縦長 = カードを探す(わくを計算(true), true);
+      let 結果 = null, 向き = 縦;
+      if(横 && 縦長) 結果 = 縦 ? 縦長 : 横;
+      else if(横){ 結果 = 横; 向き = false; }
+      else if(縦長){ 結果 = 縦長; 向き = true; }
+      if(結果){
+        if(向き !== 縦){ 縦 = 向き; わく = わくを計算(縦); 続けて = 0; }
+        const 動き = 実際 ? Math.max(Math.abs(結果.x - 実際.x), Math.abs(結果.y - 実際.y), Math.abs(結果.w - 実際.w), Math.abs(結果.h - 実際.h)) / Math.max(結果.w, 結果.h) : 1;
+        続けて = 動き < 0.025 ? 続けて + 1 : 1;
+        実際 = 結果; 見つけた = 画面へ(結果);
+      } else { 続けて = 0; 実際 = null; 見つけた = null; }
+      if(続けて >= 必要な回数){ 描く(); 撮る(); return; }
+      if(見つけた) 状態を出す("そのまま動かさないで", true);
+      else 状態を出す(Date.now() - 開いた時刻 > 8000 ? "暗い色の机に置くと合いやすいです" : "カードを わくに合わせてください");
     }
     描く();
     タイマー = setTimeout(調べる, 110);
   }
   function 解析を止める(){ 動いている = false; if(タイマー){ clearTimeout(タイマー); タイマー = null; } }
+  function 見張りを始める(){ 続けて = 0; 実際 = null; 見つけた = null; 開いた時刻 = Date.now(); 動いている = true; 調べる(); }
   function カメラを止める(){ 解析を止める(); if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } video.srcObject = null; }
-  function 閉じる(){ カメラを止める(); 画面.hidden = true; window.removeEventListener("resize", 大きさを合わせる); }
+  function 閉じる(){
+    if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
+    カメラを止める(); 確認.hidden = true; 画面.hidden = true; window.removeEventListener("resize", 大きさを合わせる);
+  }
   async function 開く(){
-    画面.hidden = false;
-    合った回数 = 0; 辺 = [false, false, false, false]; 最後の実際 = null; 開いた時刻 = Date.now(); カメラ不可 = false;
+    画面.hidden = false; 確認.hidden = true; $("cc-other").hidden = true; カメラ不可 = false;
     window.addEventListener("resize", 大きさを合わせる);
     大きさを合わせる();
     状態を出す("カメラを準備しています…");
@@ -5315,31 +5295,51 @@ const カード撮影 = (() => {
       }
       try { await video.play(); } catch(e) {}
       状態を出す("カードを わくに合わせてください");
-      動いている = true; 調べる();
+      見張りを始める();
     } catch(err){
       カメラ不可 = true;
       状態を出す("カメラを使えませんでした");
-      状態.insertAdjacentHTML("beforeend", '<div class="cc-note">設定でカメラを許可するか、左下の「ほかのカード」から写真を撮って隠せます</div>');
+      $("cc-other").hidden = false;
     }
   }
-  async function 撮る(){
-    if(カメラ不可 || !video.videoWidth) return;
-    const 範囲 = (合った回数 >= 1 && 最後の実際) ? 最後の実際 : 映像へ(わく);
-    const 画像 = カードを正位置で切り出す(video, 範囲, 縦, 2000);
-    let 種 = 選んだ === "自動" ? (カードの種類を見分ける(画像) || 見分けた) : 選んだ;
-    解析を止める();
-    画面.hidden = true;
-    await 確かめて送る(画像, 種);
+  function 塗る(画像, 種){
+    const c = document.createElement("canvas"); c.width = 画像.width; c.height = 画像.height;
+    const g = c.getContext("2d"); g.drawImage(画像, 0, 0); g.fillStyle = "#000";
+    カードの型[種].隠す.forEach(([fx, fy, fw, fh]) => g.fillRect(fx * c.width - 1, fy * c.height - 1, fw * c.width + 2, fh * c.height + 2));
+    return c;
   }
-  async function 確かめて送る(画像, 種){
+  function 撮る(){
+    if(カメラ不可 || !video.videoWidth || !確認.hidden) return;
+    解析を止める();
+    const 範囲 = 実際 || 映像へ(わく);
+    const 画像 = カードを正位置で切り出す(video, 範囲, 縦, 2000);
+    const 種 = カードの種類を見分ける(画像) || "運転免許証";
+    const 塗った = 塗る(画像, 種);
+    撮った = { 画像, 種 };
+    if(navigator.vibrate) try { navigator.vibrate(40); } catch(e) {}
+    確認画像.src = 塗った.toDataURL("image/jpeg", 0.85);
+    確認.hidden = false;
+    確認バー.classList.remove("go"); void 確認バー.offsetWidth; 確認バー.classList.add("go");
+    送信タイマー = setTimeout(() => { 送信タイマー = null; 送る(塗った); }, 2500);
+  }
+  async function 送る(塗った){
+    閉じる();
+    window.__最後は隠して送った = true;
+    await 画像を読み取って登録する(塗った);
+  }
+  // 「直す」：黒い四角を手で動かせる画面へ（向き・種類の切り替えもここ）
+  async function 直す(){
+    if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
+    let { 画像, 種 } = 撮った;
+    画面.hidden = true;
     for(;;){
-      const 型 = カードの型[種], W = 画像.width, H = 画像.height;
-      const 図形 = 型.隠す.map(([fx, fy, fw, fh]) => ({ 形: "四角", x: fx * W - 1, y: fy * H - 1, w: fw * W + 2, h: fh * H + 2 }));   // 隣の四角と1pxずつ重ねて、すき間を残さない
+      const W = 画像.width, H = 画像.height;
+      const 図形 = カードの型[種].隠す.map(([fx, fy, fw, fh]) => ({ 形: "四角", x: fx * W - 1, y: fy * H - 1, w: fw * W + 2, h: fh * H + 2 }));
       const 結果 = await 隠す画面を出す(画像, {
         図形,
-        題: "黒い所は、送る前に塗りつぶします",
-        案内: "顔・名前・住所・番号が黒くなっていて、期限の日付が見えていればOK。ずれていたら黒い所を押して動かせます",
-        注意: "<b>期限の日付は見えるままです。</b>送るのは、黒く塗った後のこの写真だけです。",
+        題: "黒い所を直す",
+        案内: "黒い四角を押して動かす・○で広げる",
+        注意: "<b>期限の日付は見えるままに。</b>顔・名前・住所・番号を黒く。",
         やめる文字: "撮り直す",
         切り替え: [
           { 文字: "↻ 上下が逆", 値: "回す" },
@@ -5348,22 +5348,19 @@ const カード撮影 = (() => {
       });
       if(結果 && 結果.やり直し === "回す"){ 画像 = 画像を半回転(画像); continue; }
       if(結果 && 結果.やり直し === "種類"){ 種 = 種 === "運転免許証" ? "マイナンバーカード" : "運転免許証"; continue; }
-      if(!結果){ 開く(); return; }          // 撮り直す
-      閉じる();
-      window.__最後は隠して送った = true;
-      await 画像を読み取って登録する(結果);
+      if(!結果){ 開く(); return; }
+      await 送る(結果);
       return;
     }
   }
   $("cc-close").addEventListener("click", 閉じる);
   $("cc-shutter").addEventListener("click", 撮る);
-  $("cc-rotate").addEventListener("click", () => { 縦 = !縦; 合った回数 = 0; わくを計算(); 描く(); });
+  $("cc-retake").addEventListener("click", () => {
+    if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
+    確認.hidden = true; 見張りを始める();
+  });
+  $("cc-fix").addEventListener("click", 直す);
   $("cc-other").addEventListener("click", () => { 閉じる(); document.getElementById("photo-input-mask").click(); });
-  document.querySelectorAll("#cc-kinds button").forEach(b => b.addEventListener("click", () => {
-    選んだ = b.dataset.kind;
-    document.querySelectorAll("#cc-kinds button").forEach(x => x.classList.toggle("on", x === b));
-    描く();
-  }));
   return { 開く, 閉じる };
 })();
 function カードを枠で撮る(){ カード撮影.開く(); }
@@ -6995,7 +6992,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-25a";
+const アプリの版 = "2026-09-25b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7044,6 +7041,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-25a"></script>
+<script src="native.js?v=2026-09-25b"></script>
 </body>
 </html>
