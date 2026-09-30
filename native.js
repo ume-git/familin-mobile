@@ -6,7 +6,7 @@
 // グローバルに代入すれば、以降の呼び出しはこちらに切り替わる。
 //
 // 差し替えるもの
-//   1. 通知      … Web Push → ネイティブの通知（FCM / APNs）。窓口 push.php はそのまま
+//   1. 通知      … Web Push → 端末の中で予約する通知（サーバー・Firebase を使わない）
 //   2. Face ID   … WebAuthn PRF → 端末の生体認証 + Keychain / Keystore
 //   3. ファイル  … navigator.share({files}) → Filesystem に書いて Share で渡す
 //   4. 届いた物  … リンク（…/#c=コード）で起動されたときにコードを拾う
@@ -19,76 +19,105 @@
   document.documentElement.classList.add("native", "native-" + 端末);
 
   // ------------------------------------------------------------
-  // 1. 通知
+  // 1. 通知（端末の中で予約する）
   // ------------------------------------------------------------
-  // 購読の形は Web Push と同じ入れ物に入れて push.php に渡す（窓口を増やさない）。
-  //   endpoint … https://fcm.googleapis.com/native/<token>  （サーバー側でこの形を見て FCM に振り分ける）
-  //   keys     … Web Push の検査を通すための印。中身は使わない
-  const 通知の入口 = "https://fcm.googleapis.com/native/";
-  function 通知トークンを購読の形に(token){
-    return { endpoint: 通知の入口 + token, keys: { p256dh: "native", auth: 端末 || "native" }, platform: 端末 };
-  }
-  function 保存済みトークン(){ try { return localStorage.getItem("torumamo_native_push_token") || ""; } catch(e){ return ""; } }
+  // ストア版は、期限の日に合わせて「端末の中」で通知を予約する。サーバーも Firebase も使わない。
+  //   ・電波がなくても、アプリを開かなくても届く（iPhone の「ホーム画面に追加」も要らない）
+  //   ・登録の中身は端末から出ない。だから通知に名前（例：パスポート）を書ける
+  // 予約は、開いたとき・登録を変えたときに毎回作り直す（index.html の 通知の予定を送り直す を差し替え）。
+  if(P.LocalNotifications){
+    const LN = P.LocalNotifications;
+    const 通知の時刻 = 9;          // 朝9時
+    const 最大件数 = 60;           // iPhone は予約が64件まで
+    let 予約の予約 = null;
 
-  if(P.PushNotifications){
-    const Push = P.PushNotifications;
-    let 登録待ち = null;
-    // 端末の通知トークンが（再）発行されたら覚えておく
-    Push.addListener("registration", (t) => {
-      try { localStorage.setItem("torumamo_native_push_token", t.value); } catch(e) {}
-      if(登録待ち){ 登録待ち.resolve(t.value); 登録待ち = null; }
-    });
-    Push.addListener("registrationError", (e) => {
-      if(登録待ち){ 登録待ち.reject(new Error("通知の登録ができませんでした。" + ((e && e.error) || ""))); 登録待ち = null; }
-    });
-    // 通知をタップして開いたときは一覧の先頭へ（登録の中身は通知に含まれていない）
-    Push.addListener("pushNotificationActionPerformed", () => { try { window.scrollTo(0, 0); } catch(e) {} });
-
-    function トークンを取る(){
-      return new Promise((resolve, reject) => {
-        登録待ち = { resolve, reject };
-        Push.register().catch(reject);
-        setTimeout(() => { if(登録待ち){ 登録待ち = null; reject(new Error("通知の登録に時間がかかりすぎました。電波の良いところでもう一度お試しください。")); } }, 20000);
+    async function 許可されているか(){
+      try { const r = await LN.checkPermissions(); return r.display === "granted"; } catch(e){ return false; }
+    }
+    function 札(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+    // 日ごとに「何の、あと何日」をまとめる（通知の日々を作る と同じ決まり：警告開始日・前日・当日）
+    function 日ごとの知らせ(){
+      const 今日 = 札(new Date());
+      const 日々 = {};
+      (項目一覧を読む() || []).forEach(i => {
+        if(!i.expire_date || !/^\d{4}-\d{2}-\d{2}$/.test(i.expire_date)) return;
+        const 既定 = 種類の既定値[i.category];
+        const 前 = 既定 && 既定.警告開始日数 ? 既定.警告開始日数 : 30;
+        const 期限 = new Date(i.expire_date + "T00:00:00");
+        [...new Set([前, 1, 0])].forEach(n => {
+          const d = new Date(期限); d.setDate(d.getDate() - n);
+          const k = 札(d);
+          if(k < 今日) return;
+          (日々[k] = 日々[k] || []).push({ 名: i.name || i.category || "登録", 残り: n });
+        });
       });
+      return 日々;
+    }
+    function 文にする(一覧){
+      一覧.sort((a, b) => a.残り - b.残り);
+      const 先 = 一覧[0];
+      const いつ = 先.残り === 0 ? "今日まで" : 先.残り === 1 ? "明日まで" : "あと" + 先.残り + "日";
+      const ほか = 一覧.length > 1 ? " ほか" + (一覧.length - 1) + "件" : "";
+      return { title: 先.残り <= 1 ? "期限が迫っています" : "期限が近づいています", body: `${先.名}（${いつ}）${ほか}` };
+    }
+    async function 予約し直す(){
+      if(localStorage.getItem("torumamo_push") !== "1" || !(await 許可されているか())) return;
+      // 鍵がかかっている間は登録が読めない（空に見える）。そのまま作り直すと予約が全部消えるので、何もしない
+      if(typeof 現在のDEK === "undefined" || !現在のDEK) return;
+      try {
+        const 今 = await LN.getPending();
+        if(今 && 今.notifications && 今.notifications.length) await LN.cancel({ notifications: 今.notifications.map(n => ({ id: n.id })) });
+      } catch(e) {}
+      const 日々 = 日ごとの知らせ();
+      const 今 = Date.now();
+      const 予約 = Object.keys(日々).sort().map(k => {
+        const [y, m, d] = k.split("-").map(Number);
+        const at = new Date(y, m - 1, d, 通知の時刻, 0, 0);
+        return { k, at };
+      }).filter(x => x.at.getTime() > 今 + 60000).slice(0, 最大件数).map((x, 番) => {
+        const 文 = 文にする(日々[x.k]);
+        return { id: 1000 + 番, title: 文.title, body: 文.body, schedule: { at: x.at, allowWhileIdle: true } };
+      });
+      if(予約.length) await LN.schedule({ notifications: 予約 });
     }
 
     window.通知が使えそうか = function(){ return true; };
     window.今の購読 = async function(){
-      const t = 保存済みトークン();
-      if(!t) return null;
-      const sub = 通知トークンを購読の形に(t);
-      // Web Push の購読オブジェクトと同じ顔（toJSON / endpoint / unsubscribe）にしておく
-      return { endpoint: sub.endpoint, toJSON: () => sub, unsubscribe: async () => { try { localStorage.removeItem("torumamo_native_push_token"); } catch(e) {} return true; } };
+      return (await 許可されているか()) && localStorage.getItem("torumamo_push") === "1"
+        ? { endpoint: "local", toJSON: () => ({ endpoint: "local" }), unsubscribe: async () => true } : null;
+    };
+    window.通知の予定を送り直す = function(少し待つ){
+      clearTimeout(予約の予約);
+      予約の予約 = setTimeout(() => { 予約し直す().catch(() => {}); }, 少し待つ ? 3000 : 500);
     };
     window.通知を登録する = async function(){
-      let 状態 = await Push.checkPermissions();
-      if(状態.receive === "prompt" || 状態.receive === "prompt-with-rationale") 状態 = await Push.requestPermissions();
-      if(状態.receive !== "granted") throw new Error(端末 === "ios"
+      let r = await LN.checkPermissions();
+      if(r.display !== "granted") r = await LN.requestPermissions();
+      if(r.display !== "granted") throw new Error(端末 === "ios"
         ? "通知が許可されませんでした。「設定 → トルマモ → 通知」で許可できます。"
         : "通知が許可されませんでした。端末の「設定 → アプリ → トルマモ → 通知」で許可できます。");
-      const token = 保存済みトークン() || await トークンを取る();
-      const sub = 通知トークンを購読の形に(token);
-      await 通知APIを呼ぶ({ action: "subscribe", sub, days: 通知の日々を作る() });
       localStorage.setItem("torumamo_push", "1");
-      await 通知APIを呼ぶ({ action: "test", sub });
+      許可の状態 = "granted";
+      await 予約し直す();
+      // 動いていることが分かるように、その場で1通（数秒後）
+      await LN.schedule({ notifications: [{ id: 999, title: "トルマモ", body: "通知はこのように届きます。期限が近づいたら、朝9時にお知らせします。", schedule: { at: new Date(Date.now() + 3000) } }] });
     };
     window.通知を解除する = async function(){
-      const sub = await window.今の購読();
-      if(sub){
-        try { await 通知APIを呼ぶ({ action: "unsubscribe", endpoint: sub.endpoint }); } catch(e) {}
-        try { await sub.unsubscribe(); } catch(e) {}
-      }
-      try { await Push.unregister(); } catch(e) {}
+      try {
+        const 今 = await LN.getPending();
+        if(今 && 今.notifications && 今.notifications.length) await LN.cancel({ notifications: 今.notifications.map(n => ({ id: n.id })) });
+      } catch(e) {}
       localStorage.removeItem("torumamo_push");
     };
-    // 設定画面のスイッチは Notification.permission を見るので、ネイティブの状態を写しておく
+    // 通知をタップして開いたときは一覧の先頭へ
+    LN.addListener("localNotificationActionPerformed", () => { try { window.scrollTo(0, 0); } catch(e) {} });
+    // 設定画面のスイッチは Notification.permission を見るので、端末の状態を写しておく
     window.Notification = window.Notification || {};
-    (async () => {
-      try {
-        const 状態 = await Push.checkPermissions();
-        Object.defineProperty(window.Notification, "permission", { configurable: true, get: () => 状態.receive === "granted" ? "granted" : (状態.receive === "denied" ? "denied" : "default") });
-      } catch(e) {}
-    })();
+    let 許可の状態 = "default";
+    Object.defineProperty(window.Notification, "permission", { configurable: true, get: () => 許可の状態 });
+    const 状態を写す = async () => { try { const r = await LN.checkPermissions(); 許可の状態 = r.display === "granted" ? "granted" : r.display === "denied" ? "denied" : "default"; } catch(e) {} };
+    状態を写す();
+    if(P.App) P.App.addListener("resume", () => { 状態を写す(); window.通知の予定を送り直す(); });
   }
 
   // ------------------------------------------------------------
