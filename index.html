@@ -2066,7 +2066,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-25e"></script>
+<script src="crypto.js?v=2026-09-30a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4625,7 +4625,14 @@ function カードの種類を正す(結果, 見分けた種類){
   if(!種 && /個人番号カード|マイナンバーカード/.test(文)) 種 = "マイナンバーカード";
   if(!種) return 結果;
   const 直した = Object.assign({}, 結果, { kind: "single", category: 種 });
-  if(種 === "マイナンバーカード") 直した.title = "マイナンバーカード";
+  if(種 === "マイナンバーカード"){
+    直した.title = "マイナンバーカード";
+    // 電子証明書（マイナ保険証・コンビニでの証明書に使う）は、カードとは別の期限（5年）。
+    // カードの「電子証明書の有効期限」欄は隠さずに送っているので、1回撮れば2つとも登録できる。
+    // 過ぎた日付は登録しない（更新後の新しい日付は追記欄にあり、そこは黒く塗っているため）
+    const 証明書 = 印字から日付を作る(結果.cert_due_date_text) || 結果.cert_due_date;
+    if(証明書 && /^\d{4}-\d{2}-\d{2}$/.test(String(証明書)) && 証明書 >= 日付の札() && 証明書 !== 結果.due_date) 直した.電子証明書の期限 = 証明書;
+  }
   else if(!/免許/.test(結果.title || "")) 直した.title = "運転免許証";
   return 直した;
 }
@@ -4826,8 +4833,10 @@ function 読み取り結果を見せる(結果){
     const 時刻 = 結果.due_time ? "　" + 結果.due_time + "まで" : "";
     const 印字 = 結果.due_date_text
       ? '<div style="font-size:12px;color:var(--soft);margin-top:2px">印字：' + エスケープ(結果.due_date_text) + "</div>" : "";
+    const 証明書 = 結果.電子証明書の期限
+      ? '<div style="font-size:13px;font-weight:700;margin-top:8px">電子証明書：' + エスケープ(見やすい日付(結果.電子証明書の期限)) + '<span style="font-weight:600;color:var(--soft)">（これも登録します）</span></div>' : "";
     document.getElementById("read-when").innerHTML =
-      '<span class="big">' + エスケープ(見やすい日付(結果.due_date)) + "</span>" + エスケープ(時刻) + 印字;
+      '<span class="big">' + エスケープ(見やすい日付(結果.due_date)) + "</span>" + エスケープ(時刻) + 印字 + 証明書;
     出し入れ("read-row-when", true);
     出し入れ("read-past", 結果.due_date < 日付の札());
     出し入れ("read-nodate", false);
@@ -5884,6 +5893,16 @@ async function 保存ボタンを押した(){
     if(やること && やること.length) 新規.読み取りやること = やること;
     items.push(新規);
     新しい項目 = 新規;
+    const 証明書 = 読み取り && category === "マイナンバーカード" ? 読み取り.電子証明書の期限 : "";
+    if(証明書 && !items.some(i => i.category === "マイナンバーカード" && i.expire_date === 証明書)){
+      items.push({ id: "it_" + Date.now() + "_" + Math.random().toString(36).slice(2,7) + "c",
+        name: "マイナンバーカードの電子証明書", category: "マイナンバーカード", expire_date: 証明書,
+        memo: "マイナ保険証・コンビニでの証明書に使います。カードの期限とは別です。",
+        cost: null, sub_type: "", is_senior: false, person_id,
+        読み取り要約: "電子証明書（マイナ保険証などに使う）の有効期限です",
+        読み取りやること: ["期限の2〜3か月前に届く通知書を見て、市区町村の窓口で更新する（無料）"] });
+      window.__電子証明書も登録した = true;
+    }
   }
   読み取った内容 = null;
   await 項目一覧を保存する(items);
@@ -5894,6 +5913,7 @@ async function 保存ボタンを押した(){
   if(そのまま登録中) return;
   if(id) お知らせ("直せました！");
   else 登録後の札を出す(新しい項目);   // 「一覧で確認できます」の札。どこに入ったか分からない、を防ぐ
+  if(!id && window.__電子証明書も登録した){ window.__電子証明書も登録した = false; お知らせ("電子証明書の期限も、別に登録しました"); }
 }
 
 // ============================================================
@@ -7111,7 +7131,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-25e";
+const アプリの版 = "2026-09-30a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7160,6 +7180,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-25e"></script>
+<script src="native.js?v=2026-09-30a"></script>
 </body>
 </html>
