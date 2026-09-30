@@ -313,7 +313,7 @@
   .panel .x-close{position:fixed;z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
   .panel-top{margin:0 0 18px;padding-top:34px}
   .panel-top h2{margin:0}
-  .cc-status{position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:2;white-space:nowrap;
+  .cc-status{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;position:absolute;left:50%;transform:translateX(-50%);bottom:18px;z-index:2;white-space:nowrap;
     font-size:16px;font-weight:800;padding:9px 16px;border-radius:999px;background:rgba(0,0,0,.55);transition:background .2s,color .2s}
   .cc-status.ok{background:#5CF2A0;color:#0b0f14}
   .cc-foot{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:14px}
@@ -2069,7 +2069,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30g"></script>
+<script src="crypto.js?v=2026-09-30i"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5281,13 +5281,16 @@ const カード撮影 = (() => {
   let タイマー = null, 送信タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false, 撮った = null;
   let モード = "カード";      // "カード"＝わくに合わせて自動で隠す／"ふつう"＝ふつうに撮る（同じ画面・同じ×）
   let 向き待ち = [];
+  // 確認用の表示（カメラ画面の下のひとことを長押しで出し入れ）。検出がうまくいかないときに、何が見えているかを確かめる
+  let 確認表示 = false, 確認を取る = false, 確認の中身 = null;
+  const 確認用 = document.createElement("canvas");
   let 見失い = 0, 待った回数 = 0;
 
   // 案内のわく。横向き（カードを横に置く）と縦向き（スマホを横にして撮った）の2通り
-  function わくを計算(v, 率 = 0.66){
+  function わくを計算(v, 率 = 0.8){
     const w = 重ね.clientWidth, h = 重ね.clientHeight;
     let fw, fh;
-    // 案内のわくは小さめ（画面幅の2/3）。近づけすぎると iPhone はピントが合わず、ふちがぼやけて見つからない
+    // 案内のわくは画面幅の8割（2/3 では小さくて合わせづらかった）
     if(!v){ fw = Math.min(w * 率, h * 率 * 0.8 * カードの比); fh = fw / カードの比; }
     else { fh = Math.min(h * 0.8, w * 0.78 * カードの比); fw = fh / カードの比; }
     return { x: (w - fw) / 2, y: (h - fh) / 2, w: fw, h: fh };
@@ -5306,11 +5309,32 @@ const カード撮影 = (() => {
   const 映像へ = r => { const t = 変換(); return { x: (r.x - t.ox) / t.k, y: (r.y - t.oy) / t.k, w: r.w / t.k, h: r.h / t.k }; };
   const 画面へ = r => { const t = 変換(); return { x: r.x * t.k + t.ox, y: r.y * t.k + t.oy, w: r.w * t.k, h: r.h * t.k }; };
   function 角丸(g, x, y, w, h, r){ g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+  function 確認を描く(g, W){
+    if(!確認表示 || !確認の中身) return;
+    const c = 確認の中身, 幅 = Math.min(170, W * 0.45), k = 幅 / c.W, 高さ = c.H * k, x0 = W - 幅 - 8, y0 = 60;
+    g.save();
+    g.fillStyle = "#000"; g.fillRect(x0 - 2, y0 - 2, 幅 + 4, 高さ + 40);
+    g.drawImage(確認用, x0, y0, 幅, 高さ);
+    const [上, 下, 左, 右] = c.辺;
+    g.lineWidth = 2;
+    [[上, true], [下, true], [左, false], [右, false]].forEach(([e, 横]) => {
+      g.strokeStyle = e.良い ? "#5CF2A0" : "#ff5e7e"; g.beginPath();
+      if(横){ g.moveTo(x0, y0 + e.位置 * k); g.lineTo(x0 + 幅, y0 + e.位置 * k); } else { g.moveTo(x0 + e.位置 * k, y0); g.lineTo(x0 + e.位置 * k, y0 + 高さ); }
+      g.stroke();
+    });
+    g.strokeStyle = "rgba(255,255,255,.6)"; g.setLineDash([3, 3]); g.strokeRect(x0 + c.a.x0 * k, y0 + c.a.y0 * k, (c.a.x1 - c.a.x0) * k, (c.a.y1 - c.a.y0) * k); g.setLineDash([]);
+    g.fillStyle = "#fff"; g.font = "600 10px system-ui, sans-serif"; g.textBaseline = "top";
+    const 字 = e => Math.round(e.強さ) + (e.良い ? "○" : "×");
+    g.fillText(`上${字(上)} 下${字(下)} 左${字(左)} 右${字(右)}`, x0 + 2, y0 + 高さ + 4);
+    g.fillText(`映像 ${video.videoWidth}×${video.videoHeight}  画面 ${Math.round(重ね.clientWidth)}×${Math.round(重ね.clientHeight)}`, x0 + 2, y0 + 高さ + 18);
+    g.restore();
+  }
   function 描く(){
     if(!わく) return;
     const g = 重ね.getContext("2d"), W = 重ね.clientWidth, H = 重ね.clientHeight;
     g.clearRect(0, 0, W, H);
     if(モード === "ふつう") return;      // ふつうに撮るときは、わくを出さない
+    確認を描く(g, W);
     // カードが見つかったら、わくはカードのふちに吸い付く（見た目と合図がずれない）
     const F = 見つけた || わく, r = Math.min(F.w, F.h) * 0.06;
     g.fillStyle = "rgba(0,0,0,.5)"; g.beginPath(); g.rect(0, 0, W, H); 角丸(g, F.x, F.y, F.w, F.h, r); g.fill("evenodd");
@@ -5381,11 +5405,11 @@ const カード撮影 = (() => {
     const 左 = 辺を探す(L, W, H, false, a.x0, a.y0 + ah * 0.2, a.y1 - ah * 0.2, 幅, true);
     const 右 = 辺を探す(L, W, H, false, a.x1, a.y0 + ah * 0.2, a.y1 - ah * 0.2, 幅, false);
     const 良い辺 = [上, 下, 左, 右].filter(e => e.良い);
+    if(確認表示 && 確認を取る){
+      確認用.width = W; 確認用.height = H; 確認用.getContext("2d").drawImage(解析, 0, 0);
+      確認の中身 = { a, 辺: [上, 下, 左, 右], W, H };
+    }
     if(良い辺.length < 3) return null;
-    // 本物のふちなら、どの辺も外側は同じ机の色。（内側はカードの模様や顔写真で辺ごとに違うので見ない）
-    // カードの中に印刷された線を拾ったときは、外側がカードの模様になるので、ここで落ちる
-    const 外側 = 良い辺.map(e => e.外);
-    if(Math.max(...外側) - Math.min(...外側) > 40) return null;
 
     // 4辺のうち3辺が取れれば、残りの1辺はカードの縦横比（85.6:54）から決める（影や机の色で1辺だけ見えにくいことが多い）
     let t = 上.位置, b2 = 下.位置, l = 左.位置, rr = 右.位置;
@@ -5409,8 +5433,10 @@ const カード撮影 = (() => {
       if(縦){ 縦 = false; わく = わくを計算(false); }
       // カードの写る大きさは人によって違うので、小・中・大の3つの大きさで探す（わくはカードに吸い付くので、見た目はずれない）
       let 結果 = null;
-      for(const 率 of [0.66, 0.52, 0.82]){
+      for(const 率 of [0.8, 0.64, 0.92]){
+        確認を取る = 率 === 0.8;
         const r = カードを探す(わくを計算(false, 率), false);
+        確認を取る = false;
         if(!r) continue;
         // 前に見つけたカードに近いものを優先（大きさが行ったり来たりしない）
         if(!結果 || (実際 && Math.abs(r.w - 実際.w) < Math.abs(結果.w - 実際.w))) 結果 = r;
@@ -5555,6 +5581,13 @@ const カード撮影 = (() => {
     }
   }
   $("cc-close").addEventListener("click", 閉じる);
+  (() => {
+    let 押した時計 = null;
+    const 始 = () => { 押した時計 = setTimeout(() => { 確認表示 = !確認表示; 描く(); if(navigator.vibrate) try { navigator.vibrate(20); } catch(e) {} }, 800); };
+    const 終 = () => { clearTimeout(押した時計); };
+    状態.addEventListener("touchstart", 始, { passive: true }); 状態.addEventListener("touchend", 終); 状態.addEventListener("touchcancel", 終);
+    状態.addEventListener("mousedown", 始); 状態.addEventListener("mouseup", 終); 状態.addEventListener("mouseleave", 終);
+  })();
   $("cc-shutter").addEventListener("click", 撮る);
   $("cc-retake").addEventListener("click", () => {
     if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
@@ -7209,7 +7242,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30g";
+const アプリの版 = "2026-09-30i";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7258,6 +7291,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30g"></script>
+<script src="native.js?v=2026-09-30i"></script>
 </body>
 </html>
