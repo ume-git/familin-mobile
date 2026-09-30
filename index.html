@@ -2069,7 +2069,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30e"></script>
+<script src="crypto.js?v=2026-09-30f"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5240,7 +5240,7 @@ function まとまりのばらつき(g, W, H, 枠){
   return Math.sqrt(平均.reduce((a, v) => a + (v - m) ** 2, 0) / 平均.length);
 }
 // 顔写真が右にあれば運転免許証、左にあればマイナンバーカード
-function カードの種類を見分ける(画像){
+function カードの種類を見分ける(画像, 弱くても){
   const W = 160, H = Math.round(160 / カードの比);
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d", { willReadFrequently: true });
@@ -5249,6 +5249,7 @@ function カードの種類を見分ける(画像){
   const 左 = まとまりのばらつき(g, W, H, カードの型["マイナンバーカード"].写真);
   if(右 - 左 > 8 && 右 > 左 * 1.35) return "運転免許証";
   if(左 - 右 > 8 && 左 > 右 * 1.35) return "マイナンバーカード";
+  if(弱くても) return 左 > 右 ? "マイナンバーカード" : "運転免許証";
   return null;
 }
 // 映像の一部を切り出して、カードが正位置（横長）になるように描く。
@@ -5280,6 +5281,7 @@ const カード撮影 = (() => {
   let タイマー = null, 送信タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false, 撮った = null;
   let モード = "カード";      // "カード"＝わくに合わせて自動で隠す／"ふつう"＝ふつうに撮る（同じ画面・同じ×）
   let 向き待ち = [];
+  let 見失い = 0, 待った回数 = 0;
 
   // 案内のわく。横向き（カードを横に置く）と縦向き（スマホを横にして撮った）の2通り
   function わくを計算(v){
@@ -5407,15 +5409,21 @@ const カード撮影 = (() => {
       const 結果 = カードを探す(わく, false);
       if(結果){
         const 動き = 実際 ? Math.max(Math.abs(結果.x - 実際.x), Math.abs(結果.y - 実際.y), Math.abs(結果.w - 実際.w), Math.abs(結果.h - 実際.h)) / Math.max(結果.w, 結果.h) : 1;
-        続けて = 動き < 0.025 ? 続けて + 1 : 1;
-        実際 = 結果; 見つけた = 画面へ(結果);
-      } else { 続けて = 0; 実際 = null; 見つけた = null; }
+        // 手持ちの小さな揺れ（4%まで）は「止まっている」とみなす
+        続けて = 動き < 0.04 ? 続けて + 1 : Math.max(1, Math.floor(続けて / 2));
+        実際 = 結果; 見つけた = 画面へ(結果); 見失い = 0;
+      } else {
+        // 1〜2回見失っても数え直さない（光の加減で一瞬ふちが見えなくなる）
+        見失い++;
+        if(見失い >= 3){ 続けて = 0; 待った回数 = 0; 実際 = null; 見つけた = null; } else 続けて = Math.max(0, 続けて - 1);
+      }
       if(続けて >= 必要な回数){
         // 机の上の四角い物をカードと見間違えて撮らないように、顔写真の位置（免許証は右・マイナは左）まで確かめる
-        const 種 = カードの種類を見分ける(カードを正位置で切り出す(video, 実際, false, 320));
-        if(種){ 描く(); 撮る(); return; }
-        続けて = 必要な回数;   // 緑のまま待つ
-        状態を出す("シャッターを押してください", true);
+        待った回数++;
+        const 種 = カードの種類を見分ける(カードを正位置で切り出す(video, 実際, false, 320), 待った回数 >= 8);
+        if(種){ 待った回数 = 0; 描く(); 撮る(); return; }
+        続けて = 必要な回数;   // 緑のまま、あと少し待つ（約1秒で決め打ちして撮る）
+        状態を出す("そのまま動かさないで", true);
       }
       else if(見つけた) 状態を出す("そのまま動かさないで", true);
       else 状態を出す(Date.now() - 開いた時刻 > 8000 ? "暗い色の机に置くと合いやすいです" : "カードを わくに合わせてください");
@@ -5424,7 +5432,7 @@ const カード撮影 = (() => {
     タイマー = setTimeout(調べる, 110);
   }
   function 解析を止める(){ 動いている = false; if(タイマー){ clearTimeout(タイマー); タイマー = null; } }
-  function 見張りを始める(){ 続けて = 0; 実際 = null; 見つけた = null; 開いた時刻 = Date.now(); 動いている = true; 調べる(); }
+  function 見張りを始める(){ 続けて = 0; 見失い = 0; 待った回数 = 0; 実際 = null; 見つけた = null; 開いた時刻 = Date.now(); 動いている = true; 調べる(); }
   function カメラを止める(){ 解析を止める(); if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } video.srcObject = null; }
   // スマホを回したとき：向きの判断をいったん白紙にし、大きさを測り直す（iPhoneは回した直後の大きさが遅れて届く）。
   // 映像もつなぎ直す（回した後、映像の半分が黒いまま止まることがあった）
@@ -5494,7 +5502,7 @@ const カード撮影 = (() => {
     解析を止める();
     const 範囲 = 実際 || 映像へ(わく);
     const 画像 = カードを正位置で切り出す(video, 範囲, 縦, 2000);
-    const 種 = カードの種類を見分ける(画像) || "運転免許証";
+    const 種 = カードの種類を見分ける(画像) || カードの種類を見分ける(画像, true);
     const 塗った = 塗る(画像, 種);
     撮った = { 画像, 種 };
     if(navigator.vibrate) try { navigator.vibrate(40); } catch(e) {}
@@ -7189,7 +7197,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30e";
+const アプリの版 = "2026-09-30f";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7238,6 +7246,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30e"></script>
+<script src="native.js?v=2026-09-30f"></script>
 </body>
 </html>
