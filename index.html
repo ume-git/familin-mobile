@@ -2066,7 +2066,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30a"></script>
+<script src="crypto.js?v=2026-09-30b"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5229,10 +5229,8 @@ const カード撮影 = (() => {
   const 必要な回数 = 14;      // 約1.5秒、カードが止まっていたら撮る（0.7秒では「合った」と思った瞬間に撮れてしまった）
   let stream = null, 縦 = false, わく = null, 見つけた = null, 実際 = null, 続けて = 0;
   let タイマー = null, 送信タイマー = null, 開いた時刻 = 0, 動いている = false, カメラ不可 = false, 撮った = null;
-  let 別向きの回数 = 0;      // もう一方の向きでだけカードが見つかった回数
   let モード = "カード";      // "カード"＝わくに合わせて自動で隠す／"ふつう"＝ふつうに撮る（同じ画面・同じ×）
   let 向き待ち = [];
-  let 見つからない回数 = 0;
 
   // 案内のわく。横向き（カードを横に置く）と縦向き（スマホを横にして撮った）の2通り
   function わくを計算(v){
@@ -5331,39 +5329,22 @@ const カード撮影 = (() => {
     タイマー = null;
     if(!動いている) return;
     if(video.readyState >= 2 && video.videoWidth){
-      // 横・縦の両方で毎回探し、カードの形（横長か縦長か）で向きを決める
-      // 画面が横（スマホを横にして画面も回った）なら、カードは横長に写る。縦のわくは画面が縦のときだけ
-      const 画面が縦 = 重ね.clientHeight >= 重ね.clientWidth;
-      if(!画面が縦 && 縦){ 縦 = false; わく = わくを計算(false); }
-      const 横 = カードを探す(わくを計算(false), false), 縦長 = 画面が縦 ? カードを探す(わくを計算(true), true) : null;
-      // 縦に置いたカードの中の帯などを「横長のカード」と見間違えることがある。
-      // 両方見つかったときは大きい方（外側＝本物のふち）を選ぶ
-      const 面積 = r => r ? r.w * r.h : 0;
-      let 候補 = null, 向き = 縦;
-      if(横 && 縦長){ 向き = 面積(縦長) > 面積(横) * 1.15 ? true : 面積(横) > 面積(縦長) * 1.15 ? false : 縦; }
-      else if(横) 向き = false;
-      else if(縦長) 向き = true;
-      候補 = 向き ? 縦長 : 横;
-      // 向きを変えるのは、別の向きで続けて見つかったときだけ（一瞬の見間違いで切り替わらない）
-      let 結果 = null;
-      if(候補 && 向き !== 縦){
-        別向きの回数++;
-        if(別向きの回数 >= 4){ 縦 = 向き; わく = わくを計算(縦); 続けて = 0; 別向きの回数 = 0; 結果 = 候補; }
-        else 結果 = (縦 ? 縦長 : 横);
-      } else { 別向きの回数 = 0; 結果 = 候補; }
+      // わくはいつも横長のカード。縦・横を自動で切り替えると、撮る途中で向きが変わって切り抜きがずれた
+      if(縦){ 縦 = false; わく = わくを計算(false); }
+      const 結果 = カードを探す(わく, false);
       if(結果){
         const 動き = 実際 ? Math.max(Math.abs(結果.x - 実際.x), Math.abs(結果.y - 実際.y), Math.abs(結果.w - 実際.w), Math.abs(結果.h - 実際.h)) / Math.max(結果.w, 結果.h) : 1;
         続けて = 動き < 0.025 ? 続けて + 1 : 1;
         実際 = 結果; 見つけた = 画面へ(結果);
-      } else {
-        続けて = 0; 実際 = null; 見つけた = null;
-        // 縦のわくのまま2秒ほど何も見つからなければ、ふだんの横のわくに戻す（机の上の物を見間違えて縦になったままにしない）
-        見つからない回数++;
-        if(縦 && 見つからない回数 >= 18){ 縦 = false; わく = わくを計算(false); 見つからない回数 = 0; }
+      } else { 続けて = 0; 実際 = null; 見つけた = null; }
+      if(続けて >= 必要な回数){
+        // 机の上の四角い物をカードと見間違えて撮らないように、顔写真の位置（免許証は右・マイナは左）まで確かめる
+        const 種 = カードの種類を見分ける(カードを正位置で切り出す(video, 実際, false, 320));
+        if(種){ 描く(); 撮る(); return; }
+        続けて = 必要な回数;   // 緑のまま待つ
+        状態を出す("シャッターを押してください", true);
       }
-      if(結果) 見つからない回数 = 0;
-      if(続けて >= 必要な回数){ 描く(); 撮る(); return; }
-      if(見つけた) 状態を出す("そのまま動かさないで", true);
+      else if(見つけた) 状態を出す("そのまま動かさないで", true);
       else 状態を出す(Date.now() - 開いた時刻 > 8000 ? "暗い色の机に置くと合いやすいです" : "カードを わくに合わせてください");
     }
     描く();
@@ -5374,8 +5355,12 @@ const カード撮影 = (() => {
   function カメラを止める(){ 解析を止める(); if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } video.srcObject = null; }
   // スマホを回したとき：向きの判断をいったん白紙にし、大きさを測り直す（iPhoneは回した直後の大きさが遅れて届く）。
   // 映像もつなぎ直す（回した後、映像の半分が黒いまま止まることがあった）
+  let 前の形 = "";
   function 向きが変わった(){
-    縦 = false; 別向きの回数 = 0; 続けて = 0; 実際 = null; 見つけた = null;
+    const 形 = window.innerWidth > window.innerHeight ? "横" : "縦";
+    if(形 === 前の形) return;
+    前の形 = 形;
+    縦 = false; 続けて = 0; 実際 = null; 見つけた = null;
     向き待ち.forEach(clearTimeout);
     向き待ち = [0, 250, 700].map(ms => setTimeout(() => {
       if(画面.hidden) return;
@@ -5393,7 +5378,7 @@ const カード撮影 = (() => {
     モード = 種類;
     画面.hidden = false; 確認.hidden = true; $("cc-other").hidden = true; カメラ不可 = false;
     画面.classList.toggle("plain", モード === "ふつう");
-    縦 = false; 別向きの回数 = 0;
+    縦 = false; 前の形 = window.innerWidth > window.innerHeight ? "横" : "縦";
     window.addEventListener("resize", 向きが変わった); window.addEventListener("orientationchange", 向きが変わった);
     大きさを合わせる();
     状態を出す("カメラを準備しています…");
@@ -7131,7 +7116,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30a";
+const アプリの版 = "2026-09-30b";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7180,6 +7165,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30a"></script>
+<script src="native.js?v=2026-09-30b"></script>
 </body>
 </html>
