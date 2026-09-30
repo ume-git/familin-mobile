@@ -2069,7 +2069,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30i"></script>
+<script src="crypto.js?v=2026-10-01a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4883,7 +4883,7 @@ function 読み取り結果を見せる(結果){
     const 印字 = 結果.due_date_text
       ? '<div style="font-size:12px;color:var(--soft);margin-top:2px">印字：' + エスケープ(結果.due_date_text) + "</div>" : "";
     const 証明書 = 結果.電子証明書の期限
-      ? '<div style="font-size:13px;font-weight:700;margin-top:8px">電子証明書：' + エスケープ(見やすい日付(結果.電子証明書の期限)) + '<span style="font-weight:600;color:var(--soft)">（これも登録します）</span></div>' : "";
+      ? '<div style="font-size:13.5px;font-weight:700;margin-top:8px">電子証明書：' + エスケープ(見やすい日付(結果.電子証明書の期限)) + '</div><div style="font-size:12px;font-weight:600;color:var(--soft)">こちらも一緒に登録します</div>' : "";
     document.getElementById("read-when").innerHTML =
       '<span class="big">' + エスケープ(見やすい日付(結果.due_date)) + "</span>" + エスケープ(時刻) + 印字 + 証明書;
     出し入れ("read-row-when", true);
@@ -7242,7 +7242,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30i";
+const アプリの版 = "2026-10-01a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7291,6 +7291,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30i"></script>
+<script src="native.js?v=2026-10-01a"></script>
 </body>
 </html>
