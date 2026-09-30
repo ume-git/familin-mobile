@@ -2066,7 +2066,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30c"></script>
+<script src="crypto.js?v=2026-09-30d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4636,6 +4636,21 @@ function カードの種類を正す(結果, 見分けた種類){
   else if(!/免許/.test(結果.title || "")) 直した.title = "運転免許証";
   return 直した;
 }
+// カードの「期限の所」（黒く塗っていない所）だけを切り出して大きくする。
+// 黒塗り後の画像から切るので、顔・名前・番号は入らない。
+function 期限の所を大きくする(画像, 種類){
+  const 型 = カードの型[種類 === "運転免許証" ? "運転免許証" : "マイナンバーカード"];
+  if(!型) return null;
+  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+  型.残す.forEach(([x, y, w, h]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x + w); y1 = Math.max(y1, y + h); });
+  x0 = Math.max(0, x0 - 0.04); y0 = Math.max(0, y0 - 0.04); x1 = Math.min(1, x1 + 0.04); y1 = Math.min(1, y1 + 0.04);
+  const sx = x0 * 画像.width, sy = y0 * 画像.height, sw = (x1 - x0) * 画像.width, sh = (y1 - y0) * 画像.height;
+  const 倍 = Math.min(3, 1600 / sw);
+  const c = document.createElement("canvas"); c.width = Math.round(sw * 倍); c.height = Math.round(sh * 倍);
+  const g = c.getContext("2d"); g.imageSmoothingQuality = "high";
+  g.drawImage(画像, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
 async function 画像を読み取って登録する(元画像, ヒント = {}){
   const ボタン一覧 = [document.getElementById("btn-photo-capture"), document.getElementById("btn-photo-album"), document.getElementById("btn-photo-mask")].filter(Boolean);
   ボタン一覧.forEach(b => b.disabled = true);
@@ -4652,6 +4667,26 @@ async function 画像を読み取って登録する(元画像, ヒント = {}){
     let 結果 = await res.json();
     if(結果.error) throw new Error(読み取り失敗の文);
     結果 = カードの種類を正す(結果, ヒント.種類);
+    // わくで撮ったカードなのに期限が読めなかったとき：期限の所だけを大きくして、もう一度だけ読む
+    if(ヒント.種類 && !結果.due_date){
+      const 拡大 = 期限の所を大きくする(元画像, ヒント.種類);
+      if(拡大){
+        読み取り中を見せる(true, "期限の所を大きくして、もう一度読んでいます…");
+        try {
+          const r2 = await fetch(API_BASE + "/analyze.php", {
+            method: "POST", headers: AIの見出し,
+            body: JSON.stringify({ image: 画像をbase64にする(拡大, 0, 1600), mediaType: "image/jpeg" }),
+          });
+          if(r2.ok){
+            const j = await r2.json();
+            if(!j.error && (j.due_date || j.due_date_text)){
+              ["due_date", "due_date_text", "cert_due_date", "cert_due_date_text", "license_color"].forEach(k => { if(j[k] && !結果[k]) 結果[k] = j[k]; });
+              結果 = カードの種類を正す(結果, ヒント.種類);
+            }
+          }
+        } catch(e) {}
+      }
+    }
 
     if(結果.kind === "multi"){
       // 予定表は文字が小さい。AIに渡る画像は短い辺が768pxに縮められるので、月間カレンダーの
@@ -5161,7 +5196,7 @@ const カードの型 = {
     隠す: [
       [0, 0, 1, 0.165],          // 氏名・生年月日
       [0, 0.165, 1, 0.125],      // 住所
-      [0, 0.29, 0.675, 0.072],   // 交付日・照会番号
+      [0, 0.29, 0.675, 0.06],    // 交付日・照会番号（下の「まで有効」の帯にかからないよう、少し手前で止める）
       [0.68, 0.29, 0.32, 0.60],  // 顔写真
       [0, 0.70, 0.615, 0.09],    // 免許証番号
       [0, 0.79, 0.39, 0.21],     // 取得年月日（二・小・原／他／二種）
@@ -5175,7 +5210,7 @@ const カードの型 = {
       [0, 0.155, 0.84, 0.15],     // 住所
       [0.82, 0.245, 0.18, 0.075], // 性別
       [0, 0.30, 0.305, 0.58],     // 顔写真
-      [0.305, 0.305, 0.32, 0.105],// 生年月日
+      [0.305, 0.305, 0.295, 0.105],// 生年月日（右隣の「まで有効」にかからないよう、少し手前で止める）
       [0.305, 0.41, 0.30, 0.09],  // 交付した市区町村長
       [0.30, 0.50, 0.70, 0.31],   // 追記欄（引っ越し後の住所など）
       [0.30, 0.81, 0.70, 0.19],   // 臓器提供の意思・署名
@@ -7127,7 +7162,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30c";
+const アプリの版 = "2026-09-30d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7176,6 +7211,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30c"></script>
+<script src="native.js?v=2026-09-30d"></script>
 </body>
 </html>
