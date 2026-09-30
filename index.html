@@ -1305,7 +1305,7 @@
     <span>隠して撮る</span>
   </button>
   </div>
-  <div class="tip-body" id="tip-photo" hidden><b>撮れるもの：</b>はがき・学校のお便り・請求書・サブスク・クーポン・食品など、期限が書いてあるもの。<br><b>写真は残しません。</b>文字を読むためにAI（OpenAI）へ送り、最長30日で消えます。学習には使われません。<br><b>免許証・マイナンバーカード</b>は「隠して撮る」で。顔・名前・住所・番号を黒く塗ってから送ります。<br>写真を使いたくないときは「手で入力」で。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
+  <div class="tip-body" id="tip-photo" hidden><b>撮れるもの：</b>はがき・学校のお便り・請求書・サブスク・クーポン・食品など、期限が書いてあるもの。<br><b>写真は残しません。</b>文字を読むためにAI（OpenAI）へ送り、最長30日で消えます。学習には使われません。<br><b>免許証・マイナンバーカード</b>は「隠して撮る」で、かざすだけ。自動で撮って、顔・名前・住所・番号を黒く塗ってから送ります。<br>写真を使いたくないときは「手で入力」で。<button type="button" class="text-link" id="btn-open-security" style="display:inline;width:auto;padding:0 0 0 4px">安全のしくみ</button></div>
   <div class="capture-links">
     <button type="button" class="pill-btn" id="btn-photo-album"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg><span>アルバム・スクショ</span></button>
     <button type="button" class="pill-btn" id="btn-open-form"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>手で入力</span></button>
@@ -1497,7 +1497,7 @@
     <video id="cc-video" playsinline muted autoplay></video>
     <canvas id="cc-overlay"></canvas>
     <button type="button" class="x-close" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <div class="cc-status" id="cc-status">カードを わくに合わせてください</div>
+    <div class="cc-status" id="cc-status">カードに かざしてください</div>
     <div class="cc-check" id="cc-check" hidden>
       <img id="cc-check-img" alt="黒く塗った写真">
       <div class="cc-check-text">黒い所を塗りつぶして送ります</div>
@@ -2069,7 +2069,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-01b"></script>
+<script src="crypto.js?v=2026-10-01c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -5463,7 +5463,7 @@ const カード撮影 = (() => {
       else if(見つけた) 状態を出す("そのまま動かさないで", true);
       else {
         const 経過 = Date.now() - 開いた時刻;
-        状態を出す(経過 > 10000 ? "暗い色の机に置くと合いやすいです" : 経過 > 4000 ? "少し離すと合いやすくなります" : "カードを わくに合わせてください");
+        状態を出す(経過 > 10000 ? "暗い色の机に置くと合いやすいです" : 経過 > 4000 ? "少し離すと合いやすくなります" : "カードに かざしてください");
       }
     }
     描く();
@@ -5511,7 +5511,7 @@ const カード撮影 = (() => {
       }
       try { await video.play(); } catch(e) {}
       if(モード === "ふつう"){ 描く(); return; }
-      状態を出す("カードを わくに合わせてください");
+      状態を出す("カードに かざしてください");
       見張りを始める();
     } catch(err){
       カメラ不可 = true;
@@ -7242,7 +7242,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-01b";
+const アプリの版 = "2026-10-01c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7291,6 +7291,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-01b"></script>
+<script src="native.js?v=2026-10-01c"></script>
 </body>
 </html>
