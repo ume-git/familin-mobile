@@ -2066,7 +2066,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-09-30b"></script>
+<script src="crypto.js?v=2026-09-30c"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -4710,6 +4710,17 @@ async function 画像を読み取って登録する(元画像, ヒント = {}){
     const 通信切れ = !navigator.onLine || (err && err.name === "TypeError" && /fetch|network/i.test(err.message || ""));
     お知らせ(通信切れ ? "インターネットにつながっていません。電波のある所で、もう一度お試しください。"
       : (err && err.message) ? err.message : 読み取り失敗の文, true);
+    // 読めなかった（上限・ぼけ・電波）ときに行き止まりにしない。手で入力を開き、分かっている種類は先に入れておく
+    try {
+      編集終了();
+      入力フォームを開く();
+      if(ヒント.種類){
+        const 種 = ヒント.種類 === "運転免許証" ? "運転免許" : "マイナンバーカード";
+        document.getElementById("f-category").value = 種;
+        document.getElementById("f-name").value = ヒント.種類;
+        document.getElementById("f-category").dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    } catch(e) {}
   } finally {
     読み取り中を見せる(false);
     ボタン一覧.forEach(b => b.disabled = false);
@@ -7116,7 +7127,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-09-30b";
+const アプリの版 = "2026-09-30c";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7165,6 +7176,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-09-30b"></script>
+<script src="native.js?v=2026-09-30c"></script>
 </body>
 </html>
