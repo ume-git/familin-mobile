@@ -2069,7 +2069,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-01c"></script>
+<script src="crypto.js?v=2026-10-03a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -6940,7 +6940,13 @@ document.getElementById("btn-receive-code").addEventListener("click", async () =
 // ---- プラン（無料／家族） ----
 // 数えているのは写真の読み取りだけ。予定表も写真1枚。聞く・通知・カレンダーは数えない。
 let プランの状態 = null;
-const 家族プランの説明 = "家族プラン：写真の読み取りが月60枚、家族は何人でも、同じ番号で5台まで。月300円／年2,500円。\n\n購入の受付は準備中です。ご家族や知人から会員番号を受け取った方は「会員番号を入れる」から入力してください。無料プランはこのまま、ずっと無料で使えます。";
+// Android のストア版はアプリ内で売らない（Google Play で課金すると住所が公開されるため）。
+// Google の決まりで、アプリの中から外での購入へ案内できないので、値段と買い方は書かない。
+const Androidのストア版か = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()
+  && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "android");
+const 家族プランの説明 = Androidのストア版か
+  ? "家族プラン：写真の読み取りが月60枚、家族は何人でも、同じ番号で5台まで。\n\n会員番号をお持ちの方は「会員番号を入れる」から入力してください。無料プランはこのまま、ずっと無料で使えます。"
+  : "家族プラン：写真の読み取りが月60枚、家族は何人でも、同じ番号で5台まで。月300円／年2,500円。\n\n購入の受付は準備中です。ご家族や知人から会員番号を受け取った方は「会員番号を入れる」から入力してください。無料プランはこのまま、ずっと無料で使えます。";
 async function プランを確かめて描く(){
   const title = document.getElementById("plan-title"), desc = document.getElementById("plan-desc"), hint = document.getElementById("plan-hint");
   try {
@@ -7242,7 +7248,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-01c";
+const アプリの版 = "2026-10-03a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7291,6 +7297,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-01c"></script>
+<script src="native.js?v=2026-10-03a"></script>
 </body>
 </html>
