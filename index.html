@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>トルマモ — 家族のお守り</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=4">
 <meta name="theme-color" content="#2d6a74">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -906,6 +906,78 @@
   .gb-stamp{margin-top:14px;font-size:0.875rem;color:var(--soft);line-height:1.6}
   .row-btns .guide-btn{color:var(--ink)}
 
+  /* トルマモくん（アイコンの「四隅＋吹き出しのカード＋時計」から生まれた案内役）。
+     線は差し色、顔の面はカードの色。出すのは ホーム・読み取り中・読み取れた時 だけ。 */
+  .kun{display:block;color:var(--kun-line,var(--accent))}
+  .kun .kun-face{fill:var(--kun-face,var(--surface))}
+  .kun .kun-corner{stroke:var(--accent)}
+  .kun .kun-cheek{fill:#ff8a7a;opacity:.32;stroke:none}
+  :root[data-mode="dark"]{--kun-face:#f3f8f8;--kun-line:color-mix(in srgb, var(--accent) 55%, #0b1f24)}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-mode="light"]):not([data-mode="mid"]){--kun-face:#f3f8f8;--kun-line:color-mix(in srgb, var(--accent) 55%, #0b1f24)}
+  }
+  .kun-stage{display:flex;align-items:center;gap:6px;margin:4px 0 14px}
+  .kun-stage .kun{width:118px;height:96px;flex:none}
+  .kun-bubble{position:relative;flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);
+    border-radius:18px;padding:12px 14px;box-shadow:var(--shadow-sm, 0 2px 6px rgba(0,0,0,.06));text-align:left;color:var(--ink)}
+  .kun-bubble::before{content:"";position:absolute;left:-8px;top:50%;width:14px;height:14px;margin-top:-7px;
+    background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+  .kun-bubble b{display:block;font-size:1.25rem;line-height:1.4;font-weight:800}
+  .kun-bubble b em{font-style:normal;font-size:1.6rem;color:var(--accent);margin:0 2px}
+  .kun-bubble small{display:block;margin-top:2px;font-size:0.9375rem;color:var(--soft);line-height:1.5}
+  button.kun-bubble{font:inherit;cursor:pointer;width:auto}
+  .kun-stage.urgent .kun-bubble b em{color:var(--bad)}
+  .kun-try{margin-top:10px;display:flex;align-items:center;gap:8px}
+  .welcome.kun-welcome{background:none;border:0;box-shadow:none;padding:0;margin:-6px 0 14px}
+  .welcome.kun-welcome .welcome-try{margin-top:0;justify-content:center}
+  .kun-try button:first-child{font-weight:800}
+  @media (prefers-reduced-motion: no-preference){
+    .kun-stage .kun{animation:kun-float 3.6s ease-in-out infinite}
+    .analyzing .kun .kun-sweep{animation:kun-sweep 1.6s ease-in-out infinite}
+    .analyzing .kun .kun-body{animation:kun-float 2.4s ease-in-out infinite}
+  }
+  @keyframes kun-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes kun-sweep{0%{transform:translateY(0);opacity:.0}15%{opacity:.9}85%{opacity:.9}100%{transform:translateY(92px);opacity:0}}
+  .analyzing .kun{width:170px;height:150px;margin-bottom:2px}
+  .read-kun{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+  .read-kun .kun{width:64px;height:52px;flex:none}
+  .read-kun span{font-size:1.125rem;font-weight:800;color:var(--accent)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .today-head .today-date{margin-left:auto}
+
+  /* 安心のシート（「？」と、はじめて「隠して撮る」を使う時） */
+  .anshin-box{max-width:400px;padding:26px 20px 22px}
+  .anshin-box h3{margin:6px 0 4px;font-size:1.375rem;text-align:center;line-height:1.4}
+  .anshin-lead{margin:0 0 14px;text-align:center;font-size:1rem;color:var(--soft)}
+  .anshin-step{display:flex;align-items:center;gap:14px;margin:0 0 6px}
+  .anshin-step svg{width:92px;height:70px;flex:none}
+  .anshin-step b{display:block;font-size:1.1875rem;line-height:1.4;color:var(--ink)}
+  .anshin-step small{display:block;font-size:0.9375rem;color:var(--soft);line-height:1.5}
+  .anshin-arrow{color:var(--soft);opacity:.5;margin:0 0 4px 38px;font-size:1rem}
+  .anshin-big{margin:12px 0 4px;padding:14px;border-radius:16px;background:color-mix(in srgb, #2e7d5b 10%, var(--surface));
+    border:2px solid #2e7d5b;text-align:center}
+  .anshin-big b{display:block;font-size:1.3125rem;line-height:1.45;color:var(--ink)}
+  .anshin-big small{display:block;font-size:0.9375rem;color:var(--soft);margin-top:2px}
+  .anshin-cmp{display:flex;gap:10px;margin:8px 0 10px}
+  .anshin-cmp>div{flex:1;border-radius:16px;padding:12px 8px 10px;text-align:center;border:2px solid var(--line);background:var(--surface)}
+  .anshin-cmp>div.yes{border-color:#2e7d5b}
+  .anshin-cmp svg{width:100%;max-width:150px;height:auto}
+  .anshin-cmp b{display:block;font-size:1.0625rem;margin-top:4px;color:var(--ink)}
+  .anshin-cmp small{display:block;font-size:0.875rem;color:var(--soft);line-height:1.45}
+  .anshin-kun{display:flex;align-items:center;gap:6px;margin:4px 0 12px}
+  .anshin-kun .kun{width:92px;height:74px;flex:none}
+  .anshin-kun .kun-bubble b{font-size:1.0625rem}
+  .anshin-page[hidden]{display:none}
+  .anshin-dots{display:flex;justify-content:center;gap:6px;margin:10px 0 0}
+  .anshin-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+  .anshin-dots i.on{background:var(--accent)}
+  .anshin-more{display:block;margin:10px auto 0;font-size:0.9375rem}
+  /* 送る前の札 */
+  .cc-safe{display:flex;align-items:center;gap:10px;margin:14px auto 0;background:#fff;color:#1b2c32;border-radius:18px;padding:9px 16px 9px 10px;max-width:340px;text-align:left}
+  .cc-safe .cc-lock{width:36px;height:36px;border-radius:50%;background:#2e7d5b;display:grid;place-items:center;flex:none}
+  .cc-safe b{display:block;font-size:1.0625rem;line-height:1.35}
+  .cc-safe small{display:block;font-size:0.875rem;color:#52666f;line-height:1.35}
+
   /* 読み取り中の覆い */
   .analyzing{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;
     padding:24px;background:color-mix(in srgb, var(--bg) 86%, transparent);
@@ -1133,6 +1205,18 @@
     padding:14px 16px;box-shadow:var(--shadow-lg);z-index:400;display:flex;align-items:center;gap:12px;
     animation:quick-in .25s ease-out}
   .quick-bar .quick-main{flex:1;min-width:0;line-height:1.45}
+  .quick-kun{flex:none;display:flex}
+  .quick-kun .kun{width:52px;height:42px}
+  .quick-kun:empty{display:none}
+  .toast .kun{flex:none;width:46px;height:37px;margin:-4px 0}
+  .toast:has(.kun){align-items:center;gap:10px;text-align:left;border-radius:20px;width:min(340px, calc(100vw - 32px));max-width:none}
+  .kun .kun-face{fill:var(--kun-face,var(--surface))}
+  @media (prefers-reduced-motion: no-preference){
+    .quick-kun .kun-check,.toast .kun-check{stroke-dasharray:48;stroke-dashoffset:48;animation:kun-draw .5s .15s ease-out forwards}
+    .quick-kun .kun-body{animation:kun-nod .9s ease-in-out 1}
+  }
+  @keyframes kun-draw{to{stroke-dashoffset:0}}
+  @keyframes kun-nod{0%,100%{transform:translateY(0)}40%{transform:translateY(3px)}}
   .quick-bar .quick-main b{display:block;font-size:0.9375rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .quick-bar .quick-main span{font-size:0.875rem;opacity:.8}
   .quick-bar button{flex:none;font:inherit;font-size:0.875rem;font-weight:700;padding:9px 12px;border-radius:999px;
@@ -1196,6 +1280,10 @@
   .reset-link{text-align:center;margin-top:14px;font-size:0.875rem;color:var(--soft)}
   .reset-link button{background:none;border:none;color:var(--soft);text-decoration:underline;
     font-size:0.875rem;font-weight:400;padding:2px;cursor:pointer}
+  .qa-lead{margin:0 0 12px;font-size:1rem;color:var(--soft)}
+  .guide-step.qa .qa-answer{margin:2px 0 4px;font-size:1.1875rem;font-weight:800;color:#2e7d5b}
+  :root[data-mode="dark"] .guide-step.qa .qa-answer{color:#7fd3a8}
+  @media (prefers-color-scheme: dark){ :root:not([data-mode="light"]):not([data-mode="mid"]) .guide-step.qa .qa-answer{color:#7fd3a8} }
   .security-note{background:var(--warn-soft);color:var(--warn);border-radius:9px;
     padding:10px 12px;margin-bottom:16px;font-size:0.875rem;line-height:1.6}
 
@@ -1280,7 +1368,8 @@
   .btnrow{flex-wrap:wrap}
   .btnrow button{min-width:100px}
   .quick-bar{flex-wrap:wrap;gap:8px}
-  .quick-bar .quick-main{flex-basis:100%}
+  .quick-bar .quick-main{flex-basis:calc(100% - 62px)}
+  .quick-bar .quick-kun:empty + .quick-main{flex-basis:100%}
   .quick-bar .quick-main b{white-space:normal}
   .modal-back{padding-top:calc(70px + env(safe-area-inset-top))}
   .modal-back .x-close{position:fixed;background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
@@ -1377,11 +1466,12 @@
 
   <section class="today-section">
     <div class="today-head">
-      <h2 class="today-title">今日の確認</h2>
+      <h2 class="today-title sr-only">今日の確認</h2>
       <span class="today-date" id="today-date"></span>
       <span id="mascot-slot" hidden></span>
     </div>
-    <div class="count-strip" id="count-strip" hidden>
+    <div class="kun-stage" id="kun-stage"></div>
+    <div class="count-strip" id="count-strip" hidden style="display:none">
       <button type="button" class="count bad" data-scope="expired"><b id="cnt-expired">0</b><span>期限切れ</span></button>
       <button type="button" class="count warn" data-scope="today"><b id="cnt-today">0</b><span>今日まで</span></button>
       <button type="button" class="count soon" data-scope="week"><b id="cnt-week">0</b><span>7日以内</span></button>
@@ -1395,7 +1485,7 @@
     <span class="hero-title">撮って登録する</span>
     <span class="hero-sub"><span class="hero-sub-promise">期限が近づいたら、お知らせします</span></span>
   </button>
-  <button type="button" class="tip-btn hero-tip" data-tip="tip-photo" aria-expanded="false" aria-label="写真の扱いについて">?</button>
+  <button type="button" class="tip-btn hero-tip" id="btn-anshin" aria-label="写真の扱いについて">?</button>
   <button type="button" class="pill-btn hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（運転免許証・マイナンバーカード）">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
     <span>隠して撮る</span>
@@ -1599,6 +1689,7 @@
     <div class="cc-check" id="cc-check" hidden>
       <img id="cc-check-img" alt="黒く塗った写真">
       <div class="cc-check-text" id="cc-check-text" role="status">黒い所を隠して、自動で送ります</div>
+      <div class="cc-safe"><span class="cc-lock"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span><b>黒い所は、消しました</b><small>AIでも、元に戻せません</small></span></div>
       <div class="cc-check-bar"><i id="cc-check-bar"></i></div>
       <div class="cc-check-btns"><button type="button" id="cc-retake">撮り直す</button><button type="button" id="cc-fix">止めて直す</button></div>
     </div>
@@ -1610,6 +1701,7 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="quick-bar" id="quick-bar" hidden>
+  <span class="quick-kun" id="quick-kun" aria-hidden="true"></span>
   <div class="quick-main"><b id="quick-name"></b><span id="quick-when"></span></div>
   <button type="button" id="quick-edit">直す</button>
   <button type="button" class="quick-undo" id="quick-undo">取り消す</button>
@@ -1618,6 +1710,37 @@
 
 <button id="btn-stop-speech" style="display:none">⏹ 読み上げを止める</button>
 
+<div class="modal-back" id="modal-anshin"><div class="modal-box anshin-box">
+<button type="button" class="x-close" id="anshin-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<div class="anshin-page" id="anshin-p1">
+<h3>見られたくない所は、送りません</h3>
+<p class="anshin-lead">免許証・マイナンバーカードは「隠して撮る」で</p>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="22" y="4" width="52" height="64" rx="9" fill="#fff" stroke="#236376" stroke-width="3"/><rect x="30" y="20" width="36" height="24" rx="3" fill="#eef4ee" stroke="#236376" stroke-width="2"/><circle cx="58" cy="32" r="5" fill="#9fb6bd"/><path d="M33 26h14M33 32h10" stroke="#9fb6bd" stroke-width="2"/></svg>
+<div><b>① かざす</b><small>カードを映すだけ</small></div></div>
+<div class="anshin-arrow">▼</div>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="8" y="12" width="80" height="50" rx="6" fill="#eef4ee" stroke="#236376" stroke-width="2.5"/><rect x="8" y="12" width="80" height="13" fill="#000"/><rect x="62" y="27" width="22" height="31" fill="#000"/><rect x="14" y="31" width="44" height="9" rx="2" fill="#9cc4e8"/><rect x="8" y="46" width="50" height="16" fill="#000"/><circle cx="80" cy="14" r="11" fill="#2e7d5b"/><path d="M75 14l4 4 7-8" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+<div><b>② スマホの中で、消す</b><small>顔・名前・住所・番号を黒で消す</small></div></div>
+<div class="anshin-arrow">▼</div>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M28 50h44a14 14 0 0 0 0-28 20 20 0 0 0-38-4 13 13 0 0 0-6 32z" fill="#fff" stroke="#236376" stroke-width="3"/><rect x="36" y="30" width="26" height="16" rx="2" fill="#eef4ee" stroke="#236376" stroke-width="1.5"/><rect x="36" y="30" width="26" height="5" fill="#000"/><rect x="38" y="37" width="14" height="4" fill="#9cc4e8"/></svg>
+<div><b>③ 消した写真だけ送る</b><small>読むのは期限の日付だけ</small></div></div>
+<div class="anshin-big"><b>黒い所は、消しました。<br>AIでも、元に戻せません。</b></div>
+<button type="button" class="primary" id="anshin-next">次へ</button>
+</div>
+<div class="anshin-page" id="anshin-p2" hidden>
+<h3>AIで、戻せる？</h3>
+<p class="anshin-lead">戻せません。中身が残っていないからです</p>
+<div class="anshin-cmp">
+<div><svg viewBox="0 0 150 104" aria-hidden="true"><rect x="8" y="8" width="134" height="62" rx="6" fill="#eef4ee" stroke="#9fb6bd" stroke-width="2"/><g opacity=".9"><rect x="18" y="20" width="14" height="14" fill="#6b7f86"/><rect x="32" y="20" width="14" height="14" fill="#a9b9be"/><rect x="46" y="20" width="14" height="14" fill="#7d9198"/><rect x="60" y="20" width="14" height="14" fill="#b8c6ca"/><rect x="18" y="34" width="14" height="14" fill="#9aabb0"/><rect x="32" y="34" width="14" height="14" fill="#6b7f86"/><rect x="46" y="34" width="14" height="14" fill="#c3cfd2"/><rect x="60" y="34" width="14" height="14" fill="#7d9198"/></g><path d="M84 41h18" stroke="#9fb6bd" stroke-width="3" stroke-linecap="round"/><path d="M98 35l6 6-6 6" stroke="#9fb6bd" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M110 30h24M110 40h18M110 50h22" stroke="#4d6870" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="88" r="12" fill="#c0504d"/><path d="M123 83l10 10M133 83l-10 10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
+<b>モザイク・ぼかし</b><small>元の文字が少し残る<br>AIで戻ることがある</small></div>
+<div class="yes"><svg viewBox="0 0 150 104" aria-hidden="true"><rect x="8" y="8" width="134" height="62" rx="6" fill="#eef4ee" stroke="#9fb6bd" stroke-width="2"/><rect x="18" y="20" width="56" height="28" fill="#000"/><path d="M84 41h18" stroke="#9fb6bd" stroke-width="3" stroke-linecap="round"/><path d="M98 35l6 6-6 6" stroke="#9fb6bd" stroke-width="3" fill="none" stroke-linecap="round"/><text x="122" y="50" text-anchor="middle" font-size="26" font-weight="800" fill="#9fb6bd">？</text><circle cx="128" cy="88" r="12" fill="#2e7d5b"/><path d="M122 88l4 4 8-9" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+<b>トルマモ</b><small>中身ごと消してある<br>何も出てこない</small></div>
+</div>
+<div class="anshin-kun" id="anshin-kun"><div class="kun-bubble"><b>AIが描いても「作り話の絵」になるだけ。本物は出ません</b></div></div>
+<button type="button" class="primary" id="anshin-ok">わかった</button>
+<button type="button" class="text-link anshin-more" id="anshin-more">くわしい説明を見る</button>
+</div>
+<div class="anshin-dots" aria-hidden="true"><i class="on" id="anshin-d1"></i><i id="anshin-d2"></i></div>
+</div></div>
 <div class="modal-back" id="modal-notice"><div class="modal-box"><button type="button" class="x-close" id="notice-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><h3 id="notice-title">登録できました！</h3><p>期限が近づいたら、通知でお知らせします。</p><button type="button" class="primary" id="btn-notice-enable">通知をオンにする</button></div></div>
 <div class="modal-back" id="modal-settings">
   <div class="modal-box">
@@ -1762,23 +1885,38 @@
       <button type="button" class="x-close" id="btn-security-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="guide-body">
-      <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>登録内容はスマホで守ります</h5></div>
-        <p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。暗証番号や合言葉は、安全な所に控えてください。</p>
+      <p class="qa-lead">心配になりやすいことに、先にお答えします。</p>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>黒く消した所は、はがせる？</h5></div>
+        <p class="qa-answer">はがせません。</p>
+        <p>上に貼ったシールではありません。写真の点そのものを黒で上書きしてから、新しい1枚として書き出して送っています。送った写真には、消した所の元の文字や顔のデータが入っていません。</p>
       </div>
-      <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>写真は文字を読むために送ります</h5></div>
-        <p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p>
-        <div class="guide-callout warn">顔や番号が気になるときは「隠して撮る」。写真を使わないときは「手で入力」で登録できます。</div>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>今のAIなら、戻せるのでは？</h5></div>
+        <p class="qa-answer">戻せません。</p>
+        <p>モザイクやぼかしは元の情報が少し残るので、AIで推測できることがあります。トルマモは真っ黒で上書きするので、手がかりが何も残りません。AIが「それらしく描く」ことはできても、それは作り話の絵で、本物の名前・住所・番号・顔は出てきません。</p>
       </div>
-      <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>家族への共有は、自分で選べます</h5></div>
-        <p>登録内容は、自動では家族に共有されません。「家族に送る」を押した登録だけ、暗号化して渡せます。</p>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>消す前の写真は、どこにある？</h5></div>
+        <p class="qa-answer">スマホの中に、数秒だけ。</p>
+        <p>送る前に確かめる画面（2.5秒）と「止めて直す」のために、アプリの作業用の場所に一時的に置きます。保存はせず、どこにも送りません。画面を閉じると消えます。</p>
       </div>
-      <div class="guide-step">
-        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>アカウント登録も、個人情報の入力も不要です</h5></div>
-        <p>メールアドレスも名前も登録しません。だから、あなたが誰なのかを私たちが知ることはありません。</p>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>送った写真は、どうなる？</h5></div>
+        <p class="qa-answer">トルマモには残しません。</p>
+        <p>文字を読むためだけに AI（OpenAI）へ送ります。AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p>
       </div>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>もし、途中や保管先で盗まれたら？</h5></div>
+        <p class="qa-answer">誰のものかは、分かりません。</p>
+        <p>通信は暗号化（https）しています。それでも見られた場合に分かるのは、消していない所（期限の日付・免許の帯の色・条件・交付した都道府県など）だけです。撮った場所の記録（位置情報）も付けていません。</p>
+      </div>
+      <div class="guide-step qa">
+        <div class="guide-step-head"><div class="guide-step-num">6</div><h5>登録した内容は？</h5></div>
+        <p class="qa-answer">スマホの中に、暗号化して保存。</p>
+        <p>アカウント登録はなく、名前もメールアドレスも預かりません。家族への共有は、「家族に送る」を押したものだけを暗号化して渡します。</p>
+      </div>
+      <div class="guide-callout warn"><b>気をつけてほしいこと</b>カードが大きく斜めだったりずれていたりすると、黒い四角の端から一部がのぞくことがあります。送る前の画面で気になったら「止めて直す」で直せます。ふつうの「撮って登録する」は隠さずに送ります。写真を使いたくない時は「手で入力」で登録できます。</div>
       <div class="guide-callout bad"><b>ひとつだけ、お願い</b>暗証番号を忘れると、私たちでも中身を取り出せません（鍵を持っていないためです）。最初に表示される「合言葉」は、必ず控えておいてください。</div>
     </div>
   </div>
@@ -1905,8 +2043,8 @@
      何が起きているかを大きく見せる。以前は小さな一行だけで、動いているのか分からなかった。 -->
 <div class="analyzing" id="analyzing" role="status" aria-live="polite" hidden>
   <div class="analyzing-box">
-    <div class="analyzing-ring"><div class="analyzing-ring-in"></div></div>
-    <div class="analyzing-title">読んでいます…</div>
+    <div id="analyzing-kun"></div>
+    <div class="analyzing-title">日付を探しています</div>
     <div class="analyzing-step" id="analyzing-step">写真を送っています…</div>
     <div class="analyzing-note">AIで文字を読んでいます。写真はトルマモのサーバーには残しません。</div>
   </div>
@@ -1915,7 +2053,7 @@
 <div class="modal-back" id="modal-read">
   <div class="modal-box read-box">
     <div class="read-head">
-      <span class="read-badge">読めました！</span>
+      <div class="read-kun" id="read-kun"><span>読みとれました</span></div>
       <h3 id="read-title"></h3>
       <p class="read-summary" id="read-summary"></p>
     </div>
@@ -2167,7 +2305,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-04a"></script>
+<script src="crypto.js?v=2026-10-06a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3284,6 +3422,56 @@ function マスコットSVG(気分){
   </svg>`;
 }
 
+// トルマモくん。場面：ふつう / よろこび（登録できた・だいじょうぶ）/ みまもり（近いものがある）/ よむ（読み取り中）
+function トルマモくんSVG(場面 = "ふつう"){
+  const 目 = 場面 === "やさしい" ? '<path d="M123 119q8 7 16 0m29 0q8 7 16 0" stroke-width="5"/>'
+    : (場面 === "よろこび" || 場面 === "とうろく")
+    ? '<path d="m123 121 8-5 8 5m29 0 8-5 8 5" stroke-width="5"/>'
+    : 場面 === "よむ" ? '<path d="M133 118v8m40-8v8" stroke-width="5"/>'
+    : '<path d="M129 119v8m47-8v8" stroke-width="5"/>';
+  const 口 = (場面 === "よろこび" || 場面 === "とうろく") ? '<path d="M132 152q22 14 43 0" stroke-width="5"/>'
+    : 場面 === "やさしい" ? '<path d="M137 152q16 9 32 0" stroke-width="5"/>'
+    : 場面 === "みまもり" ? '<path d="M138 154q15 6 30 0" stroke-width="5"/>'
+    : 場面 === "よむ" ? '<path d="M143 153h20" stroke-width="5"/>'
+    : '<path d="M135 151q18 9 36 0" stroke-width="5"/>';
+  const 線 = 場面 === "よむ" ? '<path class="kun-sweep" d="M92 92h136" stroke-width="3" opacity=".7"/>'
+    : 場面 === "とうろく" ? '<path class="kun-check" d="m252 168 10 10 21-24" stroke-width="6"/>' : "";
+  return `<svg class="kun" viewBox="40 34 250 196" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <ellipse cx="152" cy="222" rx="88" ry="8" fill="currentColor" opacity=".08" stroke="none"/>
+    <path class="kun-corner" d="M59 73V51h22m159 0h22v22M59 177v22h22m159 0h22v-22" stroke-width="5"/>
+    <g class="kun-body">
+      <path class="kun-face" d="M93 73h139a14 14 0 0 1 14 14v92a14 14 0 0 1-14 14h-90l-30 21 6-21H93a14 14 0 0 1-14-14V87a14 14 0 0 1 14-14Z" stroke-width="3.5"/>
+      <circle class="kun-face" cx="237" cy="76" r="24" stroke-width="4"/><path d="M237 62v14l-10 7" stroke-width="4"/>
+      ${場面 === "よむ" ? "" : '<ellipse class="kun-cheek" cx="117" cy="146" rx="11" ry="7"/><ellipse class="kun-cheek" cx="190" cy="146" rx="11" ry="7"/>'}
+      ${目}${口}${線}
+    </g>
+  </svg>`;
+}
+
+// ホームの案内役。言葉は事実だけ（「全部だいじょうぶ」とは言わない）
+function トルマモくんの吹き出し(items, 緊急, 注意){
+  const 枠 = document.getElementById("kun-stage");
+  if(!枠) return;
+  let 場面 = "ふつう", 中身 = "", 押せる = false;
+  if(items.length === 0){
+    場面 = "よろこび";
+    中身 = `<b>はじめまして！</b><small>撮るだけで、期限をおぼえて知らせます</small>`;
+  } else if(緊急.length > 0){
+    場面 = "みまもり"; 押せる = true;
+    中身 = `<b>今日やることが<em>${緊急.length}</em>件</b><small>${注意.length ? `そろそろも${注意.length}件あります` : "下から確かめられます"}</small>`;
+  } else if(注意.length > 0){
+    場面 = "みまもり"; 押せる = true;
+    中身 = `<b>そろそろが<em>${注意.length}</em>件</b><small>今日やることはありません</small>`;
+  } else {
+    場面 = "よろこび";
+    中身 = `<b>近い期限は ありません</b><small>${items.length}件を見守っています</small>`;
+  }
+  枠.classList.toggle("urgent", 緊急.length > 0);
+  枠.innerHTML = トルマモくんSVG(場面) + (押せる
+    ? `<button type="button" class="kun-bubble" onclick="ホームからすべて見る()">${中身}</button>`
+    : `<div class="kun-bubble">${中身}</div>`);
+}
+
 function 今日の記号SVG(気分){
   const 色 = { にっこり: "var(--good)", みまもり: "var(--warn)", しんぱい: "var(--bad)" }[気分] || "var(--good)";
   return `<svg class="today-mark" viewBox="0 0 24 24" role="img" aria-label="今日の確認">
@@ -3343,11 +3531,10 @@ function 今日やることを描画する(items){
     if("setAppBadge" in navigator){ 急ぎ > 0 ? navigator.setAppBadge(急ぎ) : navigator.clearAppBadge(); }
   } catch(e) {}
 
-  // 登録が0件＝はじめての人。「確認済み」ではなく、最初の1枚に誘う。
+  トルマモくんの吹き出し(items, 緊急, 注意);
+  // 登録が0件＝はじめての人。あいさつは吹き出しが言うので、ここは「おためし」だけ。
   if(items.length === 0){
-    el.innerHTML = `<div class="welcome">
-      <h4>はじめまして、トルマモです</h4>
-      <p>撮るだけで、期限をおぼえて、知らせます。<br>まず1つ、撮ってみませんか？</p>
+    el.innerHTML = `<div class="welcome kun-welcome">
       <div class="welcome-try">
         <button type="button" onclick="おためしで登録する()">おためしで1つ入れてみる</button>
         <button type="button" class="tip-btn" data-tip="tip-welcome" aria-expanded="false" aria-label="くわしく">?</button>
@@ -3358,11 +3545,7 @@ function 今日やることを描画する(items){
     return;
   }
   if(緊急.length === 0 && 注意.length === 0){
-    const 見守り = items.length;
-    el.innerHTML = `<div class="today-calm">
-      <div class="calm-head"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>今日は だいじょうぶ</div>
-      <div class="calm-body">${見守り}件を見守っています。近いものはありません。<br>ゆっくりどうぞ。</div>
-    </div>`;
+    el.innerHTML = "";
     マスコットを更新する();
     return;
   }
@@ -4760,7 +4943,7 @@ document.getElementById("btn-photo-album").addEventListener("click", () => {
   document.getElementById("photo-input-album").click();
 });
 
-const 読み取り失敗の文 = "読み取れませんでした。お手数ですが手入力をお願いします。";
+const 読み取り失敗の文 = "読み取れませんでした。手で入力できます。";
 
 async function 写真を読み取る(e){
   const file = e.target.files[0];
@@ -4910,7 +5093,7 @@ async function 画像を読み取って登録する(元画像, ヒント = {}){
   } catch(err) {
     const 通信切れ = !navigator.onLine || (err && err.name === "TypeError" && /fetch|network/i.test(err.message || ""));
     お知らせ(通信切れ ? "インターネットにつながっていません。電波のある所で、もう一度お試しください。"
-      : (err && err.message) ? err.message : 読み取り失敗の文, true);
+      : (err && err.message) ? err.message : 読み取り失敗の文, true, "やさしい");
     // 読めなかった（上限・ぼけ・電波）ときに行き止まりにしない。手で入力を開き、分かっている種類は先に入れておく
     try {
       編集終了();
@@ -4941,6 +5124,8 @@ function 読み取り中を見せる(見せる, 最初の文){
     : ["写真を送っています…", "文字を読んでいます…", "誰の・いつまで・何をするかを整理しています…", "もう少しです…"];
   let i = 0;
   段.textContent = 文言[0];
+  const くん = document.getElementById("analyzing-kun");
+  if(くん && !くん.firstChild) くん.innerHTML = トルマモくんSVG("よむ");
   枠.hidden = false;
   読み取り中の時計 = setInterval(() => {
     i = Math.min(i + 1, 文言.length - 1);
@@ -5765,7 +5950,28 @@ const カード撮影 = (() => {
   });
   return { 開く, 閉じる };
 })();
-function カードを枠で撮る(){ カード撮影.開く(); }
+function 安心シートを出す(次にすること){
+  const 画面 = document.getElementById("modal-anshin");
+  const ページ = n => {
+    document.getElementById("anshin-p1").hidden = n !== 1; document.getElementById("anshin-p2").hidden = n !== 2;
+    document.getElementById("anshin-d1").classList.toggle("on", n === 1); document.getElementById("anshin-d2").classList.toggle("on", n === 2);
+  };
+  const くん = document.getElementById("anshin-kun");
+  if(くん && !くん.querySelector(".kun")) くん.insertAdjacentHTML("afterbegin", トルマモくんSVG("よろこび"));
+  const 閉じる = () => { 画面.classList.remove("show"); try { localStorage.setItem("torumamo_anshin_seen", "1"); } catch(e) {} if(次にすること) 次にすること(); };
+  document.getElementById("anshin-next").onclick = () => ページ(2);
+  document.getElementById("anshin-ok").onclick = 閉じる;
+  document.getElementById("anshin-close").onclick = () => 画面.classList.remove("show");   // ×はやめるだけ（カメラは開かない）
+  document.getElementById("anshin-more").onclick = () => { 画面.classList.remove("show"); const b = document.getElementById("btn-open-security"); if(b) b.click(); };
+  ページ(1);
+  画面.classList.add("show");
+}
+document.getElementById("btn-anshin").addEventListener("click", () => 安心シートを出す());
+// はじめて「隠して撮る」を使う時だけ、先にシートを見せる（2回目からはすぐカメラ）
+function カードを枠で撮る(){
+  let 見た = false; try { 見た = localStorage.getItem("torumamo_anshin_seen") === "1"; } catch(e) {}
+  if(見た) カード撮影.開く(); else 安心シートを出す(() => カード撮影.開く());
+}
 
 // ============================================================
 // 隠してから送る
@@ -6237,6 +6443,7 @@ async function おためしで登録する(){
 }
 function すぐ直せる札を出す(項目){
   const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-kun").innerHTML = トルマモくんSVG("とうろく");
   document.getElementById("quick-name").textContent = 項目.name;
   document.getElementById("quick-when").textContent = "登録しました。" + 見やすい日付(項目.expire_date).replace(/^\d+年/, "") + "まで見守ります";
   札.dataset.id = 項目.id;
@@ -6256,6 +6463,7 @@ function すぐ直せる札を消す(){
 function 登録後の札を出す(項目){
   if(!項目) return;
   const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-kun").innerHTML = トルマモくんSVG("とうろく");
   document.getElementById("quick-name").textContent = "登録できました！";
   document.getElementById("quick-when").textContent = "「" + 項目.name + "」は一覧で確認できます";
   札.dataset.id = 項目.id; 札.dataset.restore = "";
@@ -6600,6 +6808,7 @@ async function 使い切った(item){
   await 項目一覧を保存する(残り);
   描画する();
   const 札 = document.getElementById("quick-bar");
+  document.getElementById("quick-kun").innerHTML = トルマモくんSVG("よろこび");
   document.getElementById("quick-name").textContent = 使い切りのひとこと[item.category] || "おつかれさまでした！";
   document.getElementById("quick-when").textContent = item.name + " を消しました";
   札.dataset.id = ""; 札.dataset.restore = JSON.stringify(item);
@@ -6653,10 +6862,12 @@ document.getElementById("done-finish").addEventListener("click", async () => {
   お知らせ("おつかれさまでした。ひとつ片づきましたね。", true);
 });
 
-function お知らせ(文章, 長め){
+function お知らせ(文章, 長め, 顔){
   const el = document.getElementById("toast");
   el.textContent = 文章;
-  el.style.display = "block";
+  const 顔あり = !!(顔 && typeof トルマモくんSVG === "function");
+  if(顔あり) el.innerHTML = トルマモくんSVG(顔) + `<span>${エスケープ(文章)}</span>`;
+  el.style.display = 顔あり ? "flex" : "block";
   setTimeout(() => { el.style.display = "none"; }, 長め ? 4500 : 2200);
 }
 
@@ -7582,6 +7793,7 @@ document.getElementById("btn-reset-all").addEventListener("click", async () => {
 })();
 
 document.documentElement.dataset.input = "pointer";
+{ const 札 = document.getElementById("read-kun"); if(札) 札.insertAdjacentHTML("afterbegin", トルマモくんSVG("よろこび")); }
 document.addEventListener("pointerdown", () => { document.documentElement.dataset.input = "pointer"; }, true);
 document.addEventListener("keydown", e => { if(e.key === "Tab" || e.key.startsWith("Arrow")) document.documentElement.dataset.input = "key"; }, true);
 起動時の画面を決める();
@@ -7589,7 +7801,7 @@ document.addEventListener("keydown", e => { if(e.key === "Tab" || e.key.startsWi
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-04a";
+const アプリの版 = "2026-10-06a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7638,6 +7850,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-04a"></script>
+<script src="native.js?v=2026-10-06a"></script>
 </body>
 </html>
