@@ -1,19 +1,36 @@
-<svg id="icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <!-- トルマモくんのアイコン（Codex のブランドボードの形に合わせて描き直し 2026-10-06）：
-       白い四隅＋青緑の縁取りの吹き出しカード（少し傾く）＋点の目と細い笑顔＋ほっぺ＋縁取りの時計 -->
-  <defs><linearGradient id="gicon" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="512" y2="512"><stop offset="0" stop-color="#ff8a5b"/><stop offset="1" stop-color="#ff5e7e"/></linearGradient></defs>
-  <rect width="512" height="512" fill="url(#gicon)"/>
-  <g fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M84 138 V100 H122"/><path d="M428 138 V100 H390"/>
-    <path d="M84 374 V412 H122"/><path d="M428 374 V412 H390"/>
-  </g>
-  <g transform="rotate(-4 262 252)" stroke="#236376" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M142 146 H382 a28 28 0 0 1 28 28 V322 a28 28 0 0 1 -28 28 H244 L172 410 L188 350 H142 a28 28 0 0 1 -28 -28 V174 a28 28 0 0 1 28 -28 Z" fill="#fff" stroke-width="12"/>
-    <ellipse cx="176" cy="272" rx="23" ry="16" fill="#ffc4ba" stroke="none"/>
-    <ellipse cx="348" cy="272" rx="23" ry="16" fill="#ffc4ba" stroke="none"/>
-    <path d="M224 222 v18 M300 222 v18" fill="none" stroke-width="12"/>
-    <path d="M228 276 q34 26 68 0" fill="none" stroke-width="10"/>
-  </g>
-  <circle cx="398" cy="148" r="46" fill="#fff" stroke="#236376" stroke-width="10"/>
-  <path d="M398 148 v-23 M398 148 l16 10" fill="none" stroke="#236376" stroke-width="9" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">トルマモ アプリアイコン</title>
+  <defs><linearGradient id="coral" gradientUnits="userSpaceOnUse" x1="30" y1="0" x2="450" y2="512">
+      <stop stop-color="#ff8a5b"/><stop offset=".48" stop-color="#ff776b"/><stop offset="1" stop-color="#ff5e7e"/>
+    </linearGradient><linearGradient id="porcelain" gradientUnits="userSpaceOnUse" x1="220" y1="150" x2="260" y2="360">
+      <stop stop-color="#ffffff"/><stop offset="1" stop-color="#f4fbfc"/>
+    </linearGradient></defs>
+  <rect width="512" height="512" fill="url(#coral)"/>
+  <g transform="translate(256 256) scale(1.12) translate(-256 -256)"><g stroke-linecap="round" stroke-linejoin="round">
+    <!-- Four scanning corners, with the clock naturally overlapping the fourth. -->
+    <g fill="none" stroke="#fff" stroke-width="13">
+      <path d="M137 113 H94 V157"/>
+      <path d="M367 101 H412 V146"/>
+      <path d="M94 345 V389 H137"/>
+      <path d="M412 345 V389 H369"/>
+    </g>
+    <!-- A small, unblurred contact shadow keeps the drawing crisp at 29 px. -->
+    <path d="M144 157 L352 146 Q378 145 378 171 L378 326 Q378 346 355 347 L237 351 L164 398 L177 352 L144 352 Q116 352 116 324 L116 187 Q116 159 144 157 Z" transform="translate(0 2)" fill="#a64259" stroke="#a64259" stroke-width="10" opacity=".10"/>
+    <path d="M144 157 L352 146 Q378 145 378 171 L378 326 Q378 346 355 347 L237 351 L164 398 L177 352 L144 352 Q116 352 116 324 L116 187 Q116 159 144 157 Z" fill="url(#porcelain)" stroke="#176176" stroke-width="9"/>
+    <path d="M145 163 L350 152" fill="none" stroke="#b9dce2" stroke-width="2" opacity=".65"/>
+    <path d="M121 192 V322 Q121 347 146 347 H174" fill="none" stroke="#b9dce2" stroke-width="2" opacity=".55"/>
+    <g fill="#ffc5bf" opacity=".78">
+      <circle cx="170" cy="267" r="17"/><circle cx="334" cy="259" r="17"/>
+    </g>
+    <g fill="#176176">
+      <ellipse cx="209" cy="231" rx="6" ry="11"/>
+      <ellipse cx="292" cy="227" rx="6" ry="11"/>
+    </g>
+    <path d="M223 272 Q250 299 279 269" fill="none" stroke="#176176" stroke-width="7"/>
+    <circle cx="373" cy="146" r="46" fill="#a64259" stroke="#a64259" stroke-width="10" opacity=".10"/>
+    <circle cx="373" cy="144" r="46" fill="url(#porcelain)" stroke="#176176" stroke-width="9"/>
+    <circle cx="373" cy="144" r="39.5" fill="none" stroke="#badce2" stroke-width="1.7"/>
+    <!-- The original clock points upward and down-left, a calm reminder. -->
+    <path d="M373 119 V144 L357 159" fill="none" stroke="#176176" stroke-width="7"/>
+  </g></g>
 </svg>
