@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>トルマモ — 家族のお守り</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=7">
 <meta name="theme-color" content="#2d6a74">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -908,14 +908,11 @@
 
   /* トルマモくん（アイコンの「四隅＋吹き出しのカード＋時計」から生まれた案内役）。
      線は差し色、顔の面はカードの色。出すのは ホーム・読み取り中・読み取れた時 だけ。 */
-  .kun{display:block;color:var(--kun-line,var(--accent))}
-  .kun .kun-face{fill:var(--kun-face,var(--surface))}
-  .kun .kun-corner{stroke:var(--accent)}
-  .kun .kun-cheek{fill:#ff8a7a;opacity:.32;stroke:none}
-  :root[data-mode="dark"]{--kun-face:#f3f8f8;--kun-line:color-mix(in srgb, var(--accent) 55%, #0b1f24)}
-  @media (prefers-color-scheme: dark){
-    :root:not([data-mode="light"]):not([data-mode="mid"]){--kun-face:#f3f8f8;--kun-line:color-mix(in srgb, var(--accent) 55%, #0b1f24)}
-  }
+  /* 線はセージグレー（Codex 案 K06、2026-10-06 決定）。明るい画面でもダークでも同じ色・顔は明るいカード */
+  .kun{display:block;color:#5D6F65}
+  .kun .kun-face{fill:#fcfefe}
+  .kun .kun-corner{stroke:#5D6F65}
+  .kun .kun-cheek{fill:#ffc4ca;opacity:.55;stroke:none}
   .kun-stage{display:flex;align-items:center;gap:6px;margin:4px 0 14px}
   .kun-stage .kun{width:118px;height:96px;flex:none}
   .kun-bubble{position:relative;flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);
@@ -1210,7 +1207,6 @@
   .quick-kun:empty{display:none}
   .toast .kun{flex:none;width:46px;height:37px;margin:-4px 0}
   .toast:has(.kun){align-items:center;gap:10px;text-align:left;border-radius:20px;width:min(340px, calc(100vw - 32px));max-width:none}
-  .kun .kun-face{fill:var(--kun-face,var(--surface))}
   @media (prefers-reduced-motion: no-preference){
     .quick-kun .kun-check,.toast .kun-check{stroke-dasharray:48;stroke-dashoffset:48;animation:kun-draw .5s .15s ease-out forwards}
     .quick-kun .kun-body{animation:kun-nod .9s ease-in-out 1}
@@ -2305,7 +2301,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-06c"></script>
+<script src="crypto.js?v=2026-10-06d"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -7801,7 +7797,7 @@ document.addEventListener("keydown", e => { if(e.key === "Tab" || e.key.startsWi
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-06c";
+const アプリの版 = "2026-10-06d";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7850,6 +7846,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-06c"></script>
+<script src="native.js?v=2026-10-06d"></script>
 </body>
 </html>

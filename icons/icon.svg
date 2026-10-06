@@ -16,21 +16,21 @@
     </g>
     <!-- A small, unblurred contact shadow keeps the drawing crisp at 29 px. -->
     <path d="M144 157 L352 146 Q378 145 378 171 L378 326 Q378 346 355 347 L237 351 L164 398 L177 352 L144 352 Q116 352 116 324 L116 187 Q116 159 144 157 Z" transform="translate(0 2)" fill="#a64259" stroke="#a64259" stroke-width="10" opacity=".10"/>
-    <path d="M144 157 L352 146 Q378 145 378 171 L378 326 Q378 346 355 347 L237 351 L164 398 L177 352 L144 352 Q116 352 116 324 L116 187 Q116 159 144 157 Z" fill="url(#porcelain)" stroke="#176176" stroke-width="9"/>
+    <path d="M144 157 L352 146 Q378 145 378 171 L378 326 Q378 346 355 347 L237 351 L164 398 L177 352 L144 352 Q116 352 116 324 L116 187 Q116 159 144 157 Z" fill="url(#porcelain)" stroke="#71645B" stroke-width="9"/>
     <path d="M145 163 L350 152" fill="none" stroke="#b9dce2" stroke-width="2" opacity=".65"/>
     <path d="M121 192 V322 Q121 347 146 347 H174" fill="none" stroke="#b9dce2" stroke-width="2" opacity=".55"/>
     <g fill="#ffc5bf" opacity=".78">
       <circle cx="170" cy="267" r="17"/><circle cx="334" cy="259" r="17"/>
     </g>
-    <g fill="#176176">
+    <g fill="#71645B">
       <ellipse cx="209" cy="231" rx="6" ry="11"/>
       <ellipse cx="292" cy="227" rx="6" ry="11"/>
     </g>
-    <path d="M223 272 Q250 299 279 269" fill="none" stroke="#176176" stroke-width="7"/>
+    <path d="M223 272 Q250 299 279 269" fill="none" stroke="#71645B" stroke-width="7"/>
     <circle cx="373" cy="146" r="46" fill="#a64259" stroke="#a64259" stroke-width="10" opacity=".10"/>
-    <circle cx="373" cy="144" r="46" fill="url(#porcelain)" stroke="#176176" stroke-width="9"/>
+    <circle cx="373" cy="144" r="46" fill="url(#porcelain)" stroke="#71645B" stroke-width="9"/>
     <circle cx="373" cy="144" r="39.5" fill="none" stroke="#badce2" stroke-width="1.7"/>
     <!-- The original clock points upward and down-left, a calm reminder. -->
-    <path d="M373 119 V144 L357 159" fill="none" stroke="#176176" stroke-width="7"/>
+    <path d="M373 119 V144 L357 159" fill="none" stroke="#71645B" stroke-width="7"/>
   </g></g>
 </svg>
