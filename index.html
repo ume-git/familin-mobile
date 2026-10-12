@@ -218,6 +218,12 @@
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;
     padding:10px 0 14px;margin-bottom:18px}
   .app-title{font-size:1.875rem;font-weight:800;margin:0;letter-spacing:.01em;line-height:1.2}
+  /* 見出し（2026-10-12 決定）：「トルマモ」は Codex のロゴ案1（線で描いた文字）、「一覧」「設定」は丸ゴシックの太字。
+     丸ゴシックは M PLUS Rounded 1c（SIL OFL、fonts/OFL.txt）から、この4文字だけを切り出して同梱（2KB） */
+  @font-face{font-family:"TitleMaru";src:url("fonts/title-maru.woff2") format("woff2");font-weight:800;font-display:swap;unicode-range:U+4E00,U+5B9A,U+89A7,U+8A2D}
+  .app-title{font-family:"TitleMaru",system-ui,-apple-system,"Hiragino Sans",sans-serif}
+  .app-title.app-logo{display:flex;align-items:center;height:2.25rem}
+  .app-title.app-logo svg{height:100%;width:auto;display:block;overflow:visible}
   .view{display:block}
   .view[hidden]{display:none !important}
 
@@ -1455,7 +1461,7 @@
   <div class="step" id="screen-app">
   <div class="view" id="view-home">
   <div class="topbar">
-    <h1 class="app-title">トルマモ</h1>
+    <h1 class="app-title app-logo" aria-label="トルマモ"><svg viewBox="0 0 224 64" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10V52 M14 26Q26 29 39 36"/><path d="M61 14V31Q61 44 52 51 M79 10V51Q96 47 104 33"/><path d="M119 16H157Q151 31 137 41 M128 33L148 52"/><path d="M174 16H205 M171 31H209 M185 16V44Q185 52 194 52H208"/></g></svg></h1>
     <button class="icon-btn" id="btn-lock-top" title="ロックする" aria-label="ロックする"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg></button>
     <button class="icon-btn" id="btn-relock" title="ロックする" aria-label="ロックする" hidden></button>
   </div>
@@ -2301,7 +2307,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-06d"></script>
+<script src="crypto.js?v=2026-10-12a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -7797,7 +7803,7 @@ document.addEventListener("keydown", e => { if(e.key === "Tab" || e.key.startsWi
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-06d";
+const アプリの版 = "2026-10-12a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7846,6 +7852,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-06d"></script>
+<script src="native.js?v=2026-10-12a"></script>
 </body>
 </html>
