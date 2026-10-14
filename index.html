@@ -241,8 +241,8 @@
     background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.55);color:#fff;z-index:1}
   .capture-hero-wrap .hero-tip[aria-expanded="true"]{background:#fff;color:var(--hero-b);border-color:#fff}
   .capture-hero-wrap + .tip-body{margin-top:10px}
-  /* 左上の「隠して撮る」：免許証・保険証の人のための入口。「?」と同じ場所・同じ見た目の作法 */
-  /* 小さな丸いボタン（隠して撮る・アルバム・手で入力）は同じ形。50代でも読める 15px の太字 */
+  /* 左上の「免許証・マイナ」：写真を使わずに登録する入口。「?」と同じ場所・同じ見た目の作法 */
+  /* 小さな丸いボタン（免許証・マイナ・アルバム・手で入力）は同じ形。50代でも読める 15px の太字 */
   .pill-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px 8px 11px;border-radius:999px;
     font:inherit;font-size:0.9375rem;font-weight:800;line-height:1.2;cursor:pointer;
     background:var(--surface);color:var(--ink);border:1.5px solid var(--line);box-shadow:var(--shadow-sm)}
@@ -251,6 +251,8 @@
   .capture-hero-wrap .hero-mask{position:absolute;top:10px;left:10px;z-index:1;
     background:#fff;color:var(--hero-b);border-color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
   .capture-hero-wrap .hero-mask .ic{color:var(--hero-b)}
+  /* 「写真なし」：免許証を撮るのが怖い人が、押す前に一目で分かるように */
+  .hero-mask-tag{font-size:0.75rem;font-weight:800;line-height:1;padding:4px 7px;border-radius:999px;background:#e8f3ec;color:#2e7d5b;margin-left:2px}
   .hero-ic{width:64px;height:64px;fill:none;stroke:currentColor;stroke-width:1.7;
     stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}
   .hero-title{font-size:1.9375rem;font-weight:900;letter-spacing:.02em;line-height:1.2}
@@ -328,6 +330,14 @@
   .cc-shutter:active::after{inset:9px}
   .cc-other{font:inherit;font-size:0.875rem;font-weight:700;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 16px}
   .card-cam.plain .cc-status{display:none}
+  /* ふつうに撮るときだけ、上に一言。免許証・マイナを撮ろうとした人は、ここから写真なしの登録へ */
+  .cc-hint{display:none;position:absolute;left:50%;transform:translateX(-50%);top:calc(12px + env(safe-area-inset-top));z-index:2;
+    flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:calc(100% - 120px);text-align:center}
+  .card-cam.plain .cc-hint{display:flex}
+  .cc-hint b{font-size:1rem;font-weight:800;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.62)}
+  .cc-hint button{font:inherit;font-size:0.875rem;font-weight:700;color:#fff;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:8px 14px}
+  @media (max-width:420px){ .cc-hint{top:calc(64px + env(safe-area-inset-top));max-width:calc(100% - 24px)} }
+  .card-cam.plain .cc-safe{display:none}
   @media (orientation: landscape){
     .card-cam{flex-direction:row;padding:0 env(safe-area-inset-right) 0 0}
     .cc-foot{flex-direction:column;justify-content:center;padding:0 18px}
@@ -342,6 +352,7 @@
   .cc-check-bar{width:min(320px,80%);height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}
   .cc-check-bar i{display:block;height:100%;width:0;background:#5CF2A0}
   .cc-check-bar i.go{width:100%;transition:width 2.4s linear}
+  .card-cam.plain .cc-check-bar i.go{transition-duration:3.4s}
   .cc-check-btns{display:flex;gap:10px}
   .cc-check-btns button{font:inherit;font-size:0.875rem;font-weight:700;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff}
   .capture-links .text-link{display:inline;width:auto;margin:0;padding:8px 2px;font-size:0.9375rem}
@@ -948,7 +959,7 @@
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .today-head .today-date{margin-left:auto}
 
-  /* 安心のシート（「？」と、はじめて「隠して撮る」を使う時） */
+  /* 安心のシート（「？」で開く） */
   .anshin-box{max-width:400px;padding:26px 20px 22px}
   .anshin-box h3{margin:6px 0 4px;font-size:1.375rem;text-align:center;line-height:1.4}
   .anshin-lead{margin:0 0 14px;text-align:center;font-size:1rem;color:var(--soft)}
@@ -967,7 +978,10 @@
   .anshin-cmp svg{width:100%;max-width:150px;height:auto}
   .anshin-cmp b{display:block;font-size:1.0625rem;margin-top:4px;color:var(--ink)}
   .anshin-cmp small{display:block;font-size:0.875rem;color:var(--soft);line-height:1.45}
-  .anshin-kun{display:flex;align-items:center;gap:6px;margin:4px 0 12px}
+  .anshin-kun{display:flex;align-items:center;gap:6px;margin:8px 0 14px}
+  .anshin-box .anshin-step{margin:0 0 12px}
+  .anshin-box .nb,.cardday-box .nb{display:inline-block}
+  .anshin-box .anshin-ok{margin-top:6px}
   .anshin-kun .kun{width:92px;height:74px;flex:none}
   .anshin-kun .kun-bubble b{font-size:1.0625rem}
   .anshin-page[hidden]{display:none}
@@ -975,6 +989,22 @@
   .anshin-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .anshin-dots i.on{background:var(--accent)}
   .anshin-more{display:block;margin:10px auto 0;font-size:0.9375rem}
+  /* 免許証・マイナを写真なしで登録する画面 */
+  .cardday-box{max-width:400px;padding:26px 20px 22px}
+  .cardday-box h3{margin:6px 0 4px;padding:0 40px;font-size:1.25rem;text-align:center;line-height:1.4}
+  .modal-box .cardday-lead{margin:0 0 16px;text-align:center;font-size:1rem;color:var(--soft)}
+  .cardday-lead b{color:#2e7d5b}
+  .cardday-kind{margin:0 0 16px}
+  .cardday-field{margin:0 0 14px}
+  .cardday-field label,.cardday-label{display:block;font-size:0.9375rem;font-weight:700;margin:0 0 6px;color:var(--ink)}
+  .cardday-field > select{width:100%;padding:12px 10px;font-size:1rem}
+  .modal-box .cardday-hint{margin:6px 0 0;font-size:0.875rem;color:var(--soft);line-height:1.6}
+  .cardday-result{margin:4px 0 16px;padding:12px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);text-align:center;min-height:56px}
+  .cardday-result:empty{display:none}
+  .cardday-result small{display:block;font-size:0.875rem;color:var(--soft)}
+  .cardday-result b{display:block;font-size:1.25rem;line-height:1.4}
+  .cardday-result .past{color:#c0504d;font-weight:700}
+  #cardday-save:disabled{opacity:.45}
   /* 送る前の札 */
   .cc-safe{display:flex;align-items:center;gap:10px;margin:14px auto 0;background:#fff;color:#1b2c32;border-radius:18px;padding:9px 16px 9px 10px;max-width:340px;text-align:left}
   .cc-safe .cc-lock{width:36px;height:36px;border-radius:50%;background:#2e7d5b;display:grid;place-items:center;flex:none}
@@ -1284,8 +1314,8 @@
     font-size:0.875rem;font-weight:400;padding:2px;cursor:pointer}
   .qa-lead{margin:0 0 12px;font-size:1rem;color:var(--soft)}
   .guide-step.qa .qa-answer{margin:2px 0 4px;font-size:1.1875rem;font-weight:800;color:#2e7d5b}
-  :root[data-mode="dark"] .guide-step.qa .qa-answer{color:#7fd3a8}
-  @media (prefers-color-scheme: dark){ :root:not([data-mode="light"]):not([data-mode="mid"]) .guide-step.qa .qa-answer{color:#7fd3a8} }
+  :root[data-mode="dark"] .guide-step.qa .qa-answer,:root[data-mode="dark"] .cardday-lead b{color:#7fd3a8}
+  @media (prefers-color-scheme: dark){ :root:not([data-mode="light"]):not([data-mode="mid"]) .guide-step.qa .qa-answer,:root:not([data-mode="light"]):not([data-mode="mid"]) .cardday-lead b{color:#7fd3a8} }
   .security-note{background:var(--warn-soft);color:var(--warn);border-radius:9px;
     padding:10px 12px;margin-bottom:16px;font-size:0.875rem;line-height:1.6}
 
@@ -1395,7 +1425,7 @@
       <div class="lock-emoji"><svg class="ic ic-lock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="14" r="4"/><path d="M11 11l8.5-8.5M16 5.5l2.5 2.5M13.5 8l2.5 2.5"/></svg></div>
       <h2>はじめまして、トルマモです</h2>
       <p class="lead">期限を撮って、お知らせ。<br>アプリを開く番号（4〜6けた）を決めてください。</p>
-      <div class="security-note"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 登録内容は、このスマホで暗号化して保存します。<details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p></details></div>
+      <div class="security-note"><svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> 登録内容は、このスマホで暗号化して保存します。<details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は日付を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。<br>免許証・マイナンバーカードは、写真を使わずに登録できます。</p></details></div>
       <div class="error" id="error-setup"></div>
       <label class="field-label" for="setup-pin1">暗証番号（4〜6桁の数字）</label>
       <input type="password" id="setup-pin1" inputmode="numeric" maxlength="6">
@@ -1488,12 +1518,12 @@
     <span class="hero-sub"><span class="hero-sub-promise">期限が近づいたら、お知らせします</span></span>
   </button>
   <button type="button" class="tip-btn hero-tip" id="btn-anshin" aria-label="写真の扱いについて">?</button>
-  <button type="button" class="pill-btn hero-mask" id="btn-photo-mask" aria-label="顔や番号を隠して撮る（運転免許証・マイナンバーカード）">
-    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/><path d="M4 4l16 16" stroke-width="2.2"/></svg>
-    <span>隠して撮る</span>
+  <button type="button" class="pill-btn hero-mask" id="btn-photo-mask" aria-label="運転免許証・マイナンバーカード（写真を使わずに登録）">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M13 9.5h5M13 13h5M6 16.5h12"/></svg>
+    <span>免許証・マイナ</span><small class="hero-mask-tag">写真なし</small>
   </button>
   </div>
-  <div class="tip-body" id="tip-photo" hidden>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。<br>免許証・マイナンバーカードは「隠して撮る」で顔や番号を黒く塗って送れます。<button type="button" class="text-link" id="btn-open-security">安全のしくみ</button></div>
+  <div class="tip-body" id="tip-photo" hidden>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は日付を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。<br>免許証・マイナンバーカードは、写真を使わずに登録できます。<button type="button" class="text-link" id="btn-open-security">安全のしくみ</button></div>
   <div class="capture-links">
     <button type="button" class="pill-btn" id="btn-photo-album"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg><span>アルバム・スクショ</span></button>
     <button type="button" class="pill-btn" id="btn-open-form"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>手で入力</span></button>
@@ -1641,7 +1671,7 @@
     </div>
   </div>
 
-  <footer><details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p></details></footer>
+  <footer><details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は日付を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。<br>免許証・マイナンバーカードは、写真を使わずに登録できます。</p></details></footer>
   </div><!-- /view-list -->
 
   <div class="view" id="view-settings" hidden>
@@ -1688,10 +1718,11 @@
     <canvas id="cc-overlay"></canvas>
     <button type="button" class="x-close" id="cc-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="cc-status" id="cc-status">カードに かざしてください</div>
+    <div class="cc-hint" id="cc-hint"><b>書類の名前と日付が写れば、読めます</b><button type="button" id="cc-card">免許証・マイナは、撮らずに登録 ›</button></div>
     <div class="cc-check" id="cc-check" hidden>
       <img id="cc-check-img" alt="黒く塗った写真">
       <div class="cc-check-text" id="cc-check-text" role="status">黒い所を隠して、自動で送ります</div>
-      <div class="cc-safe"><span class="cc-lock"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span><b>黒い所は、消しました</b><small>AIでも、元に戻せません</small></span></div>
+      <div class="cc-safe"><span class="cc-lock"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span><b>黒い所は、消しました</b><small>送るのは、日付の所だけ</small></span></div>
       <div class="cc-check-bar"><i id="cc-check-bar"></i></div>
       <div class="cc-check-btns"><button type="button" id="cc-retake">撮り直す</button><button type="button" id="cc-fix">止めて直す</button></div>
     </div>
@@ -1714,34 +1745,47 @@
 
 <div class="modal-back" id="modal-anshin"><div class="modal-box anshin-box">
 <button type="button" class="x-close" id="anshin-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-<div class="anshin-page" id="anshin-p1">
-<h3>見られたくない所は、送りません</h3>
-<p class="anshin-lead">免許証・マイナンバーカードは「隠して撮る」で</p>
-<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="22" y="4" width="52" height="64" rx="9" fill="#fff" stroke="#236376" stroke-width="3"/><rect x="30" y="20" width="36" height="24" rx="3" fill="#eef4ee" stroke="#236376" stroke-width="2"/><circle cx="58" cy="32" r="5" fill="#9fb6bd"/><path d="M33 26h14M33 32h10" stroke="#9fb6bd" stroke-width="2"/></svg>
-<div><b>① かざす</b><small>カードを映すだけ</small></div></div>
-<div class="anshin-arrow">▼</div>
-<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="8" y="12" width="80" height="50" rx="6" fill="#eef4ee" stroke="#236376" stroke-width="2.5"/><rect x="8" y="12" width="80" height="13" fill="#000"/><rect x="62" y="27" width="22" height="31" fill="#000"/><rect x="14" y="31" width="44" height="9" rx="2" fill="#9cc4e8"/><rect x="8" y="46" width="50" height="16" fill="#000"/><circle cx="80" cy="14" r="11" fill="#2e7d5b"/><path d="M75 14l4 4 7-8" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-<div><b>② スマホの中で、消す</b><small>顔・名前・住所・番号を黒で消す</small></div></div>
-<div class="anshin-arrow">▼</div>
-<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M28 50h44a14 14 0 0 0 0-28 20 20 0 0 0-38-4 13 13 0 0 0-6 32z" fill="#fff" stroke="#236376" stroke-width="3"/><rect x="36" y="30" width="26" height="16" rx="2" fill="#eef4ee" stroke="#236376" stroke-width="1.5"/><rect x="36" y="30" width="26" height="5" fill="#000"/><rect x="38" y="37" width="14" height="4" fill="#9cc4e8"/></svg>
-<div><b>③ 消した写真だけ送る</b><small>読むのは期限の日付だけ</small></div></div>
-<div class="anshin-big"><b>黒い所は、消しました。<br>AIでも、元に戻せません。</b></div>
-<button type="button" class="primary" id="anshin-next">次へ</button>
-</div>
-<div class="anshin-page" id="anshin-p2" hidden>
-<h3>AIで、戻せる？</h3>
-<p class="anshin-lead">戻せません。中身が残っていないからです</p>
-<div class="anshin-cmp">
-<div><svg viewBox="0 0 150 104" aria-hidden="true"><rect x="8" y="8" width="134" height="62" rx="6" fill="#eef4ee" stroke="#9fb6bd" stroke-width="2"/><g opacity=".9"><rect x="18" y="20" width="14" height="14" fill="#6b7f86"/><rect x="32" y="20" width="14" height="14" fill="#a9b9be"/><rect x="46" y="20" width="14" height="14" fill="#7d9198"/><rect x="60" y="20" width="14" height="14" fill="#b8c6ca"/><rect x="18" y="34" width="14" height="14" fill="#9aabb0"/><rect x="32" y="34" width="14" height="14" fill="#6b7f86"/><rect x="46" y="34" width="14" height="14" fill="#c3cfd2"/><rect x="60" y="34" width="14" height="14" fill="#7d9198"/></g><path d="M84 41h18" stroke="#9fb6bd" stroke-width="3" stroke-linecap="round"/><path d="M98 35l6 6-6 6" stroke="#9fb6bd" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M110 30h24M110 40h18M110 50h22" stroke="#4d6870" stroke-width="4" stroke-linecap="round"/><circle cx="128" cy="88" r="12" fill="#c0504d"/><path d="M123 83l10 10M133 83l-10 10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
-<b>モザイク・ぼかし</b><small>元の文字が少し残る<br>AIで戻ることがある</small></div>
-<div class="yes"><svg viewBox="0 0 150 104" aria-hidden="true"><rect x="8" y="8" width="134" height="62" rx="6" fill="#eef4ee" stroke="#9fb6bd" stroke-width="2"/><rect x="18" y="20" width="56" height="28" fill="#000"/><path d="M84 41h18" stroke="#9fb6bd" stroke-width="3" stroke-linecap="round"/><path d="M98 35l6 6-6 6" stroke="#9fb6bd" stroke-width="3" fill="none" stroke-linecap="round"/><text x="122" y="50" text-anchor="middle" font-size="26" font-weight="800" fill="#9fb6bd">？</text><circle cx="128" cy="88" r="12" fill="#2e7d5b"/><path d="M122 88l4 4 8-9" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-<b>トルマモ</b><small>中身ごと消してある<br>何も出てこない</small></div>
-</div>
-<div class="anshin-kun" id="anshin-kun"><div class="kun-bubble"><b>AIが描いても「作り話の絵」になるだけ。本物は出ません</b></div></div>
-<button type="button" class="primary" id="anshin-ok">わかった</button>
+<div class="anshin-kun" id="anshin-kun"><div class="kun-bubble"><b><span class="nb">写真は、</span><span class="nb">期限の日付を読むためだけに</span><span class="nb">使います</span></b></div></div>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="6" y="12" width="62" height="42" rx="6" fill="#fff" stroke="#236376" stroke-width="3"/><path d="M15 26h24M15 34h17M15 42h21" stroke="#9fb6bd" stroke-width="3" stroke-linecap="round"/><rect x="50" y="28" width="38" height="36" rx="6" fill="#fff" stroke="#2e7d5b" stroke-width="3"/><path d="M50 38h38" stroke="#2e7d5b" stroke-width="3"/><path d="M60 24v8M78 24v8" stroke="#2e7d5b" stroke-width="3" stroke-linecap="round"/><path d="M60 51l5 5 10-10" stroke="#2e7d5b" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div><b><span class="nb">免許証・マイナは、</span><span class="nb">撮りません</span></b><small><span class="nb">誕生日と年を選ぶだけで</span><span class="nb">登録できます</span></small></div></div>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="24" y="4" width="48" height="64" rx="5" fill="#fff" stroke="#9fb6bd" stroke-width="2.5"/><path d="M32 14h28M32 21h20M32 52h28M32 59h18" stroke="#d3dde0" stroke-width="3" stroke-linecap="round"/><rect x="31" y="31" width="34" height="10" rx="2" fill="#ffd2bd"/><path d="M16 27v-7h8M80 27v-7h-8M16 45v7h8M80 45v7h-8" stroke="#e2643c" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div><b><span class="nb">紙は、</span><span class="nb">名前と日付が</span><span class="nb">写ればOK</span></b><small><span class="nb">見せたくない所は、</span><span class="nb">撮ったあと黒くできます</span></small></div></div>
+<div class="anshin-step"><svg viewBox="0 0 96 72" aria-hidden="true"><rect x="32" y="4" width="32" height="64" rx="7" fill="#fff" stroke="#236376" stroke-width="3"/><path d="M42 31v-4a6 6 0 0 1 12 0v4" stroke="#2e7d5b" stroke-width="3" fill="none"/><rect x="38" y="31" width="20" height="15" rx="3" fill="#2e7d5b"/><path d="M44 60h8" stroke="#236376" stroke-width="3" stroke-linecap="round"/></svg>
+<div><b><span class="nb">登録した内容は、</span><span class="nb">このスマホの中</span></b><small><span class="nb">アカウント登録なし。</span><span class="nb">名前もメールも</span><span class="nb">預かりません</span></small></div></div>
+<button type="button" class="primary anshin-ok" id="anshin-ok">わかった</button>
 <button type="button" class="text-link anshin-more" id="anshin-more">くわしい説明を見る</button>
+</div></div>
+<div class="modal-back" id="modal-cardday"><div class="modal-box cardday-box" role="dialog" aria-labelledby="cardday-title">
+<button type="button" class="x-close" id="cardday-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+<h3 id="cardday-title">免許証・マイナンバーカード</h3>
+<p class="cardday-lead"><b class="nb">写真は使いません。</b><span class="nb">誕生日と年を選ぶだけです。</span></p>
+<div class="seg cardday-kind" id="cardday-kind" role="group" aria-label="カードの種類">
+  <button type="button" data-kind="運転免許" class="active">運転免許証</button>
+  <button type="button" data-kind="マイナンバーカード">マイナンバーカード</button>
 </div>
-<div class="anshin-dots" aria-hidden="true"><i class="on" id="anshin-d1"></i><i id="anshin-d2"></i></div>
+<div class="cardday-field" id="cardday-person-row" hidden>
+  <label for="cardday-person">登録する人</label>
+  <select id="cardday-person"></select>
+</div>
+<div class="cardday-field">
+  <div class="cardday-label" id="cardday-bday-label">誕生日</div>
+  <div class="date-select-row" role="group" aria-labelledby="cardday-bday-label">
+    <select id="cardday-month" aria-label="誕生日の月"></select>
+    <select id="cardday-day" aria-label="誕生日の日"></select>
+  </div>
+</div>
+<div class="cardday-field">
+  <label for="cardday-year" id="cardday-year-label">期限の年</label>
+  <select id="cardday-year"></select>
+  <p class="cardday-hint" id="cardday-year-hint"></p>
+</div>
+<div class="cardday-field" id="cardday-cert-row" hidden>
+  <label for="cardday-cert">電子証明書の期限の年</label>
+  <select id="cardday-cert"></select>
+  <p class="cardday-hint">マイナ保険証などに使うもの。5年ごとで、カードの期限とは別です。</p>
+</div>
+<div class="cardday-result" id="cardday-result" aria-live="polite"></div>
+<button type="button" class="primary" id="cardday-save" disabled>登録する</button>
 </div></div>
 <div class="modal-back" id="modal-notice"><div class="modal-box"><button type="button" class="x-close" id="notice-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><h3 id="notice-title">登録できました！</h3><p>期限が近づいたら、通知でお知らせします。</p><button type="button" class="primary" id="btn-notice-enable">通知をオンにする</button></div></div>
 <div class="modal-back" id="modal-settings">
@@ -1865,7 +1909,7 @@
       <button type="button" id="btn-open-trip-2"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 13.5 4 11l1.5-1.5 6.5 1 5.5-5.5a1.5 1.5 0 0 1 2.1 2.1L14 12.6l1 6.5L13.5 20.5l-2.5-6.5-3 2 .5 2.5-1.5 1.5-1.5-3-3-1.5L4 14z"/></svg><span>旅行に行く前に、これ大丈夫？</span></button>
     </div>
 
-    <div class="privacy-note" style="margin-top:18px"><details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p></details></div>
+    <div class="privacy-note" style="margin-top:18px"><details class="privacy-details"><summary>登録内容と写真の扱い</summary><p>登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は日付を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。<br>免許証・マイナンバーカードは、写真を使わずに登録できます。</p></details></div>
     <p class="version-note">版 <span id="app-version">-</span><button type="button" class="text-link" id="btn-force-update">最新に更新する</button></p>
   </div>
 </div>
@@ -1887,38 +1931,33 @@
       <button type="button" class="x-close" id="btn-security-close" aria-label="閉じる"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="guide-body">
-      <p class="qa-lead">心配になりやすいことに、先にお答えします。</p>
+      <p class="qa-lead">よく聞かれることに、お答えします。</p>
       <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>黒く消した所は、はがせる？</h5></div>
-        <p class="qa-answer">はがせません。</p>
-        <p>上に貼ったシールではありません。写真の点そのものを黒で上書きしてから、新しい1枚として書き出して送っています。送った写真には、消した所の元の文字や顔のデータが入っていません。</p>
+        <div class="guide-step-head"><div class="guide-step-num">1</div><h5>免許証やマイナンバーカードの写真は？</h5></div>
+        <p class="qa-answer">撮りません。送りません。</p>
+        <p>ホームの左上「免許証・マイナ」から、誕生日と年を選ぶだけで登録できます。免許証の期限は誕生日の1か月後、マイナンバーカードと電子証明書の期限は誕生日なので、カードに書かれた日付と同じになります。誕生日は計算に使うだけで、保存しません。</p>
       </div>
       <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>今のAIなら、戻せるのでは？</h5></div>
-        <p class="qa-answer">戻せません。</p>
-        <p>モザイクやぼかしは元の情報が少し残るので、AIで推測できることがあります。トルマモは真っ黒で上書きするので、手がかりが何も残りません。AIが「それらしく描く」ことはできても、それは作り話の絵で、本物の名前・住所・番号・顔は出てきません。</p>
+        <div class="guide-step-head"><div class="guide-step-num">2</div><h5>はがきやお便りの写真は、何に使う？</h5></div>
+        <p class="qa-answer">期限の日付を読むためだけです。</p>
+        <p>トルマモのサーバーを通って AI（OpenAI）へ送り、日付や内容を読み取ります。トルマモのサーバーには、写真を保存しません。OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。</p>
       </div>
       <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>消す前の写真は、どこにある？</h5></div>
-        <p class="qa-answer">スマホの中に、数秒だけ。</p>
-        <p>送る前に確かめる画面（2.5秒）と「止めて直す」のために、アプリの作業用の場所に一時的に置きます。保存はせず、どこにも送りません。画面を閉じると消えます。</p>
+        <div class="guide-step-head"><div class="guide-step-num">3</div><h5>宛名などは、写さないとだめ？</h5></div>
+        <p class="qa-answer">書類の名前と日付が写れば読めます。</p>
+        <p>書類ぜんぶを写す必要はありません。写ってしまった所は、撮ったあとの画面で「隠してから送る」を押すと、黒く塗ってから送れます。黒く塗った所は、写真の中身ごと塗りつぶすので、送った写真には元の文字が残りません。</p>
       </div>
       <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>送った写真は、どうなる？</h5></div>
-        <p class="qa-answer">トルマモには残しません。</p>
-        <p>文字を読むためだけに AI（OpenAI）へ送ります。AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</p>
+        <div class="guide-step-head"><div class="guide-step-num">4</div><h5>撮った場所は分かる？</h5></div>
+        <p class="qa-answer">分かりません。</p>
+        <p>写真は送る前に、このスマホの中で描き直してから送るので、撮った場所（位置情報）や機種の記録は付きません。</p>
       </div>
       <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>もし、途中や保管先で盗まれたら？</h5></div>
-        <p class="qa-answer">誰のものかは、分かりません。</p>
-        <p>通信は暗号化（https）しています。それでも見られた場合に分かるのは、消していない所（期限の日付・免許の帯の色・条件・交付した都道府県など）だけです。撮った場所の記録（位置情報）も付けていません。</p>
-      </div>
-      <div class="guide-step qa">
-        <div class="guide-step-head"><div class="guide-step-num">6</div><h5>登録した内容は？</h5></div>
-        <p class="qa-answer">スマホの中に、暗号化して保存。</p>
+        <div class="guide-step-head"><div class="guide-step-num">5</div><h5>登録した内容は？</h5></div>
+        <p class="qa-answer">このスマホの中に、暗号化して保存。</p>
         <p>アカウント登録はなく、名前もメールアドレスも預かりません。家族への共有は、「家族に送る」を押したものだけを暗号化して渡します。</p>
       </div>
-      <div class="guide-callout warn"><b>気をつけてほしいこと</b>カードが大きく斜めだったりずれていたりすると、黒い四角の端から一部がのぞくことがあります。送る前の画面で気になったら「止めて直す」で直せます。ふつうの「撮って登録する」は隠さずに送ります。写真を使いたくない時は「手で入力」で登録できます。</div>
+      <div class="guide-callout warn"><b>写真を使いたくない時は</b>「手で入力」でも登録できます。どの書類も、写真なしで使えます。</div>
       <div class="guide-callout bad"><b>ひとつだけ、お願い</b>暗証番号を忘れると、私たちでも中身を取り出せません（鍵を持っていないためです）。最初に表示される「合言葉」は、必ず控えておいてください。</div>
     </div>
   </div>
@@ -2231,19 +2270,19 @@
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">?</div><h5>トルマモって何？</h5></div>
-        <p>免許証・車検・納付書・学校のプリントなど、期限のあるものを写真で登録しておくと、期限が近づいたときに「次にやること」まで教えてくれます。</p>
+        <p>車検・納付書・保険・学校のプリントなど、期限のあるものを写真で登録しておくと、期限が近づいたときに「次にやること」まで教えてくれます。</p>
         <div class="guide-callout good"><b>「あと〇日です」で終わらせない</b>持ち物・手順・費用や、「どうすればいい？」への答えまで出します。</div>
       </div>
 
       <div class="guide-step">
         <div class="guide-step-head"><div class="guide-step-num">1</div><h5>撮って登録する</h5></div>
         <p>ホームの <svg class="ic ic-t" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 8.3h2.9l1.5-2.4h6.8l1.5 2.4h2.9c.8 0 1.4.6 1.4 1.4v8.3c0 .8-.6 1.4-1.4 1.4H4.2c-.8 0-1.4-.6-1.4-1.4V9.7c0-.8.6-1.4 1.4-1.4z"/><circle cx="12" cy="13.4" r="3.4"/></svg> <b>撮って登録する</b> を押して、書類を撮るだけ。名前・種類・期限日・だれのものかを読み取って、登録の札にまとめます。内容を見て「登録する」を押せば完了です。<br>クーポン・ポイントの失効・食品や薬の期限・チケットは、撮った瞬間にそのまま登録されます（確認画面なし。まちがえたらその場で「取り消す」）。使い終わったら「使った」で一覧から消えます。</p>
-        <div class="guide-callout warn">登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は文字を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>AI 側では不正利用の監視のため最長30日保管され、その後消えます。学習には使われません。</div>
+        <div class="guide-callout warn">登録した内容（期限・名前・メモ）は、このスマホの中に暗号化して保存します。<br>写真は日付を読むためだけに AI（OpenAI）へ送ります。トルマモのサーバーには残しません。<br>OpenAI では不正利用の確認のために保管され、通常30日以内に消されます。学習には使われません。<br>免許証・マイナンバーカードは、写真を使わずに登録できます。</div>
         <div class="guide-callout good"><b>きれいに読み取るコツ</b>
           <ul style="margin:6px 0 0;padding-left:18px">
-            <li><b>真上から</b>、紙の全体が入るように（斜めだと文字がゆがみます）</li>
+            <li><b>真上から</b>、書類の名前と期限の日付が入るように（ぜんぶ写さなくても読めます。斜めだと文字がゆがみます）</li>
             <li><b>明るい所で、影を入れない</b>（自分の影や手の影が期限の上にかかりやすい）</li>
-            <li><b>期限の部分がはっきり見える</b>ように。免許証や保険証は、光の反射で日付が飛ぶことがあるので少し角度を変える</li>
+            <li><b>期限の部分がはっきり見える</b>ように。つやのある紙やカードは、光の反射で日付が飛ぶことがあるので少し角度を変える</li>
             <li>ぼけていたら撮り直す。<b>1回タップしてピントを合わせて</b>から撮る</li>
           </ul>
         </div>
@@ -2307,7 +2346,7 @@
   </div>
 </div>
 
-<script src="crypto.js?v=2026-10-12a"></script>
+<script src="crypto.js?v=2026-10-14a"></script>
 <script>
 // ============================================================
 // 判定ロジック（デスクトップ版 src/logic.py と同じ内容のJS移植）
@@ -3541,7 +3580,7 @@ function 今日やることを描画する(items){
         <button type="button" onclick="おためしで登録する()">おためしで1つ入れてみる</button>
         <button type="button" class="tip-btn" data-tip="tip-welcome" aria-expanded="false" aria-label="くわしく">?</button>
       </div>
-      <div class="tip-body" id="tip-welcome" hidden>牛乳・クーポン・はがき・免許証、期限のあるものなら何でも。「おためし」は写真なしで見本が1つ入るだけで、あとで消せます。</div>
+      <div class="tip-body" id="tip-welcome" hidden>牛乳・クーポン・はがき・お便り、期限のあるものなら何でも。「おためし」は写真なしで見本が1つ入るだけで、あとで消せます。</div>
     </div>`;
     マスコットを更新する();
     return;
@@ -5244,7 +5283,7 @@ function 読み取り結果を見せる(結果){
     出し入れ("read-past", false);
     出し入れ("read-nodate", true);
     document.getElementById("read-nodate").innerHTML = window.__最後は隠して送った
-      ? "<b>期限の日付が読み取れませんでした。</b>黒く塗った所に期限が入っていたかもしれません。もう一度「隠して撮る」で、<b>期限の日付は残して</b>顔・番号・住所だけを隠すか、「直してから登録」で日付を選んでください。"
+      ? "<b>期限の日付が読み取れませんでした。</b>黒くした所に期限が入っていたかもしれません。<b>期限の日付は見えるまま</b>撮り直すか、「直してから登録」で日付を選んでください。"
       : "<b>期限の日付が読み取れませんでした。</b>影・ぼけ・見切れが原因のことが多いです。期限の部分がはっきり写るように<b>真上から明るい所で</b>撮り直すか、「直してから登録」で日付を選んでください。";
   }
 
@@ -5532,11 +5571,7 @@ document.getElementById("read-ok").addEventListener("click", () => {
 document.getElementById("photo-input").addEventListener("change", 写真を読み取る);
 document.getElementById("photo-input-album").addEventListener("change", 写真を読み取る);
 document.getElementById("photo-input-mask").addEventListener("change", 写真を読み取る);
-document.getElementById("btn-photo-mask").addEventListener("click", () => {
-  // カメラが使えるなら「わくに合わせて撮る」。使えない環境では、撮ってから自分で隠す
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) カードを枠で撮る();
-  else document.getElementById("photo-input-mask").click();
-});
+document.getElementById("btn-photo-mask").addEventListener("click", () => 写真なし登録.開く());
 
 // ============================================================
 // カードを枠に合わせて撮る（運転免許証・マイナンバーカード）
@@ -5880,13 +5915,25 @@ const カード撮影 = (() => {
   function 撮る(){
     if(カメラ不可 || !video.videoWidth || !確認.hidden) return;
     if(モード === "ふつう"){
-      // 映っているまま1枚。長い辺2400pxまで
+      // 映っているまま1枚。長い辺2400pxまで。
+      // 送る前に3秒ほど写真を見せる（何が送られるかが見えると安心できる）。そのまま待てば自動で読む。
+      // 見せたくない所が写っていたら「隠してから送る」で黒くできる（止めたい時だけ押す）。
       const k = Math.min(1, 2400 / Math.max(video.videoWidth, video.videoHeight));
       const c = document.createElement("canvas"); c.width = Math.round(video.videoWidth * k); c.height = Math.round(video.videoHeight * k);
       c.getContext("2d").drawImage(video, 0, 0, c.width, c.height);
-      閉じる();
-      window.__最後は隠して送った = false;
-      画像を読み取って登録する(c);
+      撮った = { 画像: c, ふつう: true };
+      if(navigator.vibrate) try { navigator.vibrate(40); } catch(e) {}
+      確認画像.src = c.toDataURL("image/jpeg", 0.8);
+      確認画像.alt = "撮った写真";
+      $("cc-check-text").textContent = "この写真から、日付を読みます";
+      $("cc-fix").textContent = "隠してから送る";
+      確認.hidden = false;
+      確認バー.classList.remove("go"); void 確認バー.offsetWidth; 確認バー.classList.add("go");
+      送信タイマー = setTimeout(() => {
+        送信タイマー = null; 閉じる();
+        window.__最後は隠して送った = false;
+        画像を読み取って登録する(c);
+      }, 3500);
       return;
     }
     解析を止める();
@@ -5895,6 +5942,9 @@ const カード撮影 = (() => {
     const 種 = カードの種類を見分ける(画像) || カードの種類を見分ける(画像, true);
     const 塗った = 塗る(画像, 種);
     撮った = { 画像, 種, 塗った };
+    確認画像.alt = "黒く塗った写真";
+    $("cc-check-text").textContent = "黒い所を隠して、自動で送ります";
+    $("cc-fix").textContent = "止めて直す";
     if(navigator.vibrate) try { navigator.vibrate(40); } catch(e) {}
     確認画像.src = 塗った.toDataURL("image/jpeg", 0.85);
     確認.hidden = false;
@@ -5909,6 +5959,19 @@ const カード撮影 = (() => {
   // 「直す」：黒い四角を手で動かせる画面へ（向き・種類の切り替えもここ）
   async function 直す(){
     if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
+    if(撮った.ふつう){
+      画面.hidden = true;
+      const 結果 = await 隠す画面を出す(撮った.画像, {
+        題: "見せたくない所に、四角や丸を置く",
+        注意: "<b>期限の日付は見えるままに。</b>宛名や番号など、見せたくない所だけを黒く。",
+        やめる文字: "撮り直す",
+      });
+      if(!結果){ 開く("ふつう"); return; }
+      閉じる();
+      window.__最後は隠して送った = true;
+      await 画像を読み取って登録する(結果);
+      return;
+    }
     let { 画像, 種 } = 撮った;
     画面.hidden = true;
     for(;;){
@@ -5943,8 +6006,10 @@ const カード撮影 = (() => {
   $("cc-shutter").addEventListener("click", 撮る);
   $("cc-retake").addEventListener("click", () => {
     if(送信タイマー){ clearTimeout(送信タイマー); 送信タイマー = null; }
-    確認.hidden = true; 見張りを始める();
+    確認.hidden = true;
+    if(モード !== "ふつう") 見張りを始める();
   });
+  $("cc-card").addEventListener("click", () => { 閉じる(); 写真なし登録.開く(); });
   $("cc-fix").addEventListener("click", 直す);
   $("cc-other").addEventListener("click", () => {
     閉じる();
@@ -5952,28 +6017,111 @@ const カード撮影 = (() => {
   });
   return { 開く, 閉じる };
 })();
-function 安心シートを出す(次にすること){
+// 「?」で開く1枚。タイムズカーの件（2026-09）のあと、免許証を撮ること自体が怖がられている。
+// 「盗まれたら」「AIで戻せる？」のような言葉は、持っていなかった不安まで呼び起こすので使わない。
+// 何をして、何をしないかだけを、短く見せる。
+function 安心シートを出す(){
   const 画面 = document.getElementById("modal-anshin");
-  const ページ = n => {
-    document.getElementById("anshin-p1").hidden = n !== 1; document.getElementById("anshin-p2").hidden = n !== 2;
-    document.getElementById("anshin-d1").classList.toggle("on", n === 1); document.getElementById("anshin-d2").classList.toggle("on", n === 2);
-  };
   const くん = document.getElementById("anshin-kun");
-  if(くん && !くん.querySelector(".kun")) くん.insertAdjacentHTML("afterbegin", トルマモくんSVG("よろこび"));
-  const 閉じる = () => { 画面.classList.remove("show"); try { localStorage.setItem("torumamo_anshin_seen", "1"); } catch(e) {} if(次にすること) 次にすること(); };
-  document.getElementById("anshin-next").onclick = () => ページ(2);
+  if(くん && !くん.querySelector(".kun")) くん.insertAdjacentHTML("afterbegin", トルマモくんSVG("やさしい"));
+  const 閉じる = () => 画面.classList.remove("show");
   document.getElementById("anshin-ok").onclick = 閉じる;
-  document.getElementById("anshin-close").onclick = () => 画面.classList.remove("show");   // ×はやめるだけ（カメラは開かない）
-  document.getElementById("anshin-more").onclick = () => { 画面.classList.remove("show"); const b = document.getElementById("btn-open-security"); if(b) b.click(); };
-  ページ(1);
+  document.getElementById("anshin-close").onclick = 閉じる;
+  document.getElementById("anshin-more").onclick = () => { 閉じる(); const b = document.getElementById("btn-open-security"); if(b) b.click(); };
   画面.classList.add("show");
 }
 document.getElementById("btn-anshin").addEventListener("click", () => 安心シートを出す());
-// はじめて「隠して撮る」を使う時だけ、先にシートを見せる（2回目からはすぐカメラ）
-function カードを枠で撮る(){
-  let 見た = false; try { 見た = localStorage.getItem("torumamo_anshin_seen") === "1"; } catch(e) {}
-  if(見た) カード撮影.開く(); else 安心シートを出す(() => カード撮影.開く());
-}
+
+// ============================================================
+// 免許証・マイナンバーカードは、写真を使わずに登録する（2026-10-14）
+// タイムズカーの件で「免許証を撮って送るなんて」と感じる人が増えた。撮らないのがいちばんの安心。
+// 免許証の期限は「誕生日の1か月後」、マイナンバーカードと電子証明書の期限は「誕生日」。
+// だから誕生日（月・日）と年を選ぶだけで、カードに書かれた日付と同じになる。
+// マイナ免許証（カードに免許の期限が書かれていない）でも同じ入れ方でよい。
+// 誕生日はこの画面の中だけで使い、保存しない。
+// ============================================================
+const 写真なし登録 = (() => {
+  const $ = id => document.getElementById(id);
+  const 画面 = $("modal-cardday");
+  let 種類 = "運転免許";
+  const 曜 = ["日","月","火","水","木","金","土"];
+  const 月末 = (y, m) => new Date(y, m, 0).getDate();
+  function 選択肢(el, 先頭, 並び){
+    const 今 = el.value;
+    el.innerHTML = `<option value="">${先頭}</option>` + 並び.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+    if([...el.options].some(o => o.value === 今)) el.value = 今;
+  }
+  function 年の並び(){
+    const y0 = new Date().getFullYear(), 並び = [];
+    for(let y = y0; y <= y0 + 10; y++) 並び.push([y, `${y}年（令和${y - 2018}年）`]);
+    return 並び;
+  }
+  function 日付(y, m, d){ return y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+  // 選んだ年の期限。免許証は誕生日の1か月後（12月生まれは1月）、ない日は月末
+  function 期限(年){
+    const m = +$("cardday-month").value, d = +$("cardday-day").value;
+    if(!年 || !m || !d) return "";
+    let 月 = m;
+    if(種類 === "運転免許") 月 = m === 12 ? 1 : m + 1;
+    return 日付(年, 月, Math.min(d, 月末(年, 月)));
+  }
+  function 見せる(iso){
+    const t = new Date(iso + "T00:00:00");
+    return `${t.getFullYear()}年${t.getMonth() + 1}月${t.getDate()}日（${曜[t.getDay()]}）`;
+  }
+  function 更新(){
+    const m = +$("cardday-month").value;
+    選択肢($("cardday-day"), "日", Array.from({ length: m ? 月末(2024, m) : 31 }, (_, i) => [i + 1, (i + 1) + "日"]));
+    const 免許 = 種類 === "運転免許";
+    $("cardday-year-label").textContent = 免許 ? "免許証の期限の年" : "カードの期限の年";
+    $("cardday-year-hint").textContent = 免許
+      ? "免許証の「令和○年○月○日まで有効」の年です。マイナ免許証の方は、更新のはがきやマイナポータルで分かります。"
+      : "カードの表の「○年○月○日まで有効」の年です。";
+    $("cardday-cert-row").hidden = 免許;
+    $("cardday-kind").querySelectorAll("button").forEach(b => b.classList.toggle("active", b.dataset.kind === 種類));
+    const 日 = 期限(+$("cardday-year").value);
+    const 証明書 = 免許 ? "" : 期限(+$("cardday-cert").value);
+    let html = "";
+    if(日){
+      html = `<small>${免許 ? "免許証の期限" : "カードの期限"}</small><b>${見せる(日)}まで</b>`;
+      if(証明書) html += `<small style="margin-top:6px">電子証明書の期限</small><b>${見せる(証明書)}まで</b>`;
+      if(日 < 日付の札()) html += `<small class="past">この日はもう過ぎています</small>`;
+    }
+    $("cardday-result").innerHTML = html;
+    $("cardday-save").disabled = !日;
+  }
+  function 開く(){
+    選択肢($("cardday-month"), "月", Array.from({ length: 12 }, (_, i) => [i + 1, (i + 1) + "月"]));
+    選択肢($("cardday-year"), "年を選ぶ", 年の並び());
+    選択肢($("cardday-cert"), "わからない・あとで", 年の並び());
+    const 人 = 人物一覧を読む();
+    $("cardday-person-row").hidden = !人.length;
+    選択肢($("cardday-person"), "（未設定）", 人.map(p => [エスケープ(p.id), エスケープ(p.name)]));
+    if(!$("cardday-person").value && 選択中の人物ID) $("cardday-person").value = 選択中の人物ID;
+    更新();
+    画面.classList.add("show");
+  }
+  const 閉じる = () => 画面.classList.remove("show");
+  $("cardday-kind").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; 種類 = b.dataset.kind; 更新(); });
+  ["cardday-month", "cardday-day", "cardday-year", "cardday-cert"].forEach(id => $(id).addEventListener("change", 更新));
+  $("cardday-close").addEventListener("click", 閉じる);
+  $("cardday-save").addEventListener("click", async () => {
+    const 日 = 期限(+$("cardday-year").value);
+    if(!日) return;
+    const 証明書 = 種類 === "マイナンバーカード" ? 期限(+$("cardday-cert").value) : "";
+    編集終了();
+    $("f-name").value = 種類 === "運転免許" ? "運転免許証" : "マイナンバーカード";
+    $("f-category").value = 種類;
+    期限日を設定する(日);
+    免許欄の表示を更新する();
+    $("f-person").value = $("cardday-person").value || "";
+    // 電子証明書も一緒に登録する（保存の処理は、写真から読んだときと同じ形で受け取る）
+    読み取った内容 = (証明書 && 証明書 !== 日) ? { 電子証明書の期限: 証明書 } : null;
+    閉じる();
+    await 保存ボタンを押した();
+  });
+  return { 開く, 閉じる };
+})();
 
 // ============================================================
 // 隠してから送る
@@ -7803,7 +7951,7 @@ document.addEventListener("keydown", e => { if(e.key === "Tab" || e.key.startsWi
 // ---- 版の表示と、手動での更新 ----
 // sw.js の 版 と同じ文字列にしておくこと。家族に「設定を開いて版を教えて」と
 // 頼めば、その端末が新しい版に入れ替わったかどうかがすぐ分かる。
-const アプリの版 = "2026-10-12a";
+const アプリの版 = "2026-10-14a";
 document.getElementById("app-version").textContent = アプリの版;
 
 document.getElementById("btn-force-update").addEventListener("click", async () => {
@@ -7852,6 +8000,6 @@ if("serviceWorker" in navigator && !ストア版か){
 }
 </script>
 <!-- ストア版（iPhone/Android アプリ）でだけ動く差し替え。ブラウザ版では何もしない -->
-<script src="native.js?v=2026-10-12a"></script>
+<script src="native.js?v=2026-10-14a"></script>
 </body>
 </html>
